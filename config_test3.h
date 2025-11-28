@@ -168,6 +168,7 @@ namespace Config {
 
             // --- 场景元素布局 (x_center, y_center, w, h) ---
 
+<<<<<<< HEAD
             // 入口场景
             const QRect BTN_ENTRANCE_ACTION(678, 460, 200, 50);
 
