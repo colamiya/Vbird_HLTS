@@ -11,6 +11,36 @@
 #include <QDropEvent>
 #include <functional>
 
+// --- Helper Functions ---
+
+/**
+ * @brief Sets the geometry of a widget based on its center point.
+ * @param widget The widget to position.
+ * @param rect A QRect where x, y are the CENTER coordinates, and width, height are dimensions.
+ */
+inline void setGeometryCentered(QWidget *widget, const QRect &rect) {
+    if (!widget) return;
+    int w = rect.width();
+    int h = rect.height();
+    int x = rect.x() - (w / 2);
+    int y = rect.y() - (h / 2);
+    widget->setGeometry(x, y, w, h);
+}
+
+/**
+ * @brief Sets the geometry of a widget based on its center point.
+ * @param widget The widget to position.
+ * @param centerX Center X coordinate.
+ * @param centerY Center Y coordinate.
+ * @param w Width.
+ * @param h Height.
+ */
+inline void setGeometryCentered(QWidget *widget, int centerX, int centerY, int w, int h) {
+    if (!widget) return;
+    widget->setGeometry(centerX - (w / 2), centerY - (h / 2), w, h);
+}
+
+
 // A label that initiates a drag operation (Source)
 // Used in Warehouse to drag items FROM the shelf TO the cart
 class DragSourceLabel : public QLabel {

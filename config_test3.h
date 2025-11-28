@@ -10,13 +10,17 @@
 /**
  * @brief 测试3 (RPG 实训) 配置
  * 包含所有场景图片路径、按钮坐标、尺寸、文本、颜色等详细配置。
+ * 作用范围: Test3 模块
+ *
+ * 注意: 所有坐标 (x, y) 均代表控件的**中心点**位置，而非左上角。
+ * Note: All coordinates (x, y) represent the **center** point of the widget, not the top-left.
  */
 namespace Config {
     namespace Test3 {
 
         // --- 资源路径 (Images) ---
         namespace Images {
-            // 场景背景
+            // 场景背景图
             const QString SCENE_ENTRANCE = ":/source/Test3/入口.jpg";
             const QString SCENE_HALLWAY = ":/source/Test3/员工通道走廊.jpg";
             const QString SCENE_OFFICE = ":/source/Test3/办公室.png";
@@ -34,7 +38,7 @@ namespace Config {
             const QString UI_DIRTY_LINEN = ":/source/Test3/脏布草.jpg";
             const QString UI_TASK_SHEET = ":/source/Test3/申领表.png";
 
-            // 物品对应的图标路径映射
+            // 物品对应的图标路径映射 (Key: 物品名, Value: 路径)
             const QMap<QString, QString> ITEMS = {
                 {"大床单", ":/source/Test3/大床单.png"},
                 {"大被套", ":/source/Test3/大被套.png"},
@@ -48,7 +52,7 @@ namespace Config {
 
         // --- 界面文本 (Texts) ---
         namespace Texts {
-            // 侧边栏
+            // 侧边栏文本
             const QString LBL_LOCATION_PREFIX = "当前位置:\n";
             const QString LBL_TASK_TITLE = "当前任务:";
             const QString BTN_VIEW_TASK_SHEET = "查看申领表";
@@ -57,7 +61,10 @@ namespace Config {
             const QString LBL_CART_HAS_ITEMS = "有布草";
             const QString LBL_CART_EMPTY = "空车";
 
-            // 场景按钮文本
+            // 返回主菜单按钮
+            const QString BTN_TEXT_BACK_TO_MENU = "返回主界面";
+
+            // 场景交互按钮文本
             const QString BTN_ENTER_HOTEL = "进入酒店";
             const QString BTN_GO_HOME = "下班回家";
             const QString LBL_CLOCKED_OFF = "已打卡下班";
@@ -98,6 +105,10 @@ namespace Config {
             const QString BTN_RED = "background-color: #e74c3c; color: white; font-size: 18px; font-weight: bold;"; // 打卡下班
             const QString BTN_YELLOW = "background-color: #f1c40f; color: black;"; // 汇报工作
             const QString BTN_BLUE = "font-size: 18px; background-color: #3498db; color: white;"; // 拿取布草
+            const QString BTN_RETURN_MENU = "background-color: #c0392b; color: white; font-weight: bold;"; // 返回主菜单 (深红)
+
+            // 场景切换按钮通用样式
+            const QString BTN_SCENE_DEFAULT = "background-color: #3498db; color: white; border: none; padding: 10px;";
 
             // 货架区域样式 (半透明灰色背景)
             const QString SHELF_AREA = "background-color: rgba(200, 200, 200, 0.5); border: 2px solid #bdc3c7; border-radius: 4px;";
@@ -107,11 +118,13 @@ namespace Config {
         }
 
         // --- 坐标与尺寸 (Geometry) ---
+        // 注意: 所有 (x, y) 坐标均为控件中心点
         namespace Geometry {
             // 全局尺寸
             const QSize CENTER_PANEL_SIZE(896, 720);
             const int SIDEBAR_WIDTH = 192;
             const int TASK_LIST_HEIGHT = 100;
+            const QSize RETURN_BTN_SIZE(120, 40);
 
             // 图标尺寸
             const QSize ICON_CART(150, 150);
@@ -119,9 +132,9 @@ namespace Config {
             const QSize ICON_SHELF_ITEM(80, 80);
             const QSize ICON_DIRTY_DRAG(100, 100);
 
-            // --- 场景元素布局 (x, y, w, h) ---
+            // --- 场景元素布局 (x_center, y_center, w, h) ---
 
-            // 入口
+            // 入口场景
             const QRect BTN_ENTRANCE_ACTION(350, 600, 200, 50);
 
             // 员工通道
@@ -143,7 +156,8 @@ namespace Config {
 
             // 仓库(货架)
             const QRect BTN_SHELF_BACK(50, 600, 150, 50);
-            // 货架物品区域 (x, y, w, h)
+
+            // 货架物品区域 - 仓库专用 (中心坐标)
             const QRect AREA_SHEET(50, 150, 150, 150);//大床单
             const QRect AREA_DUVET(250, 150, 150, 150);//大被套
             const QRect AREA_S_DUVET(450, 150, 150, 150);//小被套
@@ -155,11 +169,24 @@ namespace Config {
             const QRect BTN_ELEVATOR_ENTER(350, 300, 200, 100);
             const QRect BTN_ELEVATOR_BACK(100, 600, 150, 50);
 
-            // 电梯内
-            const int ELEVATOR_BTN_X = 400;
-            const int ELEVATOR_BTN_START_Y = 100;
-            const int ELEVATOR_BTN_SPACING = 100;
+            // 电梯内 (按钮面板)
             const QSize ELEVATOR_BTN_SIZE(80, 80);
+            // 单独设置每个电梯按钮的位置 (中心点)
+            // G(0), 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+            const QPoint BTN_FLOOR_G(280, 500); // 底层
+            const QPoint BTN_FLOOR_1(280, 400);
+            const QPoint BTN_FLOOR_2(400, 400);
+            const QPoint BTN_FLOOR_3(280, 300);
+            const QPoint BTN_FLOOR_4(400, 300);
+            const QPoint BTN_FLOOR_5(280, 200);
+            const QPoint BTN_FLOOR_6(400, 200);
+            const QPoint BTN_FLOOR_7(280, 100);
+            const QPoint BTN_FLOOR_8(400, 100);
+            const QPoint BTN_FLOOR_9(280, 80); // Adjusted Y for visibility
+            const QPoint BTN_FLOOR_10(400, 80); // Adjusted Y for visibility
+
+            // Map index to Point for convenience, or access directly
+            // We'll define a static helper in logic or use a map
 
             // 走廊
             const QRect BTN_CORRIDOR_LINEN(200, 200, 200, 100);
@@ -169,9 +196,18 @@ namespace Config {
             const QRect LBL_DIRTY_SOURCE(700, 400, 100, 100);
             const QRect BTN_LINEN_BACK(50, 600, 150, 50);
 
+            // 货架物品区域 - 楼层布草间专用 (中心坐标，位置与仓库不同)
+            // 可根据需要调整为不同位置
+            const QRect AREA_LINEN_SHEET(100, 150, 150, 150);//大床单
+            const QRect AREA_LINEN_DUVET(300, 150, 150, 150);//大被套
+            const QRect AREA_LINEN_S_DUVET(500, 150, 150, 150);//小被套
+            const QRect AREA_LINEN_PILLOW(100, 350, 150, 150);//枕巾
+            const QRect AREA_LINEN_GN_TOWEL(300, 350, 150, 150);//晚安巾
+            const QRect AREA_LINEN_TOWEL(500, 350, 150, 150);//毛巾
+
             // 申领表弹窗
             const QSize SHEET_DIALOG(600, 580);
-            // 申领表文字坐标 (x, y)
+            // 申领表文字坐标 (x, y) - 这里的坐标是绘图坐标，通常保持左上角基准，或按需调整
             const QPoint TXT_FLOOR(180, 65); //楼层
             const QPoint TXT_SHEET(288, 305); //大床单
             const QPoint TXT_DUVET(288, 375); //大被套

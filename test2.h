@@ -29,6 +29,7 @@ public:
 
 signals:
     void levelCompleted();
+    void levelCancelled();
     void logMessage(QString msg);
 
 private:
@@ -48,7 +49,7 @@ private:
     void handleOptionSelect(int index);
     void handleNextOrSubmit();
     void showQuizSummary();
-    void showImagePreview(QString imagePath);
+    void showImagePreview(QString imagePath, const QString &title);
 };
 
 #endif // TEST2_H
