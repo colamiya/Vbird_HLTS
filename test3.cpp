@@ -7,7 +7,7 @@
 #include <QFile>
 #include <cmath>
 #include <QtMath>
-#include <QMessageBox> // Add missing include
+#include <QMessageBox>
 #include "config.h"
 #include "utils.h"
 
@@ -55,11 +55,13 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     QPushButton *returnBtn = new QPushButton(Config::Test3::Texts::BTN_TEXT_BACK_TO_MENU);
     returnBtn->setFixedSize(Config::Test3::Geometry::RETURN_BTN_SIZE);
     returnBtn->setStyleSheet(Config::Test3::Styles::BTN_RETURN_MENU);
+    returnBtn->setCursor(Qt::PointingHandCursor);
     connect(returnBtn, &QPushButton::clicked, [this]() {
         QMessageBox::StandardButton reply;
         reply = QMessageBox::question(this, "确认退出", "确定要退出当前实训并返回主菜单吗？\n当前进度将不会保留。",
                                       QMessageBox::Yes|QMessageBox::No);
         if (reply == QMessageBox::Yes) {
+             reset(); // Reset state on exit
              emit levelCancelled();
         }
     });
@@ -76,6 +78,7 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
 
     QPushButton *viewTaskSheetBtn = new QPushButton(Config::Test3::Texts::BTN_VIEW_TASK_SHEET);
     viewTaskSheetBtn->setStyleSheet(QString("font-size: 12px; padding: 5px; %1").arg(Config::Test3::Styles::BTN_ORANGE));
+    viewTaskSheetBtn->setCursor(Qt::PointingHandCursor);
     connect(viewTaskSheetBtn, &QPushButton::clicked, [this](){
         // Get selected index
         int idx = taskListWidget->currentRow();
@@ -84,9 +87,10 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     });
     rightLayout->addWidget(viewTaskSheetBtn);
 
-    QLabel *invTitle = new QLabel(Config::Test3::Texts::LBL_INVENTORY_TITLE);
-    invTitle->setStyleSheet(Config::Test3::Styles::LBL_TITLE);
-    rightLayout->addWidget(invTitle);
+    // --- Inventory Title & List (Toggleable) ---
+    inventoryTitleLabel = new QLabel(Config::Test3::Texts::LBL_INVENTORY_TITLE);
+    inventoryTitleLabel->setStyleSheet(Config::Test3::Styles::LBL_TITLE);
+    rightLayout->addWidget(inventoryTitleLabel);
 
     inventoryListWidget = new DraggableListWidget();
     inventoryListWidget->setIconSize(Config::Test3::Geometry::ICON_INVENTORY); // Large icons
@@ -96,18 +100,79 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     };
     rightLayout->addWidget(inventoryListWidget);
 
+    // --- Elevator Panel (Sidebar, initially hidden) ---
+    elevatorPanelContainer = new QWidget();
+    QVBoxLayout *elePanelLayout = new QVBoxLayout(elevatorPanelContainer);
+    elePanelLayout->setContentsMargins(0,0,0,0);
+
+    QLabel *eleTitle = new QLabel(Config::Test3::Texts::LBL_ELEVATOR_PANEL_TITLE);
+    eleTitle->setStyleSheet(Config::Test3::Styles::LBL_TITLE);
+    elePanelLayout->addWidget(eleTitle);
+
+    // Grid of buttons
+    QGridLayout *btnGrid = new QGridLayout();
+    btnGrid->setSpacing(Config::Test3::Geometry::GRID_SPACING_ELEVATOR);
+
+    // Create G, 1-10 buttons
+    auto createEleBtn = [&](int floor) {
+        QString txt = (floor == 0) ? "G" : QString::number(floor);
+        QPushButton *btn = new QPushButton(txt);
+        btn->setFixedSize(Config::Test3::Geometry::SIZE_ELEVATOR_BTN_SIDEBAR);
+        btn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_ELEVATOR_FLOOR);
+        btn->setCursor(Qt::PointingHandCursor);
+        connect(btn, &QPushButton::clicked, [this, floor](){ handleElevatorButton(floor); });
+        return btn;
+    };
+
+    // Layout: 3 columns?
+    // G at bottom?
+    // Order: 10, 9, 8 ... 1, G
+    int row = 0;
+    int col = 0;
+    // 7, 8, 9, 10
+    // 4, 5, 6
+    // 1, 2, 3
+    // G
+
+    QList<int> floors = {10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
+    int c = 0;
+    int r = 0;
+    for(int f : floors) {
+        btnGrid->addWidget(createEleBtn(f), r, c);
+        c++;
+        if (c > 2) { c=0; r++; }
+    }
+
+    elePanelLayout->addLayout(btnGrid);
+    elePanelLayout->addStretch();
+
+    rightLayout->addWidget(elevatorPanelContainer);
+    elevatorPanelContainer->hide(); // Start hidden
+
     rpgLayout->addWidget(rightPanel);
 
     // Add RPG container to main layout
     mainGrid->addWidget(rpgContainer, 0, 0);
 
     // Init State
+    reset();
+}
+
+void Test3::reset() {
     gameState.currentScene = GameScene::Entrance;
     gameState.currentFloor = 0;
     gameState.hasClockedIn = false;
     gameState.hasReceivedTask = false;
     gameState.hasReported = false;
+    gameState.tasks.clear();
+    gameState.inventory.cleanItems.clear();
+    gameState.inventory.dirtyItemsCount = 0;
+    gameState.dirtyBagState.clear();
 
+    taskListWidget->clear();
+    inventoryListWidget->clear();
+
+    emit logMessage("测试3: 重置状态");
     renderScene();
 }
 
@@ -141,7 +206,9 @@ void Test3::updateRPGStatusLabels() {
         case GameScene::Office: locStr = "办公室"; break;
         case GameScene::Warehouse: locStr = "布草仓库(入口)"; break;
         case GameScene::WarehouseShelf: locStr = "布草仓库(货架)"; break;
-        case GameScene::ElevatorHall: locStr = "电梯厅"; break;
+        case GameScene::ElevatorHall:
+            locStr = (gameState.currentFloor == 0) ? "电梯厅 (G)" : QString("%1楼 电梯厅").arg(gameState.currentFloor);
+            break;
         case GameScene::ElevatorInside: locStr = "电梯内"; break;
         case GameScene::FloorCorridor: locStr = QString("%1楼 走廊").arg(gameState.currentFloor); break;
         case GameScene::LinenRoom: locStr = QString("%1楼 布草间").arg(gameState.currentFloor); break;
@@ -217,11 +284,22 @@ void Test3::refreshTaskList() {
 // --- Scene Rendering ---
 
 void Test3::renderScene() {
-    // Clear
+    // Clear Center Panel
     QList<QObject*> children = rpgCenterPanel->children();
     for (QObject *child : children) {
         if (child->isWidgetType()) static_cast<QWidget*>(child)->hide();
         child->deleteLater();
+    }
+
+    // Toggle Sidebar UI
+    if (gameState.currentScene == GameScene::ElevatorInside) {
+        inventoryListWidget->hide();
+        inventoryTitleLabel->hide();
+        elevatorPanelContainer->show();
+    } else {
+        elevatorPanelContainer->hide();
+        inventoryTitleLabel->show();
+        inventoryListWidget->show();
     }
 
     switch(gameState.currentScene) {
@@ -247,20 +325,25 @@ void Test3::renderEntrance() {
                         Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
     bg->show();
 
-    QPushButton *btn = new QPushButton(Config::Test3::Texts::BTN_ENTER_HOTEL, rpgCenterPanel);
-    setGeometryCentered(btn, Config::Test3::Geometry::BTN_ENTRANCE_ACTION);
-    btn->setStyleSheet(Config::Test3::Styles::BTN_SCENE_DEFAULT);
-
     if (gameState.hasReported && !gameState.hasClockedIn) {
-        btn->setText(Config::Test3::Texts::BTN_GO_HOME);
-        btn->setStyleSheet(Config::Test3::Styles::BTN_GREEN);
+        // Go Home State
+        QPushButton *btn = new QPushButton(Config::Test3::Texts::BTN_GO_HOME, rpgCenterPanel);
+        setGeometryCentered(btn, Config::Test3::Geometry::RECT_BTN_ENTRANCE_HOME);
+        btn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_ENTRANCE_HOME);
+        btn->setCursor(Qt::PointingHandCursor);
         connect(btn, &QPushButton::clicked, this, &Test3::handleGoHome);
+        btn->show();
     } else {
+        // Enter Hotel State
+        QPushButton *btn = new QPushButton(Config::Test3::Texts::BTN_ENTER_HOTEL, rpgCenterPanel);
+        setGeometryCentered(btn, Config::Test3::Geometry::RECT_BTN_ENTRANCE_ENTER);
+        btn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_ENTRANCE_ENTER);
+        btn->setCursor(Qt::PointingHandCursor);
         connect(btn, &QPushButton::clicked, [this]() {
             goToScene(GameScene::StaffHallway);
         });
+        btn->show();
     }
-    btn->show();
 }
 
 void Test3::renderStaffHallway() {
@@ -274,48 +357,58 @@ void Test3::renderStaffHallway() {
 
     if (!gameState.hasClockedIn) {
         if (gameState.hasReported) {
+            // Already reported, now leaving
             QLabel *lbl = new QLabel(Config::Test3::Texts::LBL_CLOCKED_OFF, rpgCenterPanel);
-            setGeometryCentered(lbl, Config::Test3::Geometry::LBL_HALLWAY_STATUS);
+            setGeometryCentered(lbl, Config::Test3::Geometry::RECT_LBL_HALLWAY_STATUS);
             lbl->setStyleSheet(Config::Test3::Styles::LBL_SUCCESS_GREEN);
             lbl->show();
 
             QPushButton *exitBtn = new QPushButton(Config::Test3::Texts::BTN_RETURN_ENTRANCE, rpgCenterPanel);
-            setGeometryCentered(exitBtn, Config::Test3::Geometry::BTN_HALLWAY_EXIT);
-            exitBtn->setStyleSheet(Config::Test3::Styles::BTN_SCENE_DEFAULT);
+            setGeometryCentered(exitBtn, Config::Test3::Geometry::RECT_BTN_HALLWAY_EXIT);
+            exitBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_HALLWAY_EXIT);
+            exitBtn->setCursor(Qt::PointingHandCursor);
             connect(exitBtn, &QPushButton::clicked, [this]() {
                 goToScene(GameScene::Entrance);
             });
             exitBtn->show();
         } else {
+             // Clock In Action
              QPushButton *clockInBtn = new QPushButton(Config::Test3::Texts::BTN_CLOCK_IN, rpgCenterPanel);
-             setGeometryCentered(clockInBtn, Config::Test3::Geometry::BTN_HALLWAY_CLOCK_ACTION);
+             setGeometryCentered(clockInBtn, Config::Test3::Geometry::RECT_BTN_HALLWAY_CLOCK);
+             clockInBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_HALLWAY_CLOCK);
+             clockInBtn->setCursor(Qt::PointingHandCursor);
              connect(clockInBtn, &QPushButton::clicked, this, &Test3::handleClockIn);
              clockInBtn->show();
         }
     } else {
         if (gameState.hasReported) {
+             // Clock Out Action
              QPushButton *clockOutBtn = new QPushButton(Config::Test3::Texts::BTN_CLOCK_OUT, rpgCenterPanel);
-             setGeometryCentered(clockOutBtn, Config::Test3::Geometry::BTN_HALLWAY_CLOCK_ACTION);
-             clockOutBtn->setStyleSheet(Config::Test3::Styles::BTN_RED);
+             setGeometryCentered(clockOutBtn, Config::Test3::Geometry::RECT_BTN_HALLWAY_CLOCK);
+             clockOutBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_HALLWAY_CLOCK_OFF);
+             clockOutBtn->setCursor(Qt::PointingHandCursor);
              connect(clockOutBtn, &QPushButton::clicked, this, &Test3::handleClockOut);
              clockOutBtn->show();
         }
 
         QPushButton *officeBtn = new QPushButton(Config::Test3::Texts::BTN_GO_OFFICE, rpgCenterPanel);
-        setGeometryCentered(officeBtn, Config::Test3::Geometry::BTN_HALLWAY_GO_OFFICE);
-        officeBtn->setStyleSheet(Config::Test3::Styles::BTN_SCENE_DEFAULT);
+        setGeometryCentered(officeBtn, Config::Test3::Geometry::RECT_BTN_HALLWAY_OFFICE);
+        officeBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_HALLWAY_OFFICE);
+        officeBtn->setCursor(Qt::PointingHandCursor);
         connect(officeBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::Office); });
         officeBtn->show();
 
         QPushButton *warehouseBtn = new QPushButton(Config::Test3::Texts::BTN_GO_WAREHOUSE, rpgCenterPanel);
-        setGeometryCentered(warehouseBtn, Config::Test3::Geometry::BTN_HALLWAY_GO_WAREHOUSE);
-        warehouseBtn->setStyleSheet(Config::Test3::Styles::BTN_SCENE_DEFAULT);
+        setGeometryCentered(warehouseBtn, Config::Test3::Geometry::RECT_BTN_HALLWAY_WAREHOUSE);
+        warehouseBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_HALLWAY_WAREHOUSE);
+        warehouseBtn->setCursor(Qt::PointingHandCursor);
         connect(warehouseBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::Warehouse); });
         warehouseBtn->show();
 
         QPushButton *elevatorBtn = new QPushButton(Config::Test3::Texts::BTN_GO_ELEVATOR, rpgCenterPanel);
-        setGeometryCentered(elevatorBtn, Config::Test3::Geometry::BTN_HALLWAY_GO_ELEVATOR);
-        elevatorBtn->setStyleSheet(Config::Test3::Styles::BTN_SCENE_DEFAULT);
+        setGeometryCentered(elevatorBtn, Config::Test3::Geometry::RECT_BTN_HALLWAY_ELEVATOR);
+        elevatorBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_HALLWAY_ELEVATOR);
+        elevatorBtn->setCursor(Qt::PointingHandCursor);
         connect(elevatorBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::ElevatorHall); });
         elevatorBtn->show();
     }
@@ -338,21 +431,25 @@ void Test3::renderOffice() {
 
     if (allTasksDone && !gameState.hasReported) {
         QPushButton *reportBtn = new QPushButton(Config::Test3::Texts::BTN_REPORT_WORK, rpgCenterPanel);
-        setGeometryCentered(reportBtn, Config::Test3::Geometry::BTN_OFFICE_MAIN_ACTION);
-        reportBtn->setStyleSheet(Config::Test3::Styles::BTN_YELLOW);
+        setGeometryCentered(reportBtn, Config::Test3::Geometry::RECT_BTN_OFFICE_ACTION);
+        reportBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_OFFICE_ACTION);
+        reportBtn->setCursor(Qt::PointingHandCursor);
         connect(reportBtn, &QPushButton::clicked, this, &Test3::handleReportWork);
         reportBtn->show();
     } else if (gameState.hasReported) {
          QLabel *lbl = new QLabel(Config::Test3::Texts::LBL_WORK_REPORTED, rpgCenterPanel);
-         setGeometryCentered(lbl, Config::Test3::Geometry::LBL_OFFICE_MSG);
+         setGeometryCentered(lbl, Config::Test3::Geometry::RECT_LBL_OFFICE_MSG);
          lbl->setStyleSheet(Config::Test3::Styles::LBL_SUCCESS_GREEN);
          lbl->show();
     } else {
         QPushButton *getTaskBtn = new QPushButton(Config::Test3::Texts::BTN_GET_TASK, rpgCenterPanel);
-        setGeometryCentered(getTaskBtn, Config::Test3::Geometry::BTN_OFFICE_MAIN_ACTION);
+        setGeometryCentered(getTaskBtn, Config::Test3::Geometry::RECT_BTN_OFFICE_ACTION);
+        getTaskBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_OFFICE_ACTION);
+        getTaskBtn->setCursor(Qt::PointingHandCursor);
         if (gameState.hasReceivedTask) {
             getTaskBtn->setEnabled(false);
             getTaskBtn->setText(Config::Test3::Texts::BTN_TASK_IN_PROGRESS);
+            getTaskBtn->setCursor(Qt::ForbiddenCursor);
         } else {
             connect(getTaskBtn, &QPushButton::clicked, this, &Test3::handleGetTask);
         }
@@ -360,14 +457,15 @@ void Test3::renderOffice() {
     }
 
     QPushButton *backBtn = new QPushButton(Config::Test3::Texts::BTN_RETURN_HALLWAY, rpgCenterPanel);
-    setGeometryCentered(backBtn, Config::Test3::Geometry::BTN_OFFICE_BACK);
-    backBtn->setStyleSheet(Config::Test3::Styles::BTN_SCENE_DEFAULT);
+    setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_OFFICE_BACK);
+    backBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_OFFICE_BACK);
+    backBtn->setCursor(Qt::PointingHandCursor);
     connect(backBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::StaffHallway); });
     backBtn->show();
 }
 
 void Test3::renderWarehouse() {
-    // 1. Show Entry view: 仓库1.jpg
+    // 1. Show Entry view
     QLabel *bg = new QLabel(rpgCenterPanel);
     QPixmap pix(Config::Test3::Images::SCENE_WAREHOUSE_ENTRY);
     if (pix.isNull()) pix = generatePlaceholder("仓库 (入口)", Qt::darkYellow, rpgCenterPanel->size());
@@ -378,22 +476,24 @@ void Test3::renderWarehouse() {
 
     // 2. Button "拿取布草" -> Go to Shelf View
     QPushButton *takeBtn = new QPushButton(Config::Test3::Texts::BTN_TAKE_LINEN, rpgCenterPanel);
-    setGeometryCentered(takeBtn, Config::Test3::Geometry::BTN_WAREHOUSE_TAKE);
-    takeBtn->setStyleSheet(Config::Test3::Styles::BTN_BLUE);
+    setGeometryCentered(takeBtn, Config::Test3::Geometry::RECT_BTN_WAREHOUSE_TAKE);
+    takeBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_WAREHOUSE_TAKE);
+    takeBtn->setCursor(Qt::PointingHandCursor);
     connect(takeBtn, &QPushButton::clicked, [this]() {
          goToScene(GameScene::WarehouseShelf);
     });
     takeBtn->show();
 
     QPushButton *backBtn = new QPushButton(Config::Test3::Texts::BTN_RETURN_HALLWAY, rpgCenterPanel);
-    setGeometryCentered(backBtn, Config::Test3::Geometry::BTN_WAREHOUSE_BACK);
-    backBtn->setStyleSheet(Config::Test3::Styles::BTN_SCENE_DEFAULT);
+    setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_WAREHOUSE_BACK);
+    backBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_WAREHOUSE_BACK);
+    backBtn->setCursor(Qt::PointingHandCursor);
     connect(backBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::StaffHallway); });
     backBtn->show();
 }
 
 void Test3::renderWarehouseShelf() {
-    // Shelf View: 取布草的货架.jpg
+    // Shelf View
     QLabel *bg = new QLabel(rpgCenterPanel);
     QPixmap pix(Config::Test3::Images::SCENE_WAREHOUSE_SHELF);
     if (pix.isNull()) pix = generatePlaceholder("货架", Qt::darkYellow, rpgCenterPanel->size());
@@ -402,13 +502,12 @@ void Test3::renderWarehouseShelf() {
                         Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
     bg->show();
 
-    // Helper lambda to create Shelf Area
+    // Helper lambda to create Shelf Area (Infinite Supply)
     auto createShelfArea = [&](const QString &name, const QRect &rect) {
         ShelfArea *area = new ShelfArea(name, rpgCenterPanel);
         setGeometryCentered(area, rect);
-
-        // Set style for transparent grey background
         area->setStyleSheet(Config::Test3::Styles::SHELF_AREA);
+        area->setDraggable(true); // Infinite supply in Warehouse
 
         // Add image to shelf area
         QString iconPath = Config::Test3::Images::ITEMS.value(name);
@@ -440,8 +539,9 @@ void Test3::renderWarehouseShelf() {
     createShelfArea("毛巾", Config::Test3::Geometry::AREA_TOWEL);
 
     QPushButton *backBtn = new QPushButton(Config::Test3::Texts::BTN_RETURN_WAREHOUSE_ENTRY, rpgCenterPanel);
-    setGeometryCentered(backBtn, Config::Test3::Geometry::BTN_SHELF_BACK);
-    backBtn->setStyleSheet(Config::Test3::Styles::BTN_SCENE_DEFAULT);
+    setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_SHELF_BACK);
+    backBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_SHELF_BACK);
+    backBtn->setCursor(Qt::PointingHandCursor);
     connect(backBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::Warehouse); });
     backBtn->show();
 }
@@ -456,14 +556,16 @@ void Test3::renderElevatorHall() {
     bg->show();
 
     QPushButton *callElevator = new QPushButton(Config::Test3::Texts::BTN_ENTER_ELEVATOR, rpgCenterPanel);
-    setGeometryCentered(callElevator, Config::Test3::Geometry::BTN_ELEVATOR_ENTER);
-    callElevator->setStyleSheet(Config::Test3::Styles::BTN_SCENE_DEFAULT);
+    setGeometryCentered(callElevator, Config::Test3::Geometry::RECT_BTN_ELEVATOR_ENTER);
+    callElevator->setStyleSheet(Config::Test3::Styles::STYLE_BTN_ELEVATOR_ENTER);
+    callElevator->setCursor(Qt::PointingHandCursor);
     connect(callElevator, &QPushButton::clicked, [this]() { goToScene(GameScene::ElevatorInside); });
     callElevator->show();
 
     QPushButton *backBtn = new QPushButton(Config::Test3::Texts::BTN_RETURN_BACK, rpgCenterPanel);
-    setGeometryCentered(backBtn, Config::Test3::Geometry::BTN_ELEVATOR_BACK);
-    backBtn->setStyleSheet(Config::Test3::Styles::BTN_SCENE_DEFAULT);
+    setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_ELEVATOR_BACK);
+    backBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_ELEVATOR_BACK);
+    backBtn->setCursor(Qt::PointingHandCursor);
     connect(backBtn, &QPushButton::clicked, [this]() {
         if (gameState.currentFloor == 0) goToScene(GameScene::StaffHallway);
         else goToScene(GameScene::FloorCorridor);
@@ -480,36 +582,7 @@ void Test3::renderElevatorInside() {
                         Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
     bg->show();
 
-    // Helper to create elevator button
-    auto createEleBtn = [&](int floor, const QPoint &centerPos) {
-        QString text = QString::number(floor);
-        if (floor == 0) text = "G";
-
-        QPushButton *btn = new QPushButton(text, rpgCenterPanel);
-        // Use centered geometry helper with config size
-        setGeometryCentered(btn, centerPos.x(), centerPos.y(),
-                            Config::Test3::Geometry::ELEVATOR_BTN_SIZE.width(),
-                            Config::Test3::Geometry::ELEVATOR_BTN_SIZE.height());
-
-        // Style? Default is fine or use global style
-        // btn->setStyleSheet(...);
-
-        connect(btn, &QPushButton::clicked, [this, floor]() { handleElevatorButton(floor); });
-        btn->show();
-    };
-
-    // Create buttons using individual config coordinates
-    createEleBtn(0, Config::Test3::Geometry::BTN_FLOOR_G);
-    createEleBtn(1, Config::Test3::Geometry::BTN_FLOOR_1);
-    createEleBtn(2, Config::Test3::Geometry::BTN_FLOOR_2);
-    createEleBtn(3, Config::Test3::Geometry::BTN_FLOOR_3);
-    createEleBtn(4, Config::Test3::Geometry::BTN_FLOOR_4);
-    createEleBtn(5, Config::Test3::Geometry::BTN_FLOOR_5);
-    createEleBtn(6, Config::Test3::Geometry::BTN_FLOOR_6);
-    createEleBtn(7, Config::Test3::Geometry::BTN_FLOOR_7);
-    createEleBtn(8, Config::Test3::Geometry::BTN_FLOOR_8);
-    createEleBtn(9, Config::Test3::Geometry::BTN_FLOOR_9);
-    createEleBtn(10, Config::Test3::Geometry::BTN_FLOOR_10);
+    // Floor buttons are now in the sidebar (handled by toggle logic in renderScene)
 }
 
 void Test3::renderFloorCorridor() {
@@ -522,14 +595,16 @@ void Test3::renderFloorCorridor() {
     bg->show();
 
     QPushButton *linenRoomBtn = new QPushButton(Config::Test3::Texts::BTN_GO_LINEN_ROOM, rpgCenterPanel);
-    setGeometryCentered(linenRoomBtn, Config::Test3::Geometry::BTN_CORRIDOR_LINEN);
-    linenRoomBtn->setStyleSheet(Config::Test3::Styles::BTN_SCENE_DEFAULT);
+    setGeometryCentered(linenRoomBtn, Config::Test3::Geometry::RECT_BTN_CORRIDOR_LINEN);
+    linenRoomBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_CORRIDOR_LINEN);
+    linenRoomBtn->setCursor(Qt::PointingHandCursor);
     connect(linenRoomBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::LinenRoom); });
     linenRoomBtn->show();
 
     QPushButton *elevatorBtn = new QPushButton(Config::Test3::Texts::BTN_GO_ELEVATOR_HALL, rpgCenterPanel);
-    setGeometryCentered(elevatorBtn, Config::Test3::Geometry::BTN_CORRIDOR_ELEVATOR);
-    elevatorBtn->setStyleSheet(Config::Test3::Styles::BTN_SCENE_DEFAULT);
+    setGeometryCentered(elevatorBtn, Config::Test3::Geometry::RECT_BTN_CORRIDOR_ELEVATOR);
+    elevatorBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_CORRIDOR_ELEVATOR);
+    elevatorBtn->setCursor(Qt::PointingHandCursor);
     connect(elevatorBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::ElevatorHall); });
     elevatorBtn->show();
 }
@@ -548,12 +623,10 @@ void Test3::renderLinenRoom() {
          gameState.dirtyBagState[gameState.currentFloor] = false;
     }
 
-    // Create Drop Targets
+    // Create Shelf Areas
     auto createShelfArea = [&](const QString &name, const QRect &rect) {
         ShelfArea *area = new ShelfArea(name, rpgCenterPanel);
         setGeometryCentered(area, rect);
-
-        // Set style for transparent grey background
         area->setStyleSheet(Config::Test3::Styles::SHELF_AREA);
 
         // Check if item has been placed
@@ -568,6 +641,9 @@ void Test3::renderLinenRoom() {
 
         // Initialize state based on placedCount
         if (placedCount > 0) {
+            // Can be taken back
+            area->setDraggable(true);
+
             QString iconPath = Config::Test3::Images::ITEMS.value(name);
             if (QFile::exists(iconPath)) {
                 QPixmap pix(iconPath);
@@ -583,10 +659,11 @@ void Test3::renderLinenRoom() {
                                     .arg(Config::Test3::Fonts::COL_LINEN_COUNT)
                                     .arg(Config::Test3::Fonts::SIZE_LINEN_COUNT));
             countLbl->adjustSize();
-            // Position at center (in front of image)
             countLbl->move((area->width() - countLbl->width())/2, (area->height() - countLbl->height())/2);
             countLbl->show();
         } else {
+            // Cannot be taken
+            area->setDraggable(false);
             area->clear(); // Ensure empty
         }
 
@@ -614,14 +691,10 @@ void Test3::renderLinenRoom() {
              }
 
              handleSceneDrop(item, false); // false = linen room (delivery)
-
-             // Refresh scene to update counts and images
-             renderScene();
         };
         area->show();
     };
 
-    // Use DISTINCT coordinates for Linen Room
     createShelfArea("大床单", Config::Test3::Geometry::AREA_LINEN_SHEET);
     createShelfArea("大被套", Config::Test3::Geometry::AREA_LINEN_DUVET);
     createShelfArea("小被套", Config::Test3::Geometry::AREA_LINEN_S_DUVET);
@@ -635,13 +708,14 @@ void Test3::renderLinenRoom() {
         QPixmap dirtyPix(Config::Test3::Images::UI_DIRTY_LINEN);
         if (!dirtyPix.isNull()) dirty->setPixmap(dirtyPix.scaled(Config::Test3::Geometry::ICON_DIRTY_DRAG));
         dirty->setText(Config::Test3::Texts::LBL_DIRTY_LINEN_DRAG);
-        setGeometryCentered(dirty, Config::Test3::Geometry::LBL_DIRTY_SOURCE);
+        setGeometryCentered(dirty, Config::Test3::Geometry::RECT_EVENT_DIRTY_LINEN); // Use new config
         dirty->show();
     }
 
     QPushButton *backBtn = new QPushButton(Config::Test3::Texts::BTN_RETURN_CORRIDOR, rpgCenterPanel);
-    setGeometryCentered(backBtn, Config::Test3::Geometry::BTN_LINEN_BACK);
-    backBtn->setStyleSheet(Config::Test3::Styles::BTN_SCENE_DEFAULT);
+    setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_LINEN_BACK);
+    backBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_LINEN_BACK);
+    backBtn->setCursor(Qt::PointingHandCursor);
     connect(backBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::FloorCorridor); });
     backBtn->show();
 }
@@ -729,14 +803,21 @@ void Test3::handleSceneDrop(QString itemName, bool isWarehouse) {
         }
     }
 
+    // If needed is true, we already updated state.
+    // Logic: If !needed, we do NOTHING to the state.
+    // The previous implementation had warning popups but the critical part is ensuring renderScene updates correctly.
+    // Since we call renderScene() at the end (via refreshInventoryList->renderScene check or manually),
+    // and renderScene() relies on placedItems, rejection = no change in placedItems = no ghost image.
+
     if (!taskFound) {
          QMessageBox::warning(this, "提示", "本层没有任务。");
     } else if (!needed) {
          QMessageBox::warning(this, "提示", "本层不需要此物品。");
     }
 
-    refreshInventoryList();
+    refreshInventoryList(); // Updates cart
     refreshTaskList();
+    renderScene(); // Refresh scene to update shelf visuals (crucial for showing placed items)
 }
 
 void Test3::checkEmergencyTask() {

@@ -107,6 +107,9 @@ public:
 
     std::function<void(QString)> onDropCallback; // When something is put back here
 
+    // Set whether the item can be dragged (taken) from this shelf
+    void setDraggable(bool enabled);
+
 protected:
     // Drag Source Logic (Taking item)
     void mousePressEvent(QMouseEvent *event) override;
@@ -117,6 +120,7 @@ protected:
 
 private:
     QString m_itemName;
+    bool m_isDraggable;
 };
 
 #endif // UTILS_H
