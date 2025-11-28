@@ -8,24 +8,26 @@ MainWindow::MainWindow(QWidget *parent)
 {
     // Fixed Window Size
     setFixedSize(1280, 720);
-    setWindowTitle("Hotel Management Student Training");
+    setWindowTitle("酒店管理学生实训系统"); // Hotel Management Student Training
 
-    setupStyle(); // Apply the theme
+    setupStyle(); // 应用主题 Apply the theme
     setupUI();
 }
 
 MainWindow::~MainWindow() {}
 
 void MainWindow::setupStyle() {
+    // 样式表定义，支持 CSS 语法。可以在这里修改颜色、字体和边框等。
+    // Stylesheet definition using CSS syntax. Modify colors, fonts, borders here.
     QString qss = R"(
-        /* Global Window */
+        /* 全局窗口 Global Window */
         QMainWindow {
             background-color: #f4f6f9;
-            font-family: "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif;
+            font-family: "Microsoft YaHei", "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif; /* Added YaHei for Chinese */
             color: #2c3e50;
         }
 
-        /* Buttons */
+        /* 按钮 Buttons */
         QPushButton {
             background-color: #3498db;
             color: white;
@@ -46,7 +48,7 @@ void MainWindow::setupStyle() {
             color: #7f8c8d;
         }
 
-        /* Input Fields */
+        /* 输入框 Input Fields */
         QLineEdit, QSpinBox, QComboBox {
             background-color: white;
             border: 2px solid #dfe6e9;
@@ -59,7 +61,7 @@ void MainWindow::setupStyle() {
             border: 2px solid #3498db;
         }
 
-        /* List Widgets */
+        /* 列表控件 List Widgets */
         QListWidget {
             background-color: white;
             border: 2px solid #dfe6e9;
@@ -83,13 +85,13 @@ void MainWindow::setupStyle() {
             background-color: #f7f9f9;
         }
 
-        /* Labels */
+        /* 标签 Labels */
         QLabel {
             color: #2c3e50;
             font-size: 14px;
         }
 
-        /* Radio Buttons */
+        /* 单选按钮 Radio Buttons */
         QRadioButton {
             font-size: 15px;
             padding: 5px;
@@ -122,11 +124,28 @@ void MainWindow::setupUI() {
 // --- Utils ---
 
 QPixmap MainWindow::generatePlaceholder(QString text, QColor color, QSize size) {
+    // [自定义说明]
+    // 这是一个生成纯色占位图片的辅助函数。
+    // 如果您想使用真实的图片文件（如 png, jpg），请参考以下方法替换代码：
+    // This is a helper to generate solid color placeholder images.
+    // To use real image files (png, jpg), replace the code like this:
+    /*
+       QPixmap pixmap(":/images/background.jpg"); // 使用资源文件 Use resource file
+       // 或者 OR
+       QPixmap pixmap("C:/path/to/your/image.png"); // 使用绝对路径 Use absolute path
+
+       if (pixmap.isNull()) {
+           qDebug() << "Failed to load image";
+           // Fallback to placeholder
+       }
+       return pixmap.scaled(size, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+    */
+
     QPixmap pixmap(size);
     pixmap.fill(color);
     QPainter painter(&pixmap);
     painter.setPen(Qt::white);
-    painter.setFont(QFont("Arial", 20, QFont::Bold));
+    painter.setFont(QFont("Microsoft YaHei", 20, QFont::Bold)); // Use YaHei
     painter.drawText(pixmap.rect(), Qt::AlignCenter, text);
     return pixmap;
 }
@@ -145,29 +164,29 @@ QWidget *MainWindow::createStartPage() {
     QVBoxLayout *layout = new QVBoxLayout(page);
     layout->setAlignment(Qt::AlignCenter);
 
-    QLabel *title = new QLabel("Student Info");
+    QLabel *title = new QLabel("学生信息登记"); // Student Info
     title->setStyleSheet("font-size: 24px; font-weight: bold;");
     layout->addWidget(title);
 
     QFormLayout *form = new QFormLayout();
     nameInput = new QLineEdit();
     ageInput = new QSpinBox(); ageInput->setRange(16, 100);
-    genderInput = new QComboBox(); genderInput->addItems({"Male", "Female", "Other"});
+    genderInput = new QComboBox(); genderInput->addItems({"男", "女", "其他"}); // Male, Female, Other
     classInput = new QLineEdit();
     durationInput = new QLineEdit();
 
-    form->addRow("Name:", nameInput);
-    form->addRow("Age:", ageInput);
-    form->addRow("Gender:", genderInput);
-    form->addRow("Class:", classInput);
-    form->addRow("Duration:", durationInput);
+    form->addRow("姓名:", nameInput); // Name
+    form->addRow("年龄:", ageInput); // Age
+    form->addRow("性别:", genderInput); // Gender
+    form->addRow("班级:", classInput); // Class
+    form->addRow("时长:", durationInput); // Duration
 
     QWidget *formWidget = new QWidget();
     formWidget->setLayout(form);
     formWidget->setFixedWidth(400);
     layout->addWidget(formWidget);
 
-    QPushButton *startBtn = new QPushButton("Start Training");
+    QPushButton *startBtn = new QPushButton("开始培训"); // Start Training
     startBtn->setFixedWidth(200);
     connect(startBtn, &QPushButton::clicked, this, &MainWindow::onStartTraining);
     layout->addWidget(startBtn, 0, Qt::AlignCenter);
@@ -177,7 +196,7 @@ QWidget *MainWindow::createStartPage() {
 
 void MainWindow::onStartTraining() {
     if (nameInput->text().isEmpty() || classInput->text().isEmpty()) {
-        QMessageBox::warning(this, "Validation", "Please fill in all fields.");
+        QMessageBox::warning(this, "验证失败", "请填写所有字段。"); // Validation, Please fill in all fields
         return;
     }
 
@@ -187,7 +206,7 @@ void MainWindow::onStartTraining() {
     student.className = classInput->text();
     student.duration = durationInput->text();
 
-    logAction("Training Started for " + student.name);
+    logAction("培训开始: " + student.name); // Training Started for
     mainStack->setCurrentIndex(1); // Go to Slideshow
 }
 
@@ -205,8 +224,8 @@ QWidget *MainWindow::createSlideshowPage() {
     slideLayout->addWidget(slideImageLabel);
 
     QHBoxLayout *navLayout = new QHBoxLayout();
-    QPushButton *prevBtn = new QPushButton("Previous");
-    QPushButton *nextBtn = new QPushButton("Next");
+    QPushButton *prevBtn = new QPushButton("上一页"); // Previous
+    QPushButton *nextBtn = new QPushButton("下一页"); // Next
     navLayout->addWidget(prevBtn);
     navLayout->addWidget(nextBtn);
     slideLayout->addLayout(navLayout);
@@ -238,8 +257,10 @@ QWidget *MainWindow::createSlideshowPage() {
 }
 
 void MainWindow::updateSlide() {
+    // [自定义说明] 这里加载幻灯片图片。可以修改 "Slide %1" 为您的图片路径逻辑。
+    // [Customization] Load slide images here.
     slideImageLabel->setPixmap(generatePlaceholder(
-        QString("Slide %1").arg(currentSlideIndex + 1), 
+        QString("幻灯片 %1").arg(currentSlideIndex + 1), // Slide
         Qt::blue, 
         QSize(800, 450)
     ));
@@ -253,14 +274,14 @@ void MainWindow::finishSlideshow() {
     for (int i = 0; i < totalSlides; ++i) {
         QLabel *thumb = new QLabel();
         thumb->setPixmap(generatePlaceholder(
-            QString("Img %1").arg(i + 1), 
+            QString("图 %1").arg(i + 1), // Img
             Qt::gray, 
             QSize(200, 150)
         ));
         grid->addWidget(thumb, i / 5, i % 5);
     }
 
-    QPushButton *nextModuleBtn = new QPushButton("Go to Quiz");
+    QPushButton *nextModuleBtn = new QPushButton("进入测验"); // Go to Quiz
     connect(nextModuleBtn, &QPushButton::clicked, [this]() {
         mainStack->setCurrentIndex(2);
     });
@@ -277,8 +298,8 @@ QWidget *MainWindow::createQuizPage() {
     // Generate Questions
     for (int i = 1; i <= 19; ++i) {
         Question q;
-        q.text = QString("Question %1: What is the correct procedure for...?").arg(i);
-        q.options = QStringList() << "Option A" << "Option B" << "Option C" << "Option D";
+        q.text = QString("问题 %1: 某某操作的正确流程是...?").arg(i); // Question X: What is the correct procedure for...?
+        q.options = QStringList() << "选项 A" << "选项 B" << "选项 C" << "选项 D"; // Option A/B/C/D
         q.correctIndex = 1; // Always B for simplicity in this demo
         questions.append(q);
     }
@@ -290,7 +311,7 @@ QWidget *MainWindow::createQuizPage() {
 
     // Image for question
     QLabel *qImage = new QLabel();
-    qImage->setPixmap(generatePlaceholder("Question Image", Qt::darkCyan, QSize(400, 200)));
+    qImage->setPixmap(generatePlaceholder("问题示例图", Qt::darkCyan, QSize(400, 200))); // Question Image
     qImage->setAlignment(Qt::AlignCenter);
     layout->addWidget(qImage);
 
@@ -308,18 +329,18 @@ QWidget *MainWindow::createQuizPage() {
     feedbackLabel->setStyleSheet("font-weight: bold; font-size: 16px;");
     layout->addWidget(feedbackLabel);
 
-    QPushButton *checkBtn = new QPushButton("Check Answer");
+    QPushButton *checkBtn = new QPushButton("检查答案"); // Check Answer
     connect(checkBtn, &QPushButton::clicked, this, &MainWindow::checkAnswer);
     layout->addWidget(checkBtn);
 
     QHBoxLayout *navLayout = new QHBoxLayout();
-    QPushButton *prevQBtn = new QPushButton("Previous Question");
-    QPushButton *nextQBtn = new QPushButton("Next Question");
+    QPushButton *prevQBtn = new QPushButton("上一题"); // Previous Question
+    QPushButton *nextQBtn = new QPushButton("下一题"); // Next Question
     navLayout->addWidget(prevQBtn);
     navLayout->addWidget(nextQBtn);
     layout->addLayout(navLayout);
 
-    scoreLabel = new QLabel("Score: 0");
+    scoreLabel = new QLabel("得分: 0"); // Score
     layout->addWidget(scoreLabel);
 
     connect(prevQBtn, &QPushButton::clicked, [this]() {
@@ -335,9 +356,9 @@ QWidget *MainWindow::createQuizPage() {
             loadQuestion();
         } else {
              // Finish Quiz
-             QMessageBox::information(this, "Quiz Finished", QString("Final Score: %1").arg(quizScore));
+             QMessageBox::information(this, "测验结束", QString("最终得分: %1").arg(quizScore)); // Quiz Finished, Final Score
              mainStack->setCurrentIndex(3); // Go to RPG
-             logAction("Quiz Finished. Score: " + QString::number(quizScore));
+             logAction("测验结束。得分: " + QString::number(quizScore));
         }
     });
 
@@ -361,14 +382,14 @@ void MainWindow::checkAnswer() {
     if (id == -1) return;
 
     if (id == questions[currentQuestionIndex].correctIndex) {
-        feedbackLabel->setText("Correct!");
+        feedbackLabel->setText("回答正确!"); // Correct!
         feedbackLabel->setStyleSheet("color: green; font-weight: bold;");
         // Simple scoring: only add if not already answered correctly? 
         // For simplicity, just increment and don't worry about re-answering
         quizScore++; 
-        scoreLabel->setText("Score: " + QString::number(quizScore));
+        scoreLabel->setText("得分: " + QString::number(quizScore));
     } else {
-        feedbackLabel->setText("Incorrect!");
+        feedbackLabel->setText("回答错误!"); // Incorrect!
         feedbackLabel->setStyleSheet("color: red; font-weight: bold;");
     }
 }
@@ -396,9 +417,9 @@ QWidget *MainWindow::createRPGPage() {
     // Modern Dark Blue Sidebar
     leftPanel->setStyleSheet("background-color: #2c3e50; color: white; border-right: 1px solid #1a252f;");
     QVBoxLayout *leftLayout = new QVBoxLayout(leftPanel);
-    locationLabel = new QLabel("Location: Entrance");
+    locationLabel = new QLabel("当前位置: 入口"); // Location: Entrance
     locationLabel->setStyleSheet("font-weight: bold; color: #ecf0f1; margin-top: 10px;");
-    cartStatusLabel = new QLabel("Cart: 0/10");
+    cartStatusLabel = new QLabel("工作车: 0/10"); // Cart
     cartStatusLabel->setStyleSheet("color: #bdc3c7;");
     leftLayout->addWidget(locationLabel);
     leftLayout->addWidget(cartStatusLabel);
@@ -419,7 +440,7 @@ QWidget *MainWindow::createRPGPage() {
     rightPanel->setStyleSheet("background-color: #34495e; color: white; border-left: 1px solid #1a252f;");
     QVBoxLayout *rightLayout = new QVBoxLayout(rightPanel);
     
-    QLabel *taskTitle = new QLabel("Tasks:");
+    QLabel *taskTitle = new QLabel("当前任务:"); // Tasks
     taskTitle->setStyleSheet("font-weight: bold; color: #ecf0f1; margin-top: 10px;");
     rightLayout->addWidget(taskTitle);
 
@@ -427,7 +448,7 @@ QWidget *MainWindow::createRPGPage() {
     // Inherits global list style, but we ensure text is visible against white list bg
     rightLayout->addWidget(taskListWidget);
     
-    QLabel *invTitle = new QLabel("Inventory (Drag):");
+    QLabel *invTitle = new QLabel("库存 (拖拽使用):"); // Inventory (Drag)
     invTitle->setStyleSheet("font-weight: bold; color: #ecf0f1; margin-top: 10px;");
     rightLayout->addWidget(invTitle);
     
@@ -450,7 +471,7 @@ QWidget *MainWindow::createRPGPage() {
 
 void MainWindow::goToScene(GameScene scene) {
     gameState.currentScene = scene;
-    logAction("Moved to scene: " + QString::number((int)scene));
+    logAction("移动到场景: " + QString::number((int)scene)); // Moved to scene
     renderScene();
 }
 
@@ -483,37 +504,46 @@ void MainWindow::updateRPGStatusLabels() {
     // Update Location Label
     QString locStr;
     switch(gameState.currentScene) {
-        case GameScene::Entrance: locStr = "Entrance"; break;
-        case GameScene::StaffHallway: locStr = "Staff Hallway"; break;
-        case GameScene::Office: locStr = "Office"; break;
-        case GameScene::Warehouse: locStr = "Warehouse"; break;
-        case GameScene::ElevatorHall: locStr = "Elevator Hall"; break;
-        case GameScene::ElevatorInside: locStr = "Elevator"; break;
-        case GameScene::FloorCorridor: locStr = QString("Floor %1 Corridor").arg(gameState.currentFloor); break;
-        case GameScene::LinenRoom: locStr = QString("Floor %1 Linen Room").arg(gameState.currentFloor); break;
+        case GameScene::Entrance: locStr = "入口"; break; // Entrance
+        case GameScene::StaffHallway: locStr = "员工通道"; break; // Staff Hallway
+        case GameScene::Office: locStr = "办公室"; break; // Office
+        case GameScene::Warehouse: locStr = "布草仓库"; break; // Warehouse
+        case GameScene::ElevatorHall: locStr = "电梯厅"; break; // Elevator Hall
+        case GameScene::ElevatorInside: locStr = "电梯内"; break; // Elevator
+        case GameScene::FloorCorridor: locStr = QString("%1楼 走廊").arg(gameState.currentFloor); break; // Floor X Corridor
+        case GameScene::LinenRoom: locStr = QString("%1楼 布草间").arg(gameState.currentFloor); break; // Floor X Linen Room
     }
-    locationLabel->setText("Location: " + locStr);
+    locationLabel->setText("当前位置: " + locStr);
 
     // Update Cart
     int count = 0;
     for (auto val : gameState.inventory.currentItems) count += val;
-    cartStatusLabel->setText(QString("Cart: %1/%2").arg(count).arg(gameState.inventory.cartCapacity));
+    cartStatusLabel->setText(QString("工作车: %1/%2").arg(count).arg(gameState.inventory.cartCapacity));
 }
 
 // --- Specific Scene Renderers ---
 
+// [自定义说明] 场景渲染函数
+// 每个 renderX 函数负责绘制一个场景。
+// 使用 setGeometry(x, y, width, height) 绝对定位来放置按钮和背景。
+// 坐标系以 rpgCenterPanel 左上角 (0,0) 为原点，最大尺寸 896 x 720。
+// [Customization] Scene Render Functions
+// Each function draws a scene.
+// Uses setGeometry(x, y, width, height) for absolute positioning.
+// Origin (0,0) is top-left of rpgCenterPanel. Max size 896 x 720.
+
 void MainWindow::renderEntrance() {
     // Background
     QLabel *bg = new QLabel(rpgCenterPanel);
-    bg->setPixmap(generatePlaceholder("Entrance", Qt::darkGray, rpgCenterPanel->size()));
+    bg->setPixmap(generatePlaceholder("酒店入口", Qt::darkGray, rpgCenterPanel->size())); // Entrance
     bg->setGeometry(0, 0, 896, 720);
 
     // Input Name -> Auto transition
     // Requirement: "Input Name -> Auto-transition to Hallway"
     // Since we already input name in Module 1, we can just display a button to enter or auto enter.
     // Let's make a button "Enter Hotel".
-    QPushButton *btn = new QPushButton("Enter Hotel", rpgCenterPanel);
-    btn->setGeometry(350, 300, 200, 50);
+    QPushButton *btn = new QPushButton("进入酒店", rpgCenterPanel); // Enter Hotel
+    btn->setGeometry(350, 300, 200, 50); // x=350, y=300, w=200, h=50
     connect(btn, &QPushButton::clicked, [this]() {
         goToScene(GameScene::StaffHallway);
     });
@@ -522,27 +552,27 @@ void MainWindow::renderEntrance() {
 
 void MainWindow::renderStaffHallway() {
     QLabel *bg = new QLabel(rpgCenterPanel);
-    bg->setPixmap(generatePlaceholder("Staff Hallway", Qt::lightGray, rpgCenterPanel->size()));
+    bg->setPixmap(generatePlaceholder("员工通道", Qt::lightGray, rpgCenterPanel->size())); // Staff Hallway
     bg->setGeometry(0, 0, 896, 720);
 
     if (!gameState.hasClockedIn) {
-        QPushButton *clockInBtn = new QPushButton("Clock In", rpgCenterPanel);
+        QPushButton *clockInBtn = new QPushButton("打卡签到", rpgCenterPanel); // Clock In
         clockInBtn->setGeometry(100, 100, 150, 50);
         connect(clockInBtn, &QPushButton::clicked, this, &MainWindow::handleClockIn);
         clockInBtn->show();
     } else {
         // Links to Office, Warehouse, Elevator Hall
-        QPushButton *officeBtn = new QPushButton("Go to Office", rpgCenterPanel);
+        QPushButton *officeBtn = new QPushButton("去办公室", rpgCenterPanel); // Go to Office
         officeBtn->setGeometry(100, 200, 150, 50);
         connect(officeBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::Office); });
         officeBtn->show();
 
-        QPushButton *warehouseBtn = new QPushButton("Go to Warehouse", rpgCenterPanel);
+        QPushButton *warehouseBtn = new QPushButton("去仓库", rpgCenterPanel); // Go to Warehouse
         warehouseBtn->setGeometry(300, 200, 150, 50);
         connect(warehouseBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::Warehouse); });
         warehouseBtn->show();
 
-        QPushButton *elevatorBtn = new QPushButton("Go to Elevator", rpgCenterPanel);
+        QPushButton *elevatorBtn = new QPushButton("去电梯", rpgCenterPanel); // Go to Elevator
         elevatorBtn->setGeometry(500, 200, 150, 50);
         connect(elevatorBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::ElevatorHall); });
         elevatorBtn->show();
@@ -550,28 +580,28 @@ void MainWindow::renderStaffHallway() {
 }
 
 void MainWindow::handleClockIn() {
-    QMessageBox::information(this, "Info", "Clocked In Successfully!");
+    QMessageBox::information(this, "通知", "打卡成功!"); // Info, Clocked In Successfully
     gameState.hasClockedIn = true;
-    logAction("Clocked In");
+    logAction("已打卡");
     renderScene(); // Refresh to show navigation buttons
 }
 
 void MainWindow::renderOffice() {
     QLabel *bg = new QLabel(rpgCenterPanel);
-    bg->setPixmap(generatePlaceholder("Office", Qt::darkBlue, rpgCenterPanel->size()));
+    bg->setPixmap(generatePlaceholder("办公室", Qt::darkBlue, rpgCenterPanel->size())); // Office
     bg->setGeometry(0, 0, 896, 720);
 
-    QPushButton *getTaskBtn = new QPushButton("Get Task", rpgCenterPanel);
+    QPushButton *getTaskBtn = new QPushButton("领取任务", rpgCenterPanel); // Get Task
     getTaskBtn->setGeometry(100, 100, 150, 50);
     connect(getTaskBtn, &QPushButton::clicked, this, &MainWindow::handleGetTask);
     getTaskBtn->show();
 
-    QPushButton *clockOutBtn = new QPushButton("Clock Out", rpgCenterPanel);
+    QPushButton *clockOutBtn = new QPushButton("打卡下班", rpgCenterPanel); // Clock Out
     clockOutBtn->setGeometry(300, 100, 150, 50);
     connect(clockOutBtn, &QPushButton::clicked, this, &MainWindow::handleClockOut);
     clockOutBtn->show();
 
-    QPushButton *backBtn = new QPushButton("Back to Hallway", rpgCenterPanel);
+    QPushButton *backBtn = new QPushButton("返回通道", rpgCenterPanel); // Back to Hallway
     backBtn->setGeometry(100, 600, 150, 50);
     connect(backBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::StaffHallway); });
     backBtn->show();
@@ -585,16 +615,16 @@ void MainWindow::handleGetTask() {
     t.isCompleted = false;
     
     // Items
-    t.requiredItems.insert("Towel", QRandomGenerator::global()->bounded(1, 4));
-    t.requiredItems.insert("Sheet", QRandomGenerator::global()->bounded(1, 4));
+    t.requiredItems.insert("毛巾", QRandomGenerator::global()->bounded(1, 4)); // Towel
+    t.requiredItems.insert("床单", QRandomGenerator::global()->bounded(1, 4)); // Sheet
     
     gameState.tasks.append(t);
     refreshTaskList();
-    logAction(QString("Received Task for Floor %1").arg(t.targetFloor));
+    logAction(QString("领取任务: %1楼").arg(t.targetFloor));
 }
 
 void MainWindow::handleClockOut() {
-    logAction("Clocked Out");
+    logAction("已打卡下班");
     
     QString filename = QString("training_log_%1.txt").arg(QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss"));
     QFile file(filename);
@@ -606,34 +636,34 @@ void MainWindow::handleClockOut() {
             out << log << "\n";
         }
         file.close();
-        QMessageBox::information(this, "Goodbye", "Training Log Saved. Exiting...");
+        QMessageBox::information(this, "再见", "培训日志已保存。正在退出..."); // Goodbye
         QApplication::quit();
     }
 }
 
 void MainWindow::renderWarehouse() {
     QLabel *bg = new QLabel(rpgCenterPanel);
-    bg->setPixmap(generatePlaceholder("Warehouse (Shelves)", Qt::darkYellow, rpgCenterPanel->size()));
+    bg->setPixmap(generatePlaceholder("仓库 (货架)", Qt::darkYellow, rpgCenterPanel->size())); // Warehouse (Shelves)
     bg->setGeometry(0, 0, 896, 720);
 
     // Shelves with items
-    QPushButton *towelBtn = new QPushButton("Take Towel", rpgCenterPanel);
+    QPushButton *towelBtn = new QPushButton("拿取毛巾", rpgCenterPanel); // Take Towel
     towelBtn->setGeometry(100, 200, 100, 100);
     // Overlay transparent button on image technically, but here just a button
-    connect(towelBtn, &QPushButton::clicked, [this]() { handleWarehouseItemClick("Towel"); });
+    connect(towelBtn, &QPushButton::clicked, [this]() { handleWarehouseItemClick("毛巾"); }); // Towel
     towelBtn->show();
 
-    QPushButton *sheetBtn = new QPushButton("Take Sheet", rpgCenterPanel);
+    QPushButton *sheetBtn = new QPushButton("拿取床单", rpgCenterPanel); // Take Sheet
     sheetBtn->setGeometry(250, 200, 100, 100);
-    connect(sheetBtn, &QPushButton::clicked, [this]() { handleWarehouseItemClick("Sheet"); });
+    connect(sheetBtn, &QPushButton::clicked, [this]() { handleWarehouseItemClick("床单"); }); // Sheet
     sheetBtn->show();
 
-    QPushButton *loadCartBtn = new QPushButton("Load Cart (Confirm)", rpgCenterPanel);
+    QPushButton *loadCartBtn = new QPushButton("装车 (确认)", rpgCenterPanel); // Load Cart (Confirm)
     loadCartBtn->setGeometry(500, 500, 200, 50);
     connect(loadCartBtn, &QPushButton::clicked, this, &MainWindow::handleLoadCart);
     loadCartBtn->show();
 
-    QPushButton *backBtn = new QPushButton("Back to Hallway", rpgCenterPanel);
+    QPushButton *backBtn = new QPushButton("返回通道", rpgCenterPanel); // Back to Hallway
     backBtn->setGeometry(50, 600, 150, 50);
     connect(backBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::StaffHallway); });
     backBtn->show();
@@ -645,7 +675,7 @@ void MainWindow::handleWarehouseItemClick(QString itemName) {
     
     if (currentCount < gameState.inventory.cartCapacity) {
         gameState.inventory.currentItems[itemName]++;
-        logAction("Picked up " + itemName);
+        logAction("捡起 " + itemName);
         updateRPGStatusLabels();
         // We don't update inventory list yet, we do that on "Load Cart" based on requirements logic or maybe immediately?
         // Prompt says: "Click item -> Add to Inventory -> Update "Cart" display. Logic: Button "Load Cart" confirms selection."
@@ -653,28 +683,28 @@ void MainWindow::handleWarehouseItemClick(QString itemName) {
         // Or "Load Cart" just means "I'm done here". I'll update the visual list immediately for better UX.
         refreshInventoryList(); 
     } else {
-        QMessageBox::warning(this, "Full", "Cart is full!");
+        QMessageBox::warning(this, "已满", "工作车已满!"); // Full
     }
 }
 
 void MainWindow::handleLoadCart() {
-    logAction("Cart Loaded Confirmed");
+    logAction("确认装车");
     goToScene(GameScene::StaffHallway);
 }
 
 void MainWindow::renderElevatorHall() {
     QLabel *bg = new QLabel(rpgCenterPanel);
-    bg->setPixmap(generatePlaceholder("Elevator Hall", Qt::gray, rpgCenterPanel->size()));
+    bg->setPixmap(generatePlaceholder("电梯厅", Qt::gray, rpgCenterPanel->size())); // Elevator Hall
     bg->setGeometry(0, 0, 896, 720);
 
     // If floor is 0 (Staff), we can go to Hallway. If 6 or 7, we can go to Floor Corridor.
     
-    QPushButton *callElevator = new QPushButton("Enter Elevator", rpgCenterPanel);
+    QPushButton *callElevator = new QPushButton("进入电梯", rpgCenterPanel); // Enter Elevator
     callElevator->setGeometry(350, 300, 200, 100);
     connect(callElevator, &QPushButton::clicked, [this]() { goToScene(GameScene::ElevatorInside); });
     callElevator->show();
 
-    QPushButton *backBtn = new QPushButton("Back", rpgCenterPanel);
+    QPushButton *backBtn = new QPushButton("返回", rpgCenterPanel); // Back
     backBtn->setGeometry(100, 600, 150, 50);
     connect(backBtn, &QPushButton::clicked, [this]() {
         if (gameState.currentFloor == 0) goToScene(GameScene::StaffHallway);
@@ -685,7 +715,7 @@ void MainWindow::renderElevatorHall() {
 
 void MainWindow::renderElevatorInside() {
     QLabel *bg = new QLabel(rpgCenterPanel);
-    bg->setPixmap(generatePlaceholder("Elevator Inside", Qt::lightGray, rpgCenterPanel->size()));
+    bg->setPixmap(generatePlaceholder("电梯内部", Qt::lightGray, rpgCenterPanel->size())); // Elevator Inside
     bg->setGeometry(0, 0, 896, 720);
 
     // Buttons for G, 6, 7
@@ -706,11 +736,11 @@ void MainWindow::renderElevatorInside() {
 }
 
 void MainWindow::handleElevatorButton(int floor) {
-    logAction(QString("Elevator requested to floor %1").arg(floor));
+    logAction(QString("电梯前往 %1 楼").arg(floor));
     // Animation/Timer simulation
     QTimer::singleShot(1000, this, [this, floor]() {
         gameState.currentFloor = floor;
-        logAction(QString("Arrived at floor %1").arg(floor));
+        logAction(QString("抵达 %1 楼").arg(floor));
         goToScene(GameScene::ElevatorHall);
         
         // Check for emergency task trigger if arriving at a floor
@@ -721,15 +751,15 @@ void MainWindow::handleElevatorButton(int floor) {
 
 void MainWindow::renderFloorCorridor() {
     QLabel *bg = new QLabel(rpgCenterPanel);
-    bg->setPixmap(generatePlaceholder(QString("Corridor Floor %1").arg(gameState.currentFloor), Qt::cyan, rpgCenterPanel->size()));
+    bg->setPixmap(generatePlaceholder(QString("%1楼 走廊").arg(gameState.currentFloor), Qt::cyan, rpgCenterPanel->size())); // Corridor Floor X
     bg->setGeometry(0, 0, 896, 720);
 
-    QPushButton *linenRoomBtn = new QPushButton("Linen Room", rpgCenterPanel);
+    QPushButton *linenRoomBtn = new QPushButton("布草间", rpgCenterPanel); // Linen Room
     linenRoomBtn->setGeometry(200, 200, 200, 100);
     connect(linenRoomBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::LinenRoom); });
     linenRoomBtn->show();
 
-    QPushButton *elevatorBtn = new QPushButton("Elevator Hall", rpgCenterPanel);
+    QPushButton *elevatorBtn = new QPushButton("电梯厅", rpgCenterPanel); // Elevator Hall
     elevatorBtn->setGeometry(500, 200, 200, 100);
     connect(elevatorBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::ElevatorHall); });
     elevatorBtn->show();
@@ -737,7 +767,7 @@ void MainWindow::renderFloorCorridor() {
 
 void MainWindow::renderLinenRoom() {
     QLabel *bg = new QLabel(rpgCenterPanel);
-    bg->setPixmap(generatePlaceholder("Linen Room", Qt::white, rpgCenterPanel->size()));
+    bg->setPixmap(generatePlaceholder("布草间", Qt::white, rpgCenterPanel->size())); // Linen Room
     bg->setGeometry(0, 0, 896, 720);
 
     // Persist/Initialize dirty bag state for this floor
@@ -756,11 +786,11 @@ void MainWindow::renderLinenRoom() {
     QLabel *dirtyBag = nullptr;
     if (dirtyBagPresent) {
         dirtyBag = new QLabel(rpgCenterPanel);
-        dirtyBag->setPixmap(generatePlaceholder("Dirty Bag", Qt::darkRed, QSize(100, 100)));
+        dirtyBag->setPixmap(generatePlaceholder("脏布草袋", Qt::darkRed, QSize(100, 100))); // Dirty Bag
         dirtyBag->setGeometry(100, 400, 100, 100);
         dirtyBag->show();
         
-        QPushButton *removeBtn = new QPushButton("Remove Dirty Bag", rpgCenterPanel);
+        QPushButton *removeBtn = new QPushButton("移走脏布草袋", rpgCenterPanel); // Remove Dirty Bag
         removeBtn->setGeometry(100, 510, 140, 40); // Slightly larger
         removeBtn->setStyleSheet("background-color: #e74c3c; color: white; border-radius: 4px;");
         
@@ -771,7 +801,7 @@ void MainWindow::renderLinenRoom() {
             
             // Update State
             gameState.dirtyBagState[gameState.currentFloor] = false;
-            logAction("Removed Dirty Bag");
+            logAction("移走脏布草袋");
             
             // Re-render scene to update shelf status (enable it)
             renderScene();
@@ -780,12 +810,12 @@ void MainWindow::renderLinenRoom() {
     }
 
     // Shelf Drop Target
-    DropLabel *shelf = new DropLabel("Drop Linens Here\n(Shelf)", rpgCenterPanel);
+    DropLabel *shelf = new DropLabel("将布草拖到此处\n(货架)", rpgCenterPanel); // Drop Linens Here (Shelf)
     shelf->setGeometry(400, 200, 200, 300);
     
     // Logic: Disable shelf if dirty bag is present
     if (dirtyBagPresent) {
-        shelf->setText("Remove Dirty Bag First!");
+        shelf->setText("先移走脏布草袋!"); // Remove Dirty Bag First!
         // Update to match new style but with error colors
         shelf->setStyleSheet(
             "border: 2px dashed #e74c3c;"
@@ -803,7 +833,7 @@ void MainWindow::renderLinenRoom() {
     }
     shelf->show();
 
-    QPushButton *backBtn = new QPushButton("Back to Corridor", rpgCenterPanel);
+    QPushButton *backBtn = new QPushButton("返回走廊", rpgCenterPanel); // Back to Corridor
     backBtn->setGeometry(50, 600, 150, 50);
     connect(backBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::FloorCorridor); });
     backBtn->show();
@@ -827,7 +857,7 @@ void MainWindow::handleLinenDrop(QString itemName) {
                     // Decrement task requirement
                     t.requiredItems[itemName]--;
                     
-                    logAction("Delivered " + itemName + " to Floor " + QString::number(gameState.currentFloor));
+                    logAction("配送 " + itemName + " 到 " + QString::number(gameState.currentFloor) + "楼"); // Delivered ... to Floor ...
                     
                     // Check if task completed
                     bool allDone = true;
@@ -836,20 +866,20 @@ void MainWindow::handleLinenDrop(QString itemName) {
                     }
                     if (allDone) {
                         t.isCompleted = true;
-                        logAction("Task Completed for Floor " + QString::number(gameState.currentFloor));
+                        logAction("任务完成: " + QString::number(gameState.currentFloor) + "楼");
                         checkEmergencyTask(); // Trigger emergency chance
                     }
                 } else {
-                    QMessageBox::warning(this, "Error", "You don't have this item!");
+                    QMessageBox::warning(this, "错误", "库存中没有此物品!"); // Error
                 }
             }
         }
     }
 
     if (!taskFound) {
-         QMessageBox::warning(this, "Info", "No task for this floor.");
+         QMessageBox::warning(this, "提示", "本层没有任务。"); // Info, No task
     } else if (!needed) {
-         QMessageBox::warning(this, "Info", "Item not needed here.");
+         QMessageBox::warning(this, "提示", "本层不需要此物品。"); // Item not needed
     }
 
     refreshInventoryList();
@@ -859,15 +889,15 @@ void MainWindow::handleLinenDrop(QString itemName) {
 
 void MainWindow::checkEmergencyTask() {
     if (QRandomGenerator::global()->bounded(100) < 50) { // 50% chance
-        QMessageBox::information(this, "Emergency", "New Emergency Request received!");
+        QMessageBox::information(this, "紧急情况", "收到新的紧急请求!"); // Emergency
         Task t;
         t.targetFloor = (gameState.currentFloor == 6) ? 7 : 6;
         t.isEmergency = true;
         t.isCompleted = false;
-        t.requiredItems.insert("Towel", 2);
+        t.requiredItems.insert("毛巾", 2);
         gameState.tasks.append(t);
         refreshTaskList();
-        logAction("Emergency Task Created");
+        logAction("创建紧急任务");
     }
 }
 
@@ -887,7 +917,7 @@ void MainWindow::refreshTaskList() {
     taskListWidget->clear();
     for (const Task &t : gameState.tasks) {
         if (!t.isCompleted) {
-            QString txt = QString("Floor %1 %2\n").arg(t.targetFloor).arg(t.isEmergency ? "[URGENT]" : "");
+            QString txt = QString("%1楼 %2\n").arg(t.targetFloor).arg(t.isEmergency ? "[紧急]" : ""); // Floor X [URGENT]
             for (auto it = t.requiredItems.begin(); it != t.requiredItems.end(); ++it) {
                 if (it.value() > 0)
                     txt += QString("- %1: %2\n").arg(it.key()).arg(it.value());
