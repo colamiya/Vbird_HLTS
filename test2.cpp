@@ -38,7 +38,7 @@ Test2::Test2(QWidget *parent) : QWidget(parent) {
     }
 
     questionLabel = new QLabel();
-    questionLabel->setStyleSheet("font-size: 18px; font-weight: bold;");
+    questionLabel->setStyleSheet(Config::Test2::STYLE_QUESTION_LBL);
     questionLabel->setAlignment(Qt::AlignCenter);
     layout->addWidget(questionLabel);
 
@@ -52,18 +52,14 @@ Test2::Test2(QWidget *parent) : QWidget(parent) {
         QVBoxLayout *optLayout = new QVBoxLayout(optWidget);
 
         optionImages[i] = new QPushButton();
-        optionImages[i]->setFixedSize(Config::Test2::OPTION_IMG_SIZE);
+        optionImages[i]->setFixedSize(Config::Test2::SIZE_OPTION_IMG);
         optionImages[i]->setFlat(true);
-        optionImages[i]->setStyleSheet("border: 1px solid #ccc;");
+        optionImages[i]->setStyleSheet(Config::Test2::STYLE_IMG_BTN);
 
-        optionButtons[i] = new QPushButton(QString("选项 %1").arg(optionChars[i]));
+        optionButtons[i] = new QPushButton(QString("%1%2").arg(Config::Test2::TEXT_OPTION_PREFIX).arg(optionChars[i]));
         optionButtons[i]->setCheckable(true);
-        optionButtons[i]->setFixedSize(Config::Test2::OPTION_BTN_SIZE);
-        optionButtons[i]->setStyleSheet(
-            "QPushButton { background-color: white; border: 2px solid #ccc; color: #333; }"
-            "QPushButton:checked { background-color: #3498db; border-color: #3498db; color: white; }"
-            "QPushButton:hover { border-color: #3498db; }"
-        );
+        optionButtons[i]->setFixedSize(Config::Test2::SIZE_OPTION_BTN);
+        optionButtons[i]->setStyleSheet(Config::Test2::STYLE_OPTION_BTN);
         optionGroup->addButton(optionButtons[i], i);
 
         connect(optionButtons[i], &QPushButton::clicked, [this, i]() {
@@ -77,8 +73,8 @@ Test2::Test2(QWidget *parent) : QWidget(parent) {
     layout->addWidget(optionsContainer);
 
     QHBoxLayout *navLayout = new QHBoxLayout();
-    QPushButton *prevQBtn = new QPushButton("上一题");
-    nextQBtn = new QPushButton("下一题");
+    QPushButton *prevQBtn = new QPushButton(Config::Test2::BTN_TEXT_PREV);
+    nextQBtn = new QPushButton(Config::Test2::BTN_TEXT_NEXT);
     navLayout->addWidget(prevQBtn);
     navLayout->addWidget(nextQBtn);
     layout->addLayout(navLayout);
@@ -120,19 +116,19 @@ void Test2::loadQuestion() {
         QString imgName = QString("%1%2").arg(currentQuestionIndex + 1).arg(suffix);
 
         // Use config path template
-        QString path = Config::Test2::IMG_PATH_FMT_JPG.arg(imgName);
+        QString path = Config::Test2::PATH_FMT_JPG.arg(imgName);
         if (!QFile::exists(path)) {
-            path = Config::Test2::IMG_PATH_FMT_PNG.arg(imgName);
+            path = Config::Test2::PATH_FMT_PNG.arg(imgName);
         }
 
         QPixmap pix(path);
         if (pix.isNull()) {
             optionImages[i]->setIcon(QIcon());
-            optionImages[i]->setText("(无图)");
+            optionImages[i]->setText(Config::Test2::TEXT_NO_IMAGE);
         } else {
             optionImages[i]->setText("");
             optionImages[i]->setIcon(QIcon(pix));
-            optionImages[i]->setIconSize(Config::Test2::OPTION_ICON_SIZE);
+            optionImages[i]->setIconSize(Config::Test2::SIZE_OPTION_ICON);
         }
 
         optionImages[i]->disconnect();
@@ -144,10 +140,11 @@ void Test2::loadQuestion() {
     optionGroup->blockSignals(false);
 
     if (currentQuestionIndex == questions.size() - 1) {
-        nextQBtn->setText("提交测验");
-        nextQBtn->setStyleSheet("background-color: #27ae60; color: white;");
+        nextQBtn->setText(Config::Test2::BTN_TEXT_SUBMIT);
+        // Use config color for submit
+        nextQBtn->setStyleSheet(QString("background-color: %1; color: %2;").arg(Config::Test2::COL_BTN_SUBMIT, Config::Test2::COL_BTN_TEXT_WHITE));
     } else {
-        nextQBtn->setText("下一题");
+        nextQBtn->setText(Config::Test2::BTN_TEXT_NEXT);
         nextQBtn->setStyleSheet("");
     }
 }
@@ -158,7 +155,7 @@ void Test2::handleOptionSelect(int index) {
 
 void Test2::handleNextOrSubmit() {
     if (questions[currentQuestionIndex].userSelection == -1) {
-        QMessageBox::warning(this, "提示", "请先选择一个选项！");
+        QMessageBox::warning(this, "提示", Config::Test2::MSG_WARNING_SELECT);
         return;
     }
 
@@ -173,7 +170,7 @@ void Test2::handleNextOrSubmit() {
 void Test2::showQuizSummary() {
     quizScore = 0;
     QString summaryText;
-    summaryText += "<style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid #ddd; padding: 8px; text-align: left; } th { background-color: #f2f2f2; }</style>";
+    summaryText += Config::Test2::HTML_TABLE_STYLE;
     summaryText += "<h3>测验结果详情</h3>";
     summaryText += "<table><tr><th>题目</th><th>您的选择</th><th>正确答案</th><th>结果</th></tr>";
 
@@ -184,9 +181,11 @@ void Test2::showQuizSummary() {
         bool isCorrect = (q.userSelection == q.correctIndex);
         if (isCorrect) quizScore++;
 
-        QString resultStr = isCorrect ? "<font color='green'>正确</font>" : "<font color='red'>错误</font>";
-        QString userStr = (q.userSelection != -1) ? QString("选项 %1").arg(optionChars[q.userSelection]) : "未作答";
-        QString correctStr = QString("选项 %1").arg(optionChars[q.correctIndex]);
+        QString resultStr = isCorrect ? QString("<font color='%1'>正确</font>").arg(Config::Test2::HTML_CORRECT_COLOR)
+                                      : QString("<font color='%1'>错误</font>").arg(Config::Test2::HTML_WRONG_COLOR);
+
+        QString userStr = (q.userSelection != -1) ? QString("%1%2").arg(Config::Test2::TEXT_OPTION_PREFIX).arg(optionChars[q.userSelection]) : "未作答";
+        QString correctStr = QString("%1%2").arg(Config::Test2::TEXT_OPTION_PREFIX).arg(optionChars[q.correctIndex]);
 
         summaryText += QString("<tr><td>%1...</td><td>%2</td><td>%3</td><td>%4</td></tr>")
                        .arg(q.text.left(10))
@@ -205,7 +204,7 @@ void Test2::showQuizSummary() {
     QDialog *dlg = new QDialog(this);
     dlg->setAttribute(Qt::WA_DeleteOnClose);
     dlg->setWindowTitle("测验结果");
-    dlg->resize(600, 600);
+    dlg->resize(Config::Test2::SIZE_RESULT_DIALOG);
     QVBoxLayout *layout = new QVBoxLayout(dlg);
 
     QTextEdit *edit = new QTextEdit();
@@ -213,7 +212,7 @@ void Test2::showQuizSummary() {
     edit->setReadOnly(true);
     layout->addWidget(edit);
 
-    QPushButton *closeBtn = new QPushButton("关闭并返回菜单");
+    QPushButton *closeBtn = new QPushButton(Config::Test2::BTN_TEXT_CLOSE_RESULT);
     connect(closeBtn, &QPushButton::clicked, [this, dlg]() {
         dlg->accept();
         emit levelCompleted();
@@ -227,7 +226,7 @@ void Test2::showImagePreview(QString imagePath) {
     QDialog *dlg = new QDialog(this);
     dlg->setAttribute(Qt::WA_DeleteOnClose);
     dlg->setWindowTitle("图片预览");
-    dlg->resize(800, 600);
+    dlg->resize(Config::Test2::SIZE_PREVIEW_DIALOG);
 
     QVBoxLayout *layout = new QVBoxLayout(dlg);
     QScrollArea *scroll = new QScrollArea(dlg);

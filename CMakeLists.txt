@@ -24,6 +24,11 @@ set(PROJECT_SOURCES
     test3.h
     utils.cpp
     utils.h
+    config.h
+    config_global.h
+    config_test1.h
+    config_test2.h
+    config_test3.h
     resources.qrc
 )
 
