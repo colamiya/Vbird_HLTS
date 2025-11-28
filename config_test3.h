@@ -168,62 +168,6 @@ namespace Config {
 
             // --- 场景元素布局 (x_center, y_center, w, h) ---
 
-<<<<<<< HEAD
-            // 入口场景
-            const QRect BTN_ENTRANCE_ACTION(678, 460, 200, 50);
-
-            // 员工通道
-            const QRect LBL_HALLWAY_STATUS(100, 100, 120, 40);
-            const QRect BTN_HALLWAY_EXIT(350, 600, 120, 40);
-            const QRect BTN_HALLWAY_CLOCK_ACTION(176, 430, 120, 40); // 签到/下班 共用位置
-            const QRect BTN_HALLWAY_GO_OFFICE(270, 409, 120, 40);
-            const QRect BTN_HALLWAY_GO_WAREHOUSE(655, 354, 120, 40);
-            const QRect BTN_HALLWAY_GO_ELEVATOR(515, 372, 120, 40);
-
-            // 办公室
-            const QRect BTN_OFFICE_MAIN_ACTION(475, 346, 160, 50); // 汇报/领任务
-            const QRect LBL_OFFICE_MSG(296, 116, 300, 50);
-            const QRect BTN_OFFICE_BACK(161, 656, 160, 50);
-
-            // 仓库(入口)
-            const QRect BTN_WAREHOUSE_TAKE(454, 372, 160, 50);
-            const QRect BTN_WAREHOUSE_BACK(213, 658, 160, 50);
-
-            // 仓库(货架)
-            const QRect BTN_SHELF_BACK(149, 651, 160, 50);
-
-            // 货架物品区域 - 仓库专用 (中心坐标)
-            const QRect AREA_SHEET(242, 270, 100, 100);//大床单
-            const QRect AREA_DUVET(511, 270, 100, 100);//大被套
-            const QRect AREA_S_DUVET(703, 270, 100, 100);//小被套
-            const QRect AREA_PILLOW(157, 433, 100, 100);//枕巾
-            const QRect AREA_GN_TOWEL(516, 580, 100, 100);//晚安巾
-            const QRect AREA_TOWEL(759, 573, 100, 100);//毛巾
-
-            // 电梯厅
-            const QRect BTN_ELEVATOR_ENTER(655, 377, 160, 50);
-            const QRect BTN_ELEVATOR_BACK(125, 651, 160, 50);
-
-            // 电梯内 (按钮面板)
-            const QSize ELEVATOR_BTN_SIZE(40, 40);
-            // 单独设置每个电梯按钮的位置 (中心点)
-            // G(0), 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-            const QPoint BTN_FLOOR_G(600, 500); // 底层
-            const QPoint BTN_FLOOR_1(600, 420);
-            const QPoint BTN_FLOOR_2(670, 420);
-            const QPoint BTN_FLOOR_3(600, 360);
-            const QPoint BTN_FLOOR_4(670, 360);
-            const QPoint BTN_FLOOR_5(600, 280);
-            const QPoint BTN_FLOOR_6(670, 280);
-            const QPoint BTN_FLOOR_7(600, 200);
-            const QPoint BTN_FLOOR_8(670, 200);
-            const QPoint BTN_FLOOR_9(600, 120);
-            const QPoint BTN_FLOOR_10(670, 120);
-
-            // 走廊
-            const QRect BTN_CORRIDOR_LINEN(459, 343, 100, 50);
-            const QRect BTN_CORRIDOR_ELEVATOR(436, 644, 100, 50);
-=======
             // 1. 入口场景 (Entrance)
             const QRect RECT_BTN_ENTRANCE_ENTER(350, 600, 200, 50); // 进入酒店
             const QRect RECT_BTN_ENTRANCE_HOME(350, 600, 200, 50);  // 下班回家 (位置相同)
@@ -272,31 +216,10 @@ namespace Config {
             // 9. 布草间 (Linen Room)
             const QRect RECT_LBL_DIRTY_SOURCE(700, 400, 100, 100);      // 脏布草堆位置
             const QRect RECT_BTN_LINEN_BACK(100, 600, 160, 50);         // 返回走廊
->>>>>>> 9a6d033cbb8dda4a569c749e8ba280194b9a15c3
 
             // 紧急任务 脏布草 (Event B) 位置配置
             const QRect RECT_EVENT_DIRTY_LINEN(350, 350, 120, 120); // 突发事件B 脏布草位置
 
-<<<<<<< HEAD
-            // 货架物品区域 - 楼层布草间专用 (中心坐标，位置与仓库不同)
-            const QRect AREA_LINEN_SHEET(612, 355, 100, 100);//大床单
-            const QRect AREA_LINEN_DUVET(353, 532, 100, 100);//大被套
-            const QRect AREA_LINEN_S_DUVET(139, 175, 100, 100);//小被套
-            const QRect AREA_LINEN_PILLOW(350, 200, 100, 100);//枕巾
-            const QRect AREA_LINEN_GN_TOWEL(347, 354, 100, 100);//晚安巾
-            const QRect AREA_LINEN_TOWEL(626, 186, 100, 100);//毛巾
-
-            // 申领表弹窗
-            const QSize SHEET_DIALOG(600, 560);
-            // 申领表文字坐标 (x, y)
-            const QPoint TXT_FLOOR(187, 72); //楼层
-            const QPoint TXT_SHEET(293, 206); //大床单
-            const QPoint TXT_DUVET(293, 265); //大被套
-            const QPoint TXT_S_DUVET(293, 327); //小被套
-            const QPoint TXT_PILLOW(293, 495); //枕巾
-            const QPoint TXT_GN_TOWEL(293, 555); //晚安巾
-            const QPoint TXT_TOWEL(293, 625); //毛巾
-=======
             // 货架物品区域 - 楼层布草间专用
             const QRect AREA_LINEN_SHEET(150, 200, 150, 150);
             const QRect AREA_LINEN_DUVET(350, 200, 150, 150);
@@ -314,7 +237,6 @@ namespace Config {
             const QPoint TXT_PILLOW(288, 495);
             const QPoint TXT_GN_TOWEL(288, 555);
             const QPoint TXT_TOWEL(288, 625);
->>>>>>> 9a6d033cbb8dda4a569c749e8ba280194b9a15c3
         }
     }
 }
