@@ -709,6 +709,7 @@ void MainWindow::renderEntrance() {
     if (pix.isNull()) pix = generatePlaceholder("酒店入口", Qt::darkGray, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     bg->setGeometry(0, 0, 896, 720);
+    bg->show(); // Explicitly show the background
 
     // 进入酒店按钮
     QPushButton *btn = new QPushButton("进入酒店", rpgCenterPanel);
@@ -726,6 +727,7 @@ void MainWindow::renderStaffHallway() {
     if (pix.isNull()) pix = generatePlaceholder("员工通道", Qt::lightGray, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     bg->setGeometry(0, 0, 896, 720);
+    bg->show(); // Explicitly show the background
 
     if (!gameState.hasClockedIn) {
         QPushButton *clockInBtn = new QPushButton("打卡签到", rpgCenterPanel);
@@ -767,6 +769,7 @@ void MainWindow::renderOffice() {
     if (pix.isNull()) pix = generatePlaceholder("办公室", Qt::darkBlue, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     bg->setGeometry(0, 0, 896, 720);
+    bg->show(); // Explicitly show the background
 
     // 领取任务按钮
     QPushButton *getTaskBtn = new QPushButton("领取任务", rpgCenterPanel);
@@ -841,19 +844,20 @@ void MainWindow::renderWarehouse() {
     if (pix.isNull()) pix = generatePlaceholder("仓库 (货架)", Qt::darkYellow, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     bg->setGeometry(0, 0, 896, 720);
+    bg->show(); // Explicitly show the background
 
     // 货架物品
     // 在图片区域上方使用透明按钮
     QPushButton *towelBtn = new QPushButton("拿取毛巾", rpgCenterPanel);
     towelBtn->setGeometry(100, 200, 100, 100);
-    // 样式化为半透明或纯文本
-    towelBtn->setStyleSheet("background-color: rgba(255, 255, 255, 100); border: 1px solid white;");
+    // 样式化为半透明或纯文本，并确保文字清晰可见（由于全局默认字体是白色，这里背景也是白色，需要覆盖字体颜色）
+    towelBtn->setStyleSheet("background-color: rgba(255, 255, 255, 150); border: 1px solid white; color: #2c3e50; font-weight: bold;");
     connect(towelBtn, &QPushButton::clicked, [this]() { handleWarehouseItemClick("毛巾"); });
     towelBtn->show();
 
     QPushButton *sheetBtn = new QPushButton("拿取床单", rpgCenterPanel);
     sheetBtn->setGeometry(250, 200, 100, 100);
-    sheetBtn->setStyleSheet("background-color: rgba(255, 255, 255, 100); border: 1px solid white;");
+    sheetBtn->setStyleSheet("background-color: rgba(255, 255, 255, 150); border: 1px solid white; color: #2c3e50; font-weight: bold;");
     connect(sheetBtn, &QPushButton::clicked, [this]() { handleWarehouseItemClick("床单"); });
     sheetBtn->show();
 
@@ -898,6 +902,7 @@ void MainWindow::renderElevatorHall() {
     if (pix.isNull()) pix = generatePlaceholder("电梯厅", Qt::gray, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     bg->setGeometry(0, 0, 896, 720);
+    bg->show(); // Explicitly show the background
 
     // 如果楼层为 0（员工），我们可以去通道。如果是 6 或 7，我们可以去楼层走廊。
     
@@ -922,6 +927,7 @@ void MainWindow::renderElevatorInside() {
     if (pix.isNull()) pix = generatePlaceholder("电梯内部", Qt::lightGray, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     bg->setGeometry(0, 0, 896, 720);
+    bg->show(); // Explicitly show the background
 
     // G, 6, 7 楼层按钮
     QMap<int, QString> floors;
@@ -961,6 +967,7 @@ void MainWindow::renderFloorCorridor() {
     if (pix.isNull()) pix = generatePlaceholder(QString("%1楼 走廊").arg(gameState.currentFloor), Qt::cyan, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     bg->setGeometry(0, 0, 896, 720);
+    bg->show(); // Explicitly show the background
 
     QPushButton *linenRoomBtn = new QPushButton("布草间", rpgCenterPanel);
     linenRoomBtn->setGeometry(200, 200, 200, 100);
@@ -980,6 +987,7 @@ void MainWindow::renderLinenRoom() {
     if (pix.isNull()) pix = generatePlaceholder("布草间", Qt::white, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     bg->setGeometry(0, 0, 896, 720);
+    bg->show(); // Explicitly show the background
 
     // 持久化/初始化该楼层的脏布草袋状态
     bool dirtyBagPresent = false;
