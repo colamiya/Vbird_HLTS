@@ -167,7 +167,7 @@ private:
     void setupUI();
     void setupStyle(); // New method for applying styles
 
-    // --- Module 1: Start Page ---
+    // --- Module 0: Info Page ---
     QWidget *createStartPage();
     QLineEdit *nameInput;
     QSpinBox *ageInput;
@@ -176,6 +176,12 @@ private:
     QLineEdit *durationInput;
     StudentInfo student;
     void onStartTraining();
+
+    // --- Module 1: Main Menu ---
+    QWidget *createMainMenu();
+    void updateMainMenu();
+    int progressState = 1; // 1=Slideshow, 2=Quiz, 3=RPG
+    QList<QPushButton*> mainMenuButtons;
 
     // --- Module 2: Slideshow ---
     QWidget *createSlideshowPage();
