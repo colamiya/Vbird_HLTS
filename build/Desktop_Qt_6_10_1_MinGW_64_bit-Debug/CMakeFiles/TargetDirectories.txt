@@ -1,0 +1,5 @@
+C:/Users/A0065509/source/repos/Vbird_HLTS/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/CMakeFiles/HotelTrainingApp.dir
+C:/Users/A0065509/source/repos/Vbird_HLTS/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/CMakeFiles/edit_cache.dir
+C:/Users/A0065509/source/repos/Vbird_HLTS/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/CMakeFiles/rebuild_cache.dir
+C:/Users/A0065509/source/repos/Vbird_HLTS/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/CMakeFiles/HotelTrainingApp_autogen_timestamp_deps.dir
+C:/Users/A0065509/source/repos/Vbird_HLTS/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/CMakeFiles/HotelTrainingApp_autogen.dir

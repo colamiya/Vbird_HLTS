@@ -1,0 +1,28 @@
+cmake_minimum_required(VERSION 3.16)
+
+project(HotelTrainingApp LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Enable Automoc to handle Q_OBJECT macros
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+
+set(PROJECT_SOURCES
+    main.cpp
+    mainwindow.cpp
+    mainwindow.h
+)
+
+add_executable(HotelTrainingApp ${PROJECT_SOURCES})
+
+target_link_libraries(HotelTrainingApp PRIVATE Qt6::Widgets)
+
+# Handle Window application on Windows
+if(WIN32)
+    set_property(TARGET HotelTrainingApp PROPERTY WIN32_EXECUTABLE ON)
+endif()
