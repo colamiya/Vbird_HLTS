@@ -1,9 +1,0 @@
-# ninja log v6
-22	3289	7859985480665277	HotelTrainingApp_autogen/timestamp	40b9b272b4798793
-22	3289	7859985480665277	HotelTrainingApp_autogen/mocs_compilation.cpp	40b9b272b4798793
-22	3289	7859985480665277	C:/Users/A0065509/source/repos/Vbird_HLTS/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/HotelTrainingApp_autogen/timestamp	40b9b272b4798793
-22	3289	7859985480665277	C:/Users/A0065509/source/repos/Vbird_HLTS/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/HotelTrainingApp_autogen/mocs_compilation.cpp	40b9b272b4798793
-3301	7430	7859985485778233	CMakeFiles/HotelTrainingApp.dir/HotelTrainingApp_autogen/mocs_compilation.cpp.obj	ccfc90bf36dff101
-3684	7746	7859985489621024	CMakeFiles/HotelTrainingApp.dir/main.cpp.obj	4a32888e6cdc56d
-4145	9223	7859985494227520	CMakeFiles/HotelTrainingApp.dir/mainwindow.cpp.obj	31a4af05227fdef8
-9224	11320	7859985545011726	HotelTrainingApp.exe	561299a2c56c7a10
