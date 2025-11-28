@@ -63,6 +63,9 @@ public:
     void setDeveloperMode(bool enabled) { isDeveloperMode = enabled; }
     void setEmergencyMode(bool enabled) { isEmergencyEnabled = enabled; }
 
+    // Reset game state to initial values
+    void reset();
+
 signals:
     void levelCompleted();
     void levelCancelled();
@@ -81,7 +84,11 @@ private:
     QLabel *locationLabel;
     QLabel *cartStatusLabel;
     QListWidget *taskListWidget;
+
+    // Right Sidebar Elements
+    QLabel *inventoryTitleLabel;
     DraggableListWidget *inventoryListWidget;
+    QWidget *elevatorPanelContainer; // Container for elevator buttons in sidebar
 
     // Scene Rendering
     void goToScene(GameScene scene);

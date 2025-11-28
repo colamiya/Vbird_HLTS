@@ -7,7 +7,7 @@ DragSourceLabel::DragSourceLabel(const QString &itemName, QWidget *parent)
     : QLabel(parent), m_itemName(itemName) {
     // Transparent style for overlay
     setStyleSheet("background-color: rgba(255, 255, 255, 0.1); border: 1px dashed rgba(255,255,255,0.5);");
-    setCursor(Qt::OpenHandCursor);
+    setCursor(Qt::PointingHandCursor); // Changed to PointingHand
     setToolTip("拖拽 " + itemName);
 }
 
@@ -65,6 +65,7 @@ DraggableListWidget::DraggableListWidget(QWidget *parent) : QListWidget(parent) 
     setDropIndicatorShown(true);
     setDragDropMode(QAbstractItemView::DragDrop);
     setDefaultDropAction(Qt::CopyAction); // Default to copy
+    setCursor(Qt::PointingHandCursor); // Set cursor
 }
 
 void DraggableListWidget::startDrag(Qt::DropActions supportedActions) {
@@ -120,7 +121,9 @@ void DraggableListWidget::dropEvent(QDropEvent *event) {
 }
 
 // --- ClickableArea ---
-ClickableArea::ClickableArea(QWidget *parent) : QWidget(parent) {}
+ClickableArea::ClickableArea(QWidget *parent) : QWidget(parent) {
+    setCursor(Qt::PointingHandCursor);
+}
 
 void ClickableArea::mousePressEvent(QMouseEvent *event) {
     QPoint pos = event->pos();
@@ -131,15 +134,27 @@ void ClickableArea::mousePressEvent(QMouseEvent *event) {
 
 // --- ShelfArea ---
 ShelfArea::ShelfArea(const QString &itemName, QWidget *parent)
-    : QLabel(parent), m_itemName(itemName) {
+    : QLabel(parent), m_itemName(itemName), m_isDraggable(true) {
     setAcceptDrops(true); // Target
     // Style
     setStyleSheet("background-color: rgba(255, 255, 255, 0.1); border: 1px dashed rgba(255,255,255,0.5);");
-    setCursor(Qt::OpenHandCursor);
+    setCursor(Qt::PointingHandCursor); // Default draggable
     setToolTip(itemName);
 }
 
+void ShelfArea::setDraggable(bool enabled) {
+    m_isDraggable = enabled;
+    if (m_isDraggable) {
+        setCursor(Qt::PointingHandCursor);
+    } else {
+        setCursor(Qt::ArrowCursor);
+    }
+}
+
 void ShelfArea::mousePressEvent(QMouseEvent *event) {
+    // Only allow drag if explicitly draggable
+    if (!m_isDraggable) return;
+
     if (event->button() == Qt::LeftButton) {
         QDrag *drag = new QDrag(this);
         QMimeData *mimeData = new QMimeData;
