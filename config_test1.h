@@ -36,15 +36,15 @@ namespace Config {
 
         // --- 尺寸配置 ---
         // 幻灯片显示区域大小 (宽, 高)
-        const QSize DISPLAY_SIZE(800, 450);
+        const QSize DISPLAY_SIZE(1200, 675);
         // 总结页缩略图大小 (宽, 高)
-        const QSize THUMBNAIL_SIZE(200, 150);
+        const QSize THUMBNAIL_SIZE(240, 180);
 
         // --- 样式与颜色 ---
         // 占位符颜色 (当图片缺失时显示)
         const QColor COL_PLACEHOLDER_BG = Qt::blue;
         // 缩略图边框样式
-        const QString STYLE_THUMBNAIL_BORDER = "border: 1px solid #ccc;";
+        const QString STYLE_THUMBNAIL_BORDER = "border: 0px solid #ccc;";
         // 占位符文字大小
         const int FONT_SIZE_PLACEHOLDER = 20;
     }

@@ -144,12 +144,12 @@ namespace Config {
             // 仓库(货架)
             const QRect BTN_SHELF_BACK(50, 600, 150, 50);
             // 货架物品区域 (x, y, w, h)
-            const QRect AREA_SHEET(50, 150, 150, 150);
-            const QRect AREA_DUVET(250, 150, 150, 150);
-            const QRect AREA_S_DUVET(450, 150, 150, 150);
-            const QRect AREA_PILLOW(50, 350, 150, 150);
-            const QRect AREA_GN_TOWEL(250, 350, 150, 150);
-            const QRect AREA_TOWEL(450, 350, 150, 150);
+            const QRect AREA_SHEET(50, 150, 150, 150);//大床单
+            const QRect AREA_DUVET(250, 150, 150, 150);//大被套
+            const QRect AREA_S_DUVET(450, 150, 150, 150);//小被套
+            const QRect AREA_PILLOW(50, 350, 150, 150);//枕巾
+            const QRect AREA_GN_TOWEL(250, 350, 150, 150);//晚安巾
+            const QRect AREA_TOWEL(450, 350, 150, 150);//毛巾
 
             // 电梯厅
             const QRect BTN_ELEVATOR_ENTER(350, 300, 200, 100);
@@ -170,15 +170,15 @@ namespace Config {
             const QRect BTN_LINEN_BACK(50, 600, 150, 50);
 
             // 申领表弹窗
-            const QSize SHEET_DIALOG(600, 800);
+            const QSize SHEET_DIALOG(600, 580);
             // 申领表文字坐标 (x, y)
-            const QPoint TXT_FLOOR(200, 100);
-            const QPoint TXT_SHEET(100, 200);
-            const QPoint TXT_DUVET(300, 200);
-            const QPoint TXT_S_DUVET(100, 300);
-            const QPoint TXT_PILLOW(300, 300);
-            const QPoint TXT_GN_TOWEL(100, 400);
-            const QPoint TXT_TOWEL(300, 400);
+            const QPoint TXT_FLOOR(180, 65); //楼层
+            const QPoint TXT_SHEET(288, 305); //大床单
+            const QPoint TXT_DUVET(288, 375); //大被套
+            const QPoint TXT_S_DUVET(288, 435); //小被套
+            const QPoint TXT_PILLOW(288, 495); //枕巾
+            const QPoint TXT_GN_TOWEL(288, 555); //晚安巾
+            const QPoint TXT_TOWEL(288, 625); //毛巾
         }
     }
 }

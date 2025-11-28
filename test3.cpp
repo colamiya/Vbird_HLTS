@@ -728,6 +728,7 @@ void Test3::handleGoHome() {
 
 void Test3::handleElevatorButton(int floor) {
     emit logMessage(QString("电梯前往 %1 楼").arg(floor));
+    //可设置乘坐电梯的时间
     QTimer::singleShot(1000, this, [this, floor]() {
         gameState.currentFloor = floor;
         emit logMessage(QString("抵达 %1 楼").arg(floor));

@@ -31,11 +31,11 @@ namespace Config {
         // 选项文字按钮大小
         const QSize SIZE_OPTION_BTN(200, 40);
         // 图片图标实际大小 (略小于按钮以留白)
-        const QSize SIZE_OPTION_ICON(190, 140);
+        const QSize SIZE_OPTION_ICON(200, 150);
         // 结果对话框大小
         const QSize SIZE_RESULT_DIALOG(600, 600);
         // 图片预览对话框大小
-        const QSize SIZE_PREVIEW_DIALOG(800, 600);
+        const QSize SIZE_PREVIEW_DIALOG(600, 450);
 
         // --- 颜色与样式 ---
         // 提交按钮背景色 (绿色)

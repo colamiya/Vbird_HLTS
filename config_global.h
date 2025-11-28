@@ -13,11 +13,11 @@ namespace Config {
     namespace Global {
 
         // --- 窗口设置 ---
-        const QString APP_TITLE = "酒店管理学生实训系统";
-        const QSize WINDOW_SIZE(1280, 720);
+        const QString APP_TITLE = "XXX培训系统";
+        const QSize WINDOW_SIZE(1440, 900);
 
         // --- 字体设置 ---
-        const QString FONT_FAMILY = "Microsoft YaHei";
+        const QString FONT_FAMILY = "Segoe UI";
         const int FONT_SIZE_DEFAULT = 14;
         const int FONT_SIZE_TITLE = 28; // 主菜单标题
         const int FONT_SIZE_SUBTITLE = 24; // 子页面标题
@@ -60,7 +60,7 @@ namespace Config {
         // --- 首页设置 ---
         const QString TITLE_START_PAGE = "学生基础信息登记";
         const QString BTN_TEXT_START = "开始培训";
-        const QString CHECKBOX_TEXT_EMERGENCY = "启用突发事件 (Enable Emergency)";
+        const QString CHECKBOX_TEXT_EMERGENCY = "启用突发事件";
         // 表单区域宽度
         const int SIZE_FORM_WIDTH = 400;
         // 开始按钮宽度
