@@ -20,47 +20,76 @@ namespace Config {
         const QSize WINDOW_SIZE(1440, 900);
 
         // --- 字体设置 (Fonts) ---
-        // 默认字体家族
-        const QString FONT_FAMILY = "Segoe UI";
+        // 默认字体家族 (MacOS Style)
+        const QString FONT_FAMILY = "Segoe UI, Microsoft YaHei";
         // 默认字体大小
         const int FONT_SIZE_DEFAULT = 14;
         // 主菜单标题字体大小
-        const int FONT_SIZE_TITLE = 28;
+        const int FONT_SIZE_TITLE = 32;
         // 子页面标题字体大小
         const int FONT_SIZE_SUBTITLE = 24;
 
-        // --- 颜色主题 (Color Theme) ---
-        // 主背景色 (浅灰)
-        const QString COL_BACKGROUND = "#f4f6f9";
-        // 默认文字颜色 (深蓝灰)
-        const QString COL_TEXT_PRIMARY = "#2c3e50";
-        // 按钮默认颜色 (蓝色)
-        const QString COL_BTN_PRIMARY = "#3498db";
-        // 按钮悬停颜色 (深蓝)
-        const QString COL_BTN_HOVER = "#2980b9";
-        // 按钮禁用颜色 (灰色)
-        const QString COL_BTN_DISABLED = "#bdc3c7";
+        // --- 颜色主题 (Color Theme - MacOS Inspired) ---
+        // 主背景色 (Off-white)
+        const QString COL_BACKGROUND = "#fbfbfb";
+        // 默认文字颜色 (Dark Gray)
+        const QString COL_TEXT_PRIMARY = "#333333";
+        // 按钮默认颜色 (Apple Blue)
+        const QString COL_BTN_PRIMARY = "#007AFF";
+        // 按钮悬停颜色 (Darker Blue)
+        const QString COL_BTN_HOVER = "#0051a8";
+        // 按钮禁用颜色 (Light Gray)
+        const QString COL_BTN_DISABLED = "#d1d1d6";
         // 禁用文字颜色
-        const QString COL_TEXT_DISABLED = "#7f8c8d";
-        // 输入框背景色 (白色)
-        const QString COL_INPUT_BG = "white";
-        // 边框颜色 (淡灰)
-        const QString COL_BORDER = "#dfe6e9";
-        // 列表选中背景色 (淡蓝)
-        const QString COL_LIST_SELECTED = "#e1f0fa";
+        const QString COL_TEXT_DISABLED = "#8e8e93";
+        // 输入框背景色 (White)
+        const QString COL_INPUT_BG = "#ffffff";
+        // 边框颜色 (Soft Gray)
+        const QString COL_BORDER = "#d1d1d6";
+        // 列表选中背景色 (Soft Blue)
+        const QString COL_LIST_SELECTED = "#e5f1fb";
 
         // --- 全局样式表 (Global QSS) ---
         // 定义了主窗口、按钮、输入框、列表控件的默认样式。
-        // 如需修改整体风格，请在此处调整 CSS 代码。
+        // MacOS 风格: 圆角, 扁平化, 柔和阴影 (Shadows are tricky in pure QSS without images, handled via clean borders)
         const QString GLOBAL_STYLESHEET = R"(
-            QMainWindow { background-color: #f4f6f9; font-family: "Microsoft YaHei"; color: #2c3e50; }
-            QPushButton { background-color: #3498db; color: white; border-radius: 6px; padding: 10px 20px; font-weight: 600; font-size: 14px; }
-            QPushButton:hover { background-color: #2980b9; }
-            QPushButton:disabled { background-color: #bdc3c7; color: #7f8c8d; }
-            QLineEdit, QSpinBox, QComboBox { background-color: white; border: 2px solid #dfe6e9; border-radius: 6px; padding: 8px; }
-            QListWidget { background-color: white; border: 2px solid #dfe6e9; border-radius: 6px; outline: none; }
-            QListWidget::item { padding: 10px; color: #2c3e50; }
-            QListWidget::item:selected { background-color: #e1f0fa; color: #2c3e50; }
+            QMainWindow { background-color: #fbfbfb; font-family: "Segoe UI", "Microsoft YaHei"; color: #333333; }
+
+            QPushButton {
+                background-color: #007AFF;
+                color: white;
+                border-radius: 10px;
+                padding: 12px 24px;
+                font-weight: 600;
+                font-size: 15px;
+                border: none;
+            }
+            QPushButton:hover { background-color: #0062cc; }
+            QPushButton:pressed { background-color: #0051a8; }
+            QPushButton:disabled { background-color: #e5e5ea; color: #8e8e93; }
+
+            QLineEdit, QSpinBox, QComboBox {
+                background-color: white;
+                border: 1px solid #c7c7cc;
+                border-radius: 8px;
+                padding: 10px;
+                font-size: 14px;
+                color: #333333;
+            }
+            QLineEdit:focus, QSpinBox:focus, QComboBox:focus { border: 2px solid #007AFF; }
+
+            QListWidget {
+                background-color: white;
+                border: 1px solid #d1d1d6;
+                border-radius: 10px;
+                outline: none;
+            }
+            QListWidget::item { padding: 12px; color: #333333; border-bottom: 1px solid #f2f2f7; }
+            QListWidget::item:selected { background-color: #007AFF; color: white; border-radius: 6px; }
+            QListWidget::item:hover { background-color: #f2f2f7; color: #333333; }
+            QListWidget::item:selected:hover { background-color: #0062cc; color: white; }
+
+            QLabel { color: #333333; font-size: 14px; }
         )";
 
         // --- 首页设置 (Start Page) ---
@@ -71,9 +100,9 @@ namespace Config {
         // 突发事件复选框文本
         const QString CHECKBOX_TEXT_EMERGENCY = "启用突发事件";
         // 表单区域宽度 (控制输入框的整体宽度)
-        const int SIZE_FORM_WIDTH = 400;
+        const int SIZE_FORM_WIDTH = 420;
         // 开始按钮宽度
-        const int SIZE_START_BTN_WIDTH = 200;
+        const int SIZE_START_BTN_WIDTH = 220;
 
         // --- 主菜单设置 (Main Menu) ---
         // 主菜单标题
@@ -87,7 +116,7 @@ namespace Config {
         // 开发者模式复选框文本
         const QString CHECKBOX_TEXT_DEV_MODE = "开发者模式";
         // 菜单按钮尺寸 (宽, 高)
-        const QSize SIZE_MENU_BTN(400, 80);
+        const QSize SIZE_MENU_BTN(420, 90);
     }
 }
 
