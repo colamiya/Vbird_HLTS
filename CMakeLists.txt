@@ -16,6 +16,15 @@ set(PROJECT_SOURCES
     main.cpp
     mainwindow.cpp
     mainwindow.h
+    test1.cpp
+    test1.h
+    test2.cpp
+    test2.h
+    test3.cpp
+    test3.h
+    utils.cpp
+    utils.h
+    resources.qrc
 )
 
 add_executable(HotelTrainingApp ${PROJECT_SOURCES})
