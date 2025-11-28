@@ -226,7 +226,7 @@ QWidget *MainWindow::createMainMenu() {
     layout->setAlignment(Qt::AlignCenter);
     layout->setSpacing(30);
 
-    QLabel *title = new QLabel("请选择测试模块"); // Select Module
+    QLabel *title = new QLabel("请选择测试项"); // Select Module
     title->setStyleSheet("font-size: 28px; font-weight: bold; margin-bottom: 20px;");
     layout->addWidget(title, 0, Qt::AlignCenter);
 
@@ -243,7 +243,7 @@ QWidget *MainWindow::createMainMenu() {
     mainMenuButtons.append(btn1);
 
     // Test 2 Button
-    QPushButton *btn2 = new QPushButton("测试 2: 知识测验");
+    QPushButton *btn2 = new QPushButton("测试 2: 知识测验 （选择题）");
     btn2->setFixedSize(400, 80);
     btn2->setStyleSheet("font-size: 18px;");
     connect(btn2, &QPushButton::clicked, [this](){
@@ -274,7 +274,7 @@ void MainWindow::updateMainMenu() {
             btn->setToolTip("");
         } else {
             btn->setEnabled(false);
-            btn->setToolTip("请先完成前一个测试"); // Please finish previous test
+            btn->setToolTip("请先完成前一个测试");
         }
     }
 }
@@ -365,7 +365,7 @@ void MainWindow::finishSlideshow() {
         grid->addWidget(thumb, i / 5, i % 5);
     }
 
-    QPushButton *finishBtn = new QPushButton("完成学习 (返回菜单)");
+    QPushButton *finishBtn = new QPushButton("完成学习 (返回主菜单)");
     connect(finishBtn, &QPushButton::clicked, [this]() {
         if (progressState < 2) progressState = 2; // Unlock Quiz
         updateMainMenu();
@@ -451,7 +451,7 @@ QWidget *MainWindow::createQuizPage() {
     QHBoxLayout *navLayout = new QHBoxLayout();
 
     QPushButton *prevQBtn = new QPushButton("上一题");
-    QPushButton *nextQBtn = new QPushButton("下一题 (提交)");
+    QPushButton *nextQBtn = new QPushButton("下一题");
     navLayout->addWidget(prevQBtn);
     navLayout->addWidget(nextQBtn);
     layout->addLayout(navLayout);
