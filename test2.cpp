@@ -117,8 +117,8 @@ void Test2::loadQuestion() {
 
         char suffix = 'A' + i;
         QString imgName = QString("%1%2").arg(currentQuestionIndex + 1).arg(suffix);
-        QString path = QString("source/Test2/%1.jpg").arg(imgName);
-        if (!QFile::exists(path)) path = QString("source/Test2/%1.png").arg(imgName);
+        QString path = QString(":/source/Test2/%1.jpg").arg(imgName);
+        if (!QFile::exists(path)) path = QString(":/source/Test2/%1.png").arg(imgName);
 
         QPixmap pix(path);
         if (pix.isNull()) {

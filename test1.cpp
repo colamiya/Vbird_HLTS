@@ -43,7 +43,7 @@ Test1::Test1(QWidget *parent) : QWidget(parent) {
 }
 
 void Test1::updateSlide() {
-    QString imagePath = QString("source/Test1/fig%1.png").arg(currentSlideIndex + 1);
+    QString imagePath = QString(":/source/Test1/fig%1.png").arg(currentSlideIndex + 1);
     QPixmap pixmap(imagePath);
 
     if (!pixmap.isNull()) {
@@ -65,7 +65,7 @@ void Test1::finishSlideshow() {
     for (int i = 0; i < totalSlides; ++i) {
         QLabel *thumb = new QLabel();
 
-        QString imagePath = QString("source/Test1/fig%1.png").arg(i + 1);
+        QString imagePath = QString(":/source/Test1/fig%1.png").arg(i + 1);
         QPixmap pix(imagePath);
         if (pix.isNull()) {
              pix = generatePlaceholder(QString("图 %1").arg(i + 1), Qt::gray, QSize(200, 150));
