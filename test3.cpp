@@ -4,6 +4,7 @@
 #include <QMouseEvent>
 #include <QDialog>
 #include <QMap>
+#include <QFile>
 
 Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode(isDevMode) {
     QHBoxLayout *mainLayout = new QHBoxLayout(this);
