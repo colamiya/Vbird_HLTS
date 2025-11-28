@@ -19,13 +19,16 @@
 // --- Constants for Configuration ---
 
 // Task Sheet Text Coordinates (On "申领表.png")
+// [MAINTENANCE NOTE]
+// Adjust these coordinates if you replace "申领表.png".
+// Use Developer Mode to click on the sheet and get new X,Y values.
 const QPoint COORD_FLOOR = QPoint(200, 100);
-const QPoint COORD_ITEM_1 = QPoint(100, 200); // Large Sheet
-const QPoint COORD_ITEM_2 = QPoint(300, 200); // Large Duvet
-const QPoint COORD_ITEM_3 = QPoint(100, 300); // Small Duvet
-const QPoint COORD_ITEM_4 = QPoint(300, 300); // Pillow Towel
-const QPoint COORD_ITEM_5 = QPoint(100, 400); // Good Night Towel
-const QPoint COORD_ITEM_6 = QPoint(300, 400); // Towel
+const QPoint COORD_ITEM_1 = QPoint(100, 200); // Large Sheet (大床单)
+const QPoint COORD_ITEM_2 = QPoint(300, 200); // Large Duvet (大被套)
+const QPoint COORD_ITEM_3 = QPoint(100, 300); // Small Duvet (小被套)
+const QPoint COORD_ITEM_4 = QPoint(300, 300); // Pillow Towel (枕巾)
+const QPoint COORD_ITEM_5 = QPoint(100, 400); // Good Night Towel (晚安巾)
+const QPoint COORD_ITEM_6 = QPoint(300, 400); // Towel (毛巾)
 
 // Shelf Item Coordinates (On "取布草的货架.jpg" and "布草间-空.jpg")
 // Used for both Taking (Warehouse) and Putting (Linen Room)
@@ -80,6 +83,7 @@ class Test3 : public QWidget {
 public:
     explicit Test3(bool isDevMode, QWidget *parent = nullptr);
     void setDeveloperMode(bool enabled) { isDeveloperMode = enabled; }
+    void setEmergencyMode(bool enabled) { isEmergencyEnabled = enabled; }
 
 signals:
     void levelCompleted();
@@ -90,6 +94,7 @@ protected:
 
 private:
     bool isDeveloperMode;
+    bool isEmergencyEnabled = false;
     GameState gameState;
 
     // UI Elements
@@ -124,8 +129,11 @@ private:
     void handleReportWork();
     void handleGoHome();
     void handleElevatorButton(int floor);
-    void showTaskSheet();
-    void checkEmergencyTask();
+    void showTaskSheet(int taskIndex = -1); // -1 means currently selected or last
+    void checkEmergencyTask(); // Now possibly part of GetTask or Event A
+
+    // Normal Dist helper
+    int getNormalRandom(int min, int max);
 
     // Interaction Handlers
     void handleInventoryDrop(QString itemName); // From Scene to Cart (Take)
