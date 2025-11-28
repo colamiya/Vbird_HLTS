@@ -556,25 +556,39 @@ void Test3::renderLinenRoom() {
         // Set style for transparent grey background
         area->setStyleSheet(Config::Test3::Styles::SHELF_AREA);
 
-        // LINEN ROOM: Default NO IMAGE (Empty box). Image only shows if already delivered?
-        // Logic: How do we know if it was delivered? The current logic just decrements required items.
-        // If we want to persist the visual state of "filled shelves", we need to track it in GameState.
-        // However, the prompt says: "Only when student puts corresponding linen, image appears".
-        // Simplification: We can check if the current task for this floor *doesn't* need this item anymore,
-        // implying it was filled? Or maybe we just flash the image?
-        // Better: Let's assume once dropped, it stays for this session?
-        // Or simpler: Just show it if the user just dropped it (feedback).
-        // BUT: User said "default not show image".
+        // Check if item has been placed
+        int placedCount = 0;
+        // Find task for current floor
+        for(const auto &t : gameState.tasks) {
+            if(t.targetFloor == gameState.currentFloor && !t.isCompleted) {
+                placedCount = t.placedItems.value(name, 0);
+                break;
+            }
+        }
 
-        // I will implement a visual state tracking or just show it if dropped.
-        // Actually, if I look at `handleSceneDrop`, it updates task progress.
-        // Let's just keep them empty initially.
+        // Initialize state based on placedCount
+        if (placedCount > 0) {
+            QString iconPath = Config::Test3::Images::ITEMS.value(name);
+            if (QFile::exists(iconPath)) {
+                QPixmap pix(iconPath);
+                if (!pix.isNull()) {
+                     area->setPixmap(pix.scaled(Config::Test3::Geometry::ICON_SHELF_ITEM, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+                     area->setAlignment(Qt::AlignCenter);
+                }
+            }
 
-        // Wait, if I re-enter the room, should they be filled?
-        // "Only when student puts... image comes out".
-        // This implies dynamic feedback. I'll handle that in drop callback.
-
-        // Current implementation in loop does not set pixmap. Correct.
+            // Create Label for Count
+            QLabel *countLbl = new QLabel(QString("x%1").arg(placedCount), area);
+            countLbl->setStyleSheet(QString("color: %1; font-weight: bold; font-size: %2px; background: rgba(255,255,255,0.7); border-radius: 4px; padding: 2px;")
+                                    .arg(Config::Test3::Fonts::COL_LINEN_COUNT)
+                                    .arg(Config::Test3::Fonts::SIZE_LINEN_COUNT));
+            countLbl->adjustSize();
+            // Position at center (in front of image)
+            countLbl->move((area->width() - countLbl->width())/2, (area->height() - countLbl->height())/2);
+            countLbl->show();
+        } else {
+            area->clear(); // Ensure empty
+        }
 
         area->onDropCallback = [this, name, area](QString item) {
              // Validation: Check if item matches shelf
@@ -583,17 +597,26 @@ void Test3::renderLinenRoom() {
                  return;
              }
 
-             // Visual Feedback: Show Image
-             QString iconPath = Config::Test3::Images::ITEMS.value(name);
-             if (QFile::exists(iconPath)) {
-                QPixmap pix(iconPath);
-                if (!pix.isNull()) {
-                     area->setPixmap(pix.scaled(Config::Test3::Geometry::ICON_SHELF_ITEM, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-                     area->setAlignment(Qt::AlignCenter);
-                }
+             // Check if this item is actually needed by the task
+             bool needed = false;
+             for (const auto &t : gameState.tasks) {
+                 if (t.targetFloor == gameState.currentFloor && !t.isCompleted) {
+                      if (t.requiredItems.value(name, 0) > 0) {
+                          needed = true;
+                      }
+                      break;
+                 }
+             }
+
+             if (!needed) {
+                 QMessageBox::warning(this, "提示", "本层不需要此物品，或已放满。");
+                 return;
              }
 
              handleSceneDrop(item, false); // false = linen room (delivery)
+
+             // Refresh scene to update counts and images
+             renderScene();
         };
         area->show();
     };
@@ -686,6 +709,7 @@ void Test3::handleSceneDrop(QString itemName, bool isWarehouse) {
 
                 gameState.inventory.cleanItems[itemName]--;
                 t.requiredItems[itemName]--;
+                t.placedItems[itemName]++; // Track placed items for visual persistence
                 emit logMessage("放置 " + itemName + " 到货架");
 
                 bool allDone = true;

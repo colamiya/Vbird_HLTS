@@ -91,30 +91,36 @@ namespace Config {
 
         // --- 样式与颜色 (Styles) ---
         namespace Styles {
-            // 侧边栏样式
-            const QString SIDEBAR_LEFT = "background-color: #2c3e50; color: white; border-right: 1px solid #1a252f;";
-            const QString SIDEBAR_RIGHT = "background-color: #34495e; color: white; border-left: 1px solid #1a252f;";
-            const QString LBL_TITLE = "font-weight: bold; color: #ecf0f1; margin-top: 10px;";
+            // 侧边栏样式 - Mac Dark Mode inspired sidebar
+            const QString SIDEBAR_LEFT = "background-color: #f2f2f7; color: #333333; border-right: 1px solid #d1d1d6;";
+            const QString SIDEBAR_RIGHT = "background-color: #f2f2f7; color: #333333; border-left: 1px solid #d1d1d6;";
+            const QString LBL_TITLE = "font-weight: bold; color: #333333; margin-top: 10px; font-size: 16px;";
 
             // 任务列表样式
-            const QString LIST_WIDGET = "color: black; background: white; font-size: 12px;";
+            const QString LIST_WIDGET = "color: #333333; background: white; font-size: 13px; border: 1px solid #d1d1d6; border-radius: 6px;";
 
-            // 按钮特殊颜色
-            const QString BTN_ORANGE = "background-color: #e67e22;"; // 查看申领表
-            const QString BTN_GREEN = "background-color: #27ae60; color: white; font-size: 18px;"; // 下班回家
-            const QString BTN_RED = "background-color: #e74c3c; color: white; font-size: 18px; font-weight: bold;"; // 打卡下班
-            const QString BTN_YELLOW = "background-color: #f1c40f; color: black;"; // 汇报工作
-            const QString BTN_BLUE = "font-size: 18px; background-color: #3498db; color: white;"; // 拿取布草
-            const QString BTN_RETURN_MENU = "background-color: #c0392b; color: white; font-weight: bold;"; // 返回主菜单 (深红)
+            // 按钮特殊颜色 - Updated for Flat Design
+            const QString BTN_ORANGE = "background-color: #FF9500; color: white;"; // 查看申领表
+            const QString BTN_GREEN = "background-color: #34C759; color: white; font-size: 16px; font-weight: 600;"; // 下班回家
+            const QString BTN_RED = "background-color: #FF3B30; color: white; font-size: 16px; font-weight: bold;"; // 打卡下班
+            const QString BTN_YELLOW = "background-color: #FFCC00; color: black; font-weight: 600;"; // 汇报工作
+            const QString BTN_BLUE = "font-size: 16px; background-color: #007AFF; color: white; font-weight: 600;"; // 拿取布草
+            const QString BTN_RETURN_MENU = "background-color: #FF3B30; color: white; font-weight: bold; border-radius: 6px;"; // 返回主菜单 (Deep Red)
 
-            // 场景切换按钮通用样式
-            const QString BTN_SCENE_DEFAULT = "background-color: #3498db; color: white; border: none; padding: 10px;";
+            // 场景切换按钮通用样式 - Transparent/Overlay buttons can remain standard or be styled
+            const QString BTN_SCENE_DEFAULT = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";
 
             // 货架区域样式 (半透明灰色背景)
-            const QString SHELF_AREA = "background-color: rgba(200, 200, 200, 0.5); border: 2px solid #bdc3c7; border-radius: 4px;";
+            const QString SHELF_AREA = "background-color: rgba(255, 255, 255, 0.6); border: 2px dashed #8e8e93; border-radius: 8px;";
 
             // 提示标签颜色
-            const QString LBL_SUCCESS_GREEN = "font-size: 18px; color: green; font-weight: bold;";
+            const QString LBL_SUCCESS_GREEN = "font-size: 18px; color: #34C759; font-weight: bold;";
+        }
+
+        // --- 字体配置 (Fonts) ---
+        namespace Fonts {
+            const int SIZE_LINEN_COUNT = 32;
+            const QString COL_LINEN_COUNT = "#FF3B30"; // Red color for visibility
         }
 
         // --- 坐标与尺寸 (Geometry) ---
@@ -122,14 +128,14 @@ namespace Config {
         namespace Geometry {
             // 全局尺寸
             const QSize CENTER_PANEL_SIZE(896, 720);
-            const int SIDEBAR_WIDTH = 192;
-            const int TASK_LIST_HEIGHT = 100;
-            const QSize RETURN_BTN_SIZE(120, 40);
+            const int SIDEBAR_WIDTH = 220; // Slightly wider for Mac look
+            const int TASK_LIST_HEIGHT = 150; // Taller
+            const QSize RETURN_BTN_SIZE(140, 40);
 
             // 图标尺寸
-            const QSize ICON_CART(150, 150);
+            const QSize ICON_CART(140, 140);
             const QSize ICON_INVENTORY(64, 64);
-            const QSize ICON_SHELF_ITEM(80, 80);
+            const QSize ICON_SHELF_ITEM(90, 90);
             const QSize ICON_DIRTY_DRAG(100, 100);
 
             // --- 场景元素布局 (x_center, y_center, w, h) ---
@@ -140,34 +146,34 @@ namespace Config {
             // 员工通道
             const QRect LBL_HALLWAY_STATUS(100, 100, 200, 50);
             const QRect BTN_HALLWAY_EXIT(350, 600, 200, 50);
-            const QRect BTN_HALLWAY_CLOCK_ACTION(100, 100, 150, 50); // 签到/下班 共用位置
-            const QRect BTN_HALLWAY_GO_OFFICE(50, 300, 150, 50);
-            const QRect BTN_HALLWAY_GO_WAREHOUSE(250, 300, 150, 50);
-            const QRect BTN_HALLWAY_GO_ELEVATOR(450, 300, 150, 50);
+            const QRect BTN_HALLWAY_CLOCK_ACTION(100, 100, 160, 50); // 签到/下班 共用位置
+            const QRect BTN_HALLWAY_GO_OFFICE(100, 350, 160, 60);
+            const QRect BTN_HALLWAY_GO_WAREHOUSE(300, 350, 160, 60);
+            const QRect BTN_HALLWAY_GO_ELEVATOR(500, 350, 160, 60);
 
             // 办公室
-            const QRect BTN_OFFICE_MAIN_ACTION(100, 100, 150, 50); // 汇报/领任务
+            const QRect BTN_OFFICE_MAIN_ACTION(100, 100, 160, 50); // 汇报/领任务
             const QRect LBL_OFFICE_MSG(100, 100, 300, 50);
-            const QRect BTN_OFFICE_BACK(100, 600, 150, 50);
+            const QRect BTN_OFFICE_BACK(100, 600, 160, 50);
 
             // 仓库(入口)
-            const QRect BTN_WAREHOUSE_TAKE(100, 300, 150, 60);
-            const QRect BTN_WAREHOUSE_BACK(50, 600, 150, 50);
+            const QRect BTN_WAREHOUSE_TAKE(100, 300, 160, 60);
+            const QRect BTN_WAREHOUSE_BACK(100, 600, 160, 50);
 
             // 仓库(货架)
-            const QRect BTN_SHELF_BACK(50, 600, 150, 50);
+            const QRect BTN_SHELF_BACK(100, 600, 160, 50);
 
             // 货架物品区域 - 仓库专用 (中心坐标)
-            const QRect AREA_SHEET(50, 150, 150, 150);//大床单
-            const QRect AREA_DUVET(250, 150, 150, 150);//大被套
-            const QRect AREA_S_DUVET(450, 150, 150, 150);//小被套
-            const QRect AREA_PILLOW(50, 350, 150, 150);//枕巾
-            const QRect AREA_GN_TOWEL(250, 350, 150, 150);//晚安巾
-            const QRect AREA_TOWEL(450, 350, 150, 150);//毛巾
+            const QRect AREA_SHEET(150, 200, 150, 150);//大床单
+            const QRect AREA_DUVET(350, 200, 150, 150);//大被套
+            const QRect AREA_S_DUVET(550, 200, 150, 150);//小被套
+            const QRect AREA_PILLOW(150, 450, 150, 150);//枕巾
+            const QRect AREA_GN_TOWEL(350, 450, 150, 150);//晚安巾
+            const QRect AREA_TOWEL(550, 450, 150, 150);//毛巾
 
             // 电梯厅
             const QRect BTN_ELEVATOR_ENTER(350, 300, 200, 100);
-            const QRect BTN_ELEVATOR_BACK(100, 600, 150, 50);
+            const QRect BTN_ELEVATOR_BACK(100, 600, 160, 50);
 
             // 电梯内 (按钮面板)
             const QSize ELEVATOR_BTN_SIZE(80, 80);
@@ -182,32 +188,28 @@ namespace Config {
             const QPoint BTN_FLOOR_6(400, 200);
             const QPoint BTN_FLOOR_7(280, 100);
             const QPoint BTN_FLOOR_8(400, 100);
-            const QPoint BTN_FLOOR_9(280, 80); // Adjusted Y for visibility
-            const QPoint BTN_FLOOR_10(400, 80); // Adjusted Y for visibility
-
-            // Map index to Point for convenience, or access directly
-            // We'll define a static helper in logic or use a map
+            const QPoint BTN_FLOOR_9(280, 80);
+            const QPoint BTN_FLOOR_10(400, 80);
 
             // 走廊
-            const QRect BTN_CORRIDOR_LINEN(200, 200, 200, 100);
-            const QRect BTN_CORRIDOR_ELEVATOR(500, 200, 200, 100);
+            const QRect BTN_CORRIDOR_LINEN(200, 250, 200, 100);
+            const QRect BTN_CORRIDOR_ELEVATOR(500, 250, 200, 100);
 
             // 布草间
             const QRect LBL_DIRTY_SOURCE(700, 400, 100, 100);
-            const QRect BTN_LINEN_BACK(50, 600, 150, 50);
+            const QRect BTN_LINEN_BACK(100, 600, 160, 50);
 
             // 货架物品区域 - 楼层布草间专用 (中心坐标，位置与仓库不同)
-            // 可根据需要调整为不同位置
-            const QRect AREA_LINEN_SHEET(100, 150, 150, 150);//大床单
-            const QRect AREA_LINEN_DUVET(300, 150, 150, 150);//大被套
-            const QRect AREA_LINEN_S_DUVET(500, 150, 150, 150);//小被套
-            const QRect AREA_LINEN_PILLOW(100, 350, 150, 150);//枕巾
-            const QRect AREA_LINEN_GN_TOWEL(300, 350, 150, 150);//晚安巾
-            const QRect AREA_LINEN_TOWEL(500, 350, 150, 150);//毛巾
+            const QRect AREA_LINEN_SHEET(150, 200, 150, 150);//大床单
+            const QRect AREA_LINEN_DUVET(350, 200, 150, 150);//大被套
+            const QRect AREA_LINEN_S_DUVET(550, 200, 150, 150);//小被套
+            const QRect AREA_LINEN_PILLOW(150, 450, 150, 150);//枕巾
+            const QRect AREA_LINEN_GN_TOWEL(350, 450, 150, 150);//晚安巾
+            const QRect AREA_LINEN_TOWEL(550, 450, 150, 150);//毛巾
 
             // 申领表弹窗
             const QSize SHEET_DIALOG(600, 580);
-            // 申领表文字坐标 (x, y) - 这里的坐标是绘图坐标，通常保持左上角基准，或按需调整
+            // 申领表文字坐标 (x, y)
             const QPoint TXT_FLOOR(180, 65); //楼层
             const QPoint TXT_SHEET(288, 305); //大床单
             const QPoint TXT_DUVET(288, 375); //大被套

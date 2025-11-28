@@ -21,7 +21,8 @@
 
 struct Task {
     int targetFloor;
-    QMap<QString, int> requiredItems; // Type -> Count
+    QMap<QString, int> requiredItems; // Type -> Count: Remaining needed
+    QMap<QString, int> placedItems;   // Type -> Count: Already placed
     bool isEmergency;
     bool isCompleted;
 };
