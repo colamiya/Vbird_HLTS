@@ -10,10 +10,97 @@ MainWindow::MainWindow(QWidget *parent)
     setFixedSize(1280, 720);
     setWindowTitle("Hotel Management Student Training");
 
+    setupStyle(); // Apply the theme
     setupUI();
 }
 
 MainWindow::~MainWindow() {}
+
+void MainWindow::setupStyle() {
+    QString qss = R"(
+        /* Global Window */
+        QMainWindow {
+            background-color: #f4f6f9;
+            font-family: "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif;
+            color: #2c3e50;
+        }
+
+        /* Buttons */
+        QPushButton {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        QPushButton:hover {
+            background-color: #2980b9;
+        }
+        QPushButton:pressed {
+            background-color: #1f618d;
+        }
+        QPushButton:disabled {
+            background-color: #bdc3c7;
+            color: #7f8c8d;
+        }
+
+        /* Input Fields */
+        QLineEdit, QSpinBox, QComboBox {
+            background-color: white;
+            border: 2px solid #dfe6e9;
+            border-radius: 6px;
+            padding: 8px;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+        QLineEdit:focus, QSpinBox:focus, QComboBox:focus {
+            border: 2px solid #3498db;
+        }
+
+        /* List Widgets */
+        QListWidget {
+            background-color: white;
+            border: 2px solid #dfe6e9;
+            border-radius: 6px;
+            padding: 5px;
+            font-size: 14px;
+            outline: none;
+        }
+        QListWidget::item {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 2px;
+            color: #2c3e50;
+        }
+        QListWidget::item:selected {
+            background-color: #e1f0fa;
+            color: #2c3e50;
+            border: 1px solid #aed6f1;
+        }
+        QListWidget::item:hover {
+            background-color: #f7f9f9;
+        }
+
+        /* Labels */
+        QLabel {
+            color: #2c3e50;
+            font-size: 14px;
+        }
+
+        /* Radio Buttons */
+        QRadioButton {
+            font-size: 15px;
+            padding: 5px;
+        }
+        QRadioButton::indicator {
+            width: 18px;
+            height: 18px;
+        }
+    )";
+    this->setStyleSheet(qss);
+}
 
 void MainWindow::setupUI() {
     mainStack = new QStackedWidget(this);
@@ -306,10 +393,13 @@ QWidget *MainWindow::createRPGPage() {
     // Left Panel
     QWidget *leftPanel = new QWidget();
     leftPanel->setFixedWidth(192); // ~15% of 1280
-    leftPanel->setStyleSheet("background-color: #333; color: white;");
+    // Modern Dark Blue Sidebar
+    leftPanel->setStyleSheet("background-color: #2c3e50; color: white; border-right: 1px solid #1a252f;");
     QVBoxLayout *leftLayout = new QVBoxLayout(leftPanel);
     locationLabel = new QLabel("Location: Entrance");
+    locationLabel->setStyleSheet("font-weight: bold; color: #ecf0f1; margin-top: 10px;");
     cartStatusLabel = new QLabel("Cart: 0/10");
+    cartStatusLabel->setStyleSheet("color: #bdc3c7;");
     leftLayout->addWidget(locationLabel);
     leftLayout->addWidget(cartStatusLabel);
     leftLayout->addStretch();
@@ -318,26 +408,31 @@ QWidget *MainWindow::createRPGPage() {
     // Center Panel
     rpgCenterPanel = new QWidget();
     rpgCenterPanel->setFixedSize(896, 720); // ~70%
-    rpgCenterPanel->setStyleSheet("background-color: #ccc;");
+    rpgCenterPanel->setStyleSheet("background-color: #ecf0f1;"); // Soft Gray/White Canvas
     // No layout for rpgCenterPanel, we will use setGeometry in renderScene()
     mainLayout->addWidget(rpgCenterPanel);
 
     // Right Panel
     QWidget *rightPanel = new QWidget();
     rightPanel->setFixedWidth(192); // ~15%
-    rightPanel->setStyleSheet("background-color: #444; color: white;");
+    // Slightly lighter dark sidebar for hierarchy
+    rightPanel->setStyleSheet("background-color: #34495e; color: white; border-left: 1px solid #1a252f;");
     QVBoxLayout *rightLayout = new QVBoxLayout(rightPanel);
     
-    rightLayout->addWidget(new QLabel("Tasks:"));
+    QLabel *taskTitle = new QLabel("Tasks:");
+    taskTitle->setStyleSheet("font-weight: bold; color: #ecf0f1; margin-top: 10px;");
+    rightLayout->addWidget(taskTitle);
+
     taskListWidget = new QListWidget();
-    taskListWidget->setStyleSheet("color: black;");
+    // Inherits global list style, but we ensure text is visible against white list bg
     rightLayout->addWidget(taskListWidget);
     
-    rightLayout->addWidget(new QLabel("Inventory (Drag from here):"));
+    QLabel *invTitle = new QLabel("Inventory (Drag):");
+    invTitle->setStyleSheet("font-weight: bold; color: #ecf0f1; margin-top: 10px;");
+    rightLayout->addWidget(invTitle);
     
     // Use the custom DraggableListWidget
     inventoryListWidget = new DraggableListWidget();
-    inventoryListWidget->setStyleSheet("color: black;");
     rightLayout->addWidget(inventoryListWidget);
     
     mainLayout->addWidget(rightPanel);
@@ -666,7 +761,8 @@ void MainWindow::renderLinenRoom() {
         dirtyBag->show();
         
         QPushButton *removeBtn = new QPushButton("Remove Dirty Bag", rpgCenterPanel);
-        removeBtn->setGeometry(100, 510, 120, 30);
+        removeBtn->setGeometry(100, 510, 140, 40); // Slightly larger
+        removeBtn->setStyleSheet("background-color: #e74c3c; color: white; border-radius: 4px;");
         
         // Use a pointer to self to capture by value safely or access via member
         connect(removeBtn, &QPushButton::clicked, [this, dirtyBag, removeBtn]() {
@@ -690,7 +786,15 @@ void MainWindow::renderLinenRoom() {
     // Logic: Disable shelf if dirty bag is present
     if (dirtyBagPresent) {
         shelf->setText("Remove Dirty Bag First!");
-        shelf->setStyleSheet("border: 2px dashed red; background-color: #ffdddd; color: red; font-weight: bold;");
+        // Update to match new style but with error colors
+        shelf->setStyleSheet(
+            "border: 2px dashed #e74c3c;"
+            "border-radius: 8px;"
+            "background-color: #fadbd8;"
+            "color: #c0392b;"
+            "font-weight: bold;"
+            "font-size: 14px;"
+        );
         shelf->setAcceptDrops(false); // Disable drops
     } else {
         shelf->onDropCallback = [this](QString item) {
