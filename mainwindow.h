@@ -115,7 +115,15 @@ public:
     DropLabel(const QString &text, QWidget *parent = nullptr) : QLabel(text, parent) {
         setAcceptDrops(true);
         setAlignment(Qt::AlignCenter);
-        setStyleSheet("border: 2px dashed gray; background-color: #f0f0f0;");
+        // Modernized Drop Zone Style
+        setStyleSheet(
+            "border: 2px dashed #95a5a6;"
+            "border-radius: 8px;"
+            "background-color: #ecf0f1;"
+            "color: #7f8c8d;"
+            "font-weight: bold;"
+            "font-size: 14px;"
+        );
     }
 
     // Signal to notify the main window of a drop
@@ -154,6 +162,7 @@ private:
     QPixmap generatePlaceholder(QString text, QColor color, QSize size);
     void logAction(QString action);
     void setupUI();
+    void setupStyle(); // New method for applying styles
 
     // --- Module 1: Start Page ---
     QWidget *createStartPage();
