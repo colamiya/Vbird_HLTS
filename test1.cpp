@@ -1,8 +1,46 @@
 #include "test1.h"
 #include "config.h"
+#include <QMessageBox>
 
 Test1::Test1(QWidget *parent) : QWidget(parent) {
-    QVBoxLayout *layout = new QVBoxLayout(this);
+    // Main Layout (Grid to allow top-right positioning)
+    QGridLayout *mainGrid = new QGridLayout(this);
+    mainGrid->setAlignment(Qt::AlignCenter);
+
+    // Return Button (Top Right)
+    QPushButton *returnBtn = new QPushButton(Config::Test1::BTN_TEXT_BACK_TO_MENU);
+    returnBtn->setFixedSize(Config::Test1::RETURN_BTN_SIZE);
+    returnBtn->setStyleSheet(Config::Test1::BTN_RETURN_STYLE);
+    connect(returnBtn, &QPushButton::clicked, [this]() {
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this, "确认退出", "确定要退出当前测试并返回主菜单吗？\n当前进度将不会保存。",
+                                      QMessageBox::Yes|QMessageBox::No);
+        if (reply == QMessageBox::Yes) {
+            // Logic to handle exit without saving score/progress?
+            // The levelCompleted signal usually advances progress.
+            // We need a way to just go back.
+            // Since we don't have a specific signal for "cancel", we might need to add one or use levelCompleted but check progress logic in MainWindow?
+            // User requirement: "can cancel and not retain results".
+            // If I just emit levelCompleted, it might mark it as done.
+            // I should emit a specific signal or let MainWindow handle cancellation.
+            // For now, I will reuse levelCompleted BUT logic in MainWindow might advance level.
+            // Wait, looking at MainWindow::onLevelCompleted: "if (progressState < level + 1) progressState = level + 1;"
+            // This is BAD for cancellation.
+
+            // I need to add a "levelCancelled" signal.
+            emit levelCancelled();
+        }
+    });
+    // Add to top right: row 0, col 1, align right
+    mainGrid->addWidget(returnBtn, 0, 1, Qt::AlignRight | Qt::AlignTop);
+
+    // Content Container
+    QWidget *contentWidget = new QWidget();
+    QVBoxLayout *layout = new QVBoxLayout(contentWidget);
+
+    // Add content to row 1, span 2 columns
+    mainGrid->addWidget(contentWidget, 1, 0, 1, 2);
+
 
     slideshowContainer = new QWidget();
     QVBoxLayout *slideLayout = new QVBoxLayout(slideshowContainer);

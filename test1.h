@@ -18,6 +18,7 @@ public:
 
 signals:
     void levelCompleted();
+    void levelCancelled();
     void logMessage(QString msg);
 
 private:

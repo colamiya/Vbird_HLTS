@@ -1,9 +1,31 @@
 #include "test2.h"
 #include "config.h"
+#include <QMessageBox> // Add missing include
 
 Test2::Test2(QWidget *parent) : QWidget(parent) {
-    QVBoxLayout *layout = new QVBoxLayout(this);
+    // Return Button (Top Right)
+    QGridLayout *mainGrid = new QGridLayout(this);
+    mainGrid->setAlignment(Qt::AlignCenter);
+
+    QPushButton *returnBtn = new QPushButton(Config::Test2::BTN_TEXT_BACK_TO_MENU);
+    returnBtn->setFixedSize(Config::Test2::RETURN_BTN_SIZE);
+    returnBtn->setStyleSheet(Config::Test2::BTN_RETURN_STYLE);
+    connect(returnBtn, &QPushButton::clicked, [this]() {
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this, "确认退出", "确定要退出当前测验并返回主菜单吗？\n当前进度将不会保留。",
+                                      QMessageBox::Yes|QMessageBox::No);
+        if (reply == QMessageBox::Yes) {
+             emit levelCancelled();
+        }
+    });
+    mainGrid->addWidget(returnBtn, 0, 1, Qt::AlignRight | Qt::AlignTop);
+
+    // Main Content
+    QWidget *contentWidget = new QWidget();
+    QVBoxLayout *layout = new QVBoxLayout(contentWidget);
     layout->setAlignment(Qt::AlignCenter);
+    mainGrid->addWidget(contentWidget, 1, 0, 1, 2);
+
 
     // Initial Data
     struct QuizItem { QString text; int correctIndex; };
@@ -45,11 +67,14 @@ Test2::Test2(QWidget *parent) : QWidget(parent) {
     optionGroup = new QButtonGroup(this);
     optionsContainer = new QWidget();
     QGridLayout *grid = new QGridLayout(optionsContainer);
+    // Increase spacing
+    grid->setSpacing(20);
     char optionChars[] = {'A', 'B', 'C', 'D'};
 
     for (int i = 0; i < 4; ++i) {
         QWidget *optWidget = new QWidget();
         QVBoxLayout *optLayout = new QVBoxLayout(optWidget);
+        optLayout->setSpacing(10); // Spacing between image and button
 
         optionImages[i] = new QPushButton();
         optionImages[i]->setFixedSize(Config::Test2::SIZE_OPTION_IMG);
@@ -128,12 +153,16 @@ void Test2::loadQuestion() {
         } else {
             optionImages[i]->setText("");
             optionImages[i]->setIcon(QIcon(pix));
+            // Use larger icon size from config
             optionImages[i]->setIconSize(Config::Test2::SIZE_OPTION_ICON);
         }
 
         optionImages[i]->disconnect();
-        connect(optionImages[i], &QPushButton::clicked, [this, path]() {
-            showImagePreview(path);
+
+        // Pass title to preview
+        QString title = QString("第 %1 题 - 选项 %2").arg(currentQuestionIndex + 1).arg(suffix);
+        connect(optionImages[i], &QPushButton::clicked, [this, path, title]() {
+            showImagePreview(path, title);
         });
     }
     optionGroup->setExclusive(true);
@@ -169,9 +198,25 @@ void Test2::handleNextOrSubmit() {
 
 void Test2::showQuizSummary() {
     quizScore = 0;
+
+    // Calculate score first
+    for (const auto &q : questions) {
+        if (q.userSelection == q.correctIndex) quizScore++;
+    }
+
+    // Determine color
+    QString scoreColor = Config::Test2::COL_SCORE_LOW;
+    double ratio = (double)quizScore / questions.size();
+    if (ratio == 1.0) scoreColor = Config::Test2::COL_SCORE_HIGH;
+    else if (ratio >= 0.6) scoreColor = Config::Test2::COL_SCORE_MID;
+
     QString summaryText;
+
+    // Top Row: Score
+    QString finalScoreStr = QString("最终得分: %1 / %2").arg(quizScore).arg(questions.size());
+    summaryText += QString("<h1 style='text-align:center; color:%1;'>%2</h1>").arg(scoreColor, finalScoreStr);
+
     summaryText += Config::Test2::HTML_TABLE_STYLE;
-    summaryText += "<h3>测验结果详情</h3>";
     summaryText += "<table><tr><th>题目</th><th>您的选择</th><th>正确答案</th><th>结果</th></tr>";
 
     char optionChars[] = {'A', 'B', 'C', 'D'};
@@ -179,7 +224,6 @@ void Test2::showQuizSummary() {
     for (int i = 0; i < questions.size(); ++i) {
         const Question &q = questions[i];
         bool isCorrect = (q.userSelection == q.correctIndex);
-        if (isCorrect) quizScore++;
 
         QString resultStr = isCorrect ? QString("<font color='%1'>正确</font>").arg(Config::Test2::HTML_CORRECT_COLOR)
                                       : QString("<font color='%1'>错误</font>").arg(Config::Test2::HTML_WRONG_COLOR);
@@ -187,8 +231,11 @@ void Test2::showQuizSummary() {
         QString userStr = (q.userSelection != -1) ? QString("%1%2").arg(Config::Test2::TEXT_OPTION_PREFIX).arg(optionChars[q.userSelection]) : "未作答";
         QString correctStr = QString("%1%2").arg(Config::Test2::TEXT_OPTION_PREFIX).arg(optionChars[q.correctIndex]);
 
-        summaryText += QString("<tr><td>%1...</td><td>%2</td><td>%3</td><td>%4</td></tr>")
-                       .arg(q.text.left(10))
+        // Simplified Question Text (Question 1, Question 2...)
+        QString qTitle = QString("题目 %1").arg(i + 1);
+
+        summaryText += QString("<tr><td>%1</td><td>%2</td><td>%3</td><td>%4</td></tr>")
+                       .arg(qTitle)
                        .arg(userStr)
                        .arg(correctStr)
                        .arg(resultStr);
@@ -197,14 +244,12 @@ void Test2::showQuizSummary() {
     }
     summaryText += "</table>";
 
-    QString finalScoreStr = QString("最终得分: %1 / %2").arg(quizScore).arg(questions.size());
-    summaryText += QString("<h2>%1</h2>").arg(finalScoreStr);
     emit logMessage("测验完成. " + finalScoreStr);
 
     QDialog *dlg = new QDialog(this);
     dlg->setAttribute(Qt::WA_DeleteOnClose);
     dlg->setWindowTitle("测验结果");
-    dlg->resize(Config::Test2::SIZE_RESULT_DIALOG);
+    dlg->resize(Config::Test2::SIZE_RESULT_DIALOG); // Enlarged dialog
     QVBoxLayout *layout = new QVBoxLayout(dlg);
 
     QTextEdit *edit = new QTextEdit();
@@ -222,25 +267,36 @@ void Test2::showQuizSummary() {
     dlg->exec();
 }
 
-void Test2::showImagePreview(QString imagePath) {
+void Test2::showImagePreview(QString imagePath, const QString &title) {
     QDialog *dlg = new QDialog(this);
     dlg->setAttribute(Qt::WA_DeleteOnClose);
-    dlg->setWindowTitle("图片预览");
+    dlg->setWindowTitle(title);
     dlg->resize(Config::Test2::SIZE_PREVIEW_DIALOG);
 
     QVBoxLayout *layout = new QVBoxLayout(dlg);
     QScrollArea *scroll = new QScrollArea(dlg);
     QLabel *imgLbl = new QLabel();
+    imgLbl->setAlignment(Qt::AlignCenter);
 
     QPixmap pix(imagePath);
     if (!pix.isNull()) {
         imgLbl->setPixmap(pix);
+        // Do not scale contents to fill, we want lightbox behavior
         imgLbl->setScaledContents(false);
+
+        // However, if image is larger than screen/dialog, we might want to scale it down to fit reasonably
+        // But for "Lightbox", usually full size inside scroll is expected, OR fit to window.
+        // Given user asked for "reasonable size" calc.
+        // Let's ensure it doesn't explode the view.
+        if (pix.width() > Config::Test2::SIZE_PREVIEW_DIALOG.width()) {
+             imgLbl->setPixmap(pix.scaled(Config::Test2::SIZE_PREVIEW_DIALOG - QSize(50,50), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        }
     } else {
         imgLbl->setText("无法加载图片");
     }
 
     scroll->setWidget(imgLbl);
+    scroll->setWidgetResizable(true); // Allow centering if smaller
     layout->addWidget(scroll);
 
     dlg->exec();

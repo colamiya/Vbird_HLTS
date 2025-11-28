@@ -32,18 +32,21 @@ void MainWindow::setupUI() {
     test1Widget = new Test1();
     connect(test1Widget, &Test1::logMessage, this, &MainWindow::onLogMessage);
     connect(test1Widget, &Test1::levelCompleted, [this](){ onLevelCompleted(1); });
+    connect(test1Widget, &Test1::levelCancelled, [this](){ mainStack->setCurrentIndex(1); });
     mainStack->addWidget(test1Widget);
 
     // 3: Test 2
     test2Widget = new Test2();
     connect(test2Widget, &Test2::logMessage, this, &MainWindow::onLogMessage);
     connect(test2Widget, &Test2::levelCompleted, [this](){ onLevelCompleted(2); });
+    connect(test2Widget, &Test2::levelCancelled, [this](){ mainStack->setCurrentIndex(1); });
     mainStack->addWidget(test2Widget);
 
     // 4: Test 3
     test3Widget = new Test3(isDeveloperMode); // Pass dev mode
     connect(test3Widget, &Test3::logMessage, this, &MainWindow::onLogMessage);
     connect(test3Widget, &Test3::levelCompleted, [this](){ onLevelCompleted(3); });
+    connect(test3Widget, &Test3::levelCancelled, [this](){ mainStack->setCurrentIndex(1); });
     mainStack->addWidget(test3Widget);
 }
 
@@ -52,15 +55,29 @@ QWidget *MainWindow::createStartPage() {
     QWidget *page = new QWidget();
     QVBoxLayout *layout = new QVBoxLayout(page);
     layout->setAlignment(Qt::AlignCenter);
+    layout->setSpacing(30);
 
+    // Title
     QLabel *title = new QLabel(Config::Global::TITLE_START_PAGE);
     title->setStyleSheet(QString("font-size: %1px; font-weight: bold;").arg(Config::Global::FONT_SIZE_SUBTITLE));
-    layout->addWidget(title);
+    title->setAlignment(Qt::AlignCenter);
+    layout->addWidget(title, 0, Qt::AlignCenter);
 
+    // Form
     QFormLayout *form = new QFormLayout();
+    form->setLabelAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    form->setFormAlignment(Qt::AlignCenter);
+
     nameInput = new QLineEdit();
-    ageInput = new QSpinBox(); ageInput->setRange(16, 100);
-    genderInput = new QComboBox(); genderInput->addItems({"男", "女"});
+
+    ageInput = new QSpinBox();
+    ageInput->setRange(16, 100);
+    ageInput->setButtonSymbols(QAbstractSpinBox::NoButtons); // Remove +/- buttons
+    ageInput->setAlignment(Qt::AlignCenter);
+
+    genderInput = new QComboBox();
+    genderInput->addItems({"男", "女"});
+
     classInput = new QLineEdit();
     durationInput = new QLineEdit();
 
@@ -73,25 +90,27 @@ QWidget *MainWindow::createStartPage() {
     QWidget *formWidget = new QWidget();
     formWidget->setLayout(form);
     formWidget->setFixedWidth(Config::Global::SIZE_FORM_WIDTH);
-    layout->addWidget(formWidget);
 
+    layout->addWidget(formWidget, 0, Qt::AlignCenter);
+
+    // Start Button
     QPushButton *startBtn = new QPushButton(Config::Global::BTN_TEXT_START);
     startBtn->setFixedWidth(Config::Global::SIZE_START_BTN_WIDTH);
     connect(startBtn, &QPushButton::clicked, this, &MainWindow::onStartTraining);
     layout->addWidget(startBtn, 0, Qt::AlignCenter);
 
-    // Emergency Event Toggle (Bottom Right)
+    // Emergency Event Toggle
     emergencyToggle = new QCheckBox(Config::Global::CHECKBOX_TEXT_EMERGENCY);
-    emergencyToggle->setChecked(false); // Default off
-    // Use dynamic color string from config
+    emergencyToggle->setChecked(false);
     emergencyToggle->setStyleSheet(QString("color: %1; font-size: 12px;").arg(Config::Global::COL_TEXT_DISABLED));
 
-    // Use a wrapper to position it bottom right
-    QWidget *bottomRight = new QWidget();
-    QHBoxLayout *brLayout = new QHBoxLayout(bottomRight);
-    brLayout->addStretch();
-    brLayout->addWidget(emergencyToggle);
-    layout->addWidget(bottomRight);
+    QWidget *bottomContainer = new QWidget();
+    QHBoxLayout *bottomLayout = new QHBoxLayout(bottomContainer);
+    bottomLayout->addStretch();
+    bottomLayout->addWidget(emergencyToggle);
+    bottomLayout->addStretch();
+
+    layout->addWidget(bottomContainer);
 
     return page;
 }
