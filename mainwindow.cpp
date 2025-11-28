@@ -1,9 +1,10 @@
 #include "mainwindow.h"
 #include <QFormLayout>
 
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(QWidget *parent, bool devModeDefault)
     : QMainWindow(parent)
 {
+    isDeveloperMode = devModeDefault;
     setFixedSize(1280, 720);
     setWindowTitle("酒店管理学生实训系统");
     setupStyle();
@@ -88,6 +89,18 @@ QWidget *MainWindow::createStartPage() {
     connect(startBtn, &QPushButton::clicked, this, &MainWindow::onStartTraining);
     layout->addWidget(startBtn, 0, Qt::AlignCenter);
 
+    // Emergency Event Toggle (Bottom Right)
+    emergencyToggle = new QCheckBox("启用突发事件 (Enable Emergency)");
+    emergencyToggle->setChecked(false); // Default off
+    emergencyToggle->setStyleSheet("color: #7f8c8d; font-size: 12px;");
+
+    // Use a wrapper to position it bottom right
+    QWidget *bottomRight = new QWidget();
+    QHBoxLayout *brLayout = new QHBoxLayout(bottomRight);
+    brLayout->addStretch();
+    brLayout->addWidget(emergencyToggle);
+    layout->addWidget(bottomRight);
+
     return page;
 }
 
@@ -101,6 +114,12 @@ void MainWindow::onStartTraining() {
     student.gender = genderInput->currentText();
     student.className = classInput->text();
     student.duration = durationInput->text();
+    enableEmergencyEvents = emergencyToggle->isChecked();
+
+    // Pass configuration to Test3
+    if (test3Widget) {
+        test3Widget->setEmergencyMode(enableEmergencyEvents);
+    }
 
     onLogMessage(QString("开始培训: %1, %2").arg(student.name, student.className));
     updateMainMenu();
@@ -132,6 +151,7 @@ QWidget *MainWindow::createMainMenu() {
     addBtn("测试 3: 模拟实训 (RPG)", 4);
 
     QCheckBox *devCheck = new QCheckBox("开发者模式");
+    devCheck->setChecked(isDeveloperMode); // Set initial state
     connect(devCheck, &QCheckBox::checkStateChanged, this, &MainWindow::toggleDeveloperMode);
     layout->addWidget(devCheck, 0, Qt::AlignCenter);
 

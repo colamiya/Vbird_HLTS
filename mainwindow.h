@@ -30,7 +30,7 @@ class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    MainWindow(QWidget *parent = nullptr, bool devModeDefault = false);
     ~MainWindow();
 
 private slots:
@@ -57,6 +57,7 @@ private:
     StudentInfo student;
     int progressState = 1; // 1=Slideshow, 2=Quiz, 3=RPG
     bool isDeveloperMode = false;
+    bool enableEmergencyEvents = false; // Toggle for Test 3 Emergency Events
     QList<QPushButton*> mainMenuButtons;
 
     // Info Page Inputs
@@ -65,6 +66,7 @@ private:
     QComboBox *genderInput;
     QLineEdit *classInput;
     QLineEdit *durationInput;
+    QCheckBox *emergencyToggle; // Emergency Event Toggle
 
     void onStartTraining();
     void toggleDeveloperMode(int state);

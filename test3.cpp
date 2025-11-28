@@ -5,6 +5,8 @@
 #include <QDialog>
 #include <QMap>
 #include <QFile>
+#include <cmath>
+#include <QtMath>
 
 Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode(isDevMode) {
     QHBoxLayout *mainLayout = new QHBoxLayout(this);
@@ -45,14 +47,20 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     taskTitle->setStyleSheet("font-weight: bold; color: #ecf0f1; margin-top: 10px;");
     rightLayout->addWidget(taskTitle);
 
+    taskListWidget = new QListWidget();
+    taskListWidget->setStyleSheet("color: black; background: white; font-size: 12px;");
+    taskListWidget->setFixedHeight(100); // Reduce height
+    rightLayout->addWidget(taskListWidget);
+
     QPushButton *viewTaskSheetBtn = new QPushButton("查看申领表");
     viewTaskSheetBtn->setStyleSheet("font-size: 12px; padding: 5px; background-color: #e67e22;");
-    connect(viewTaskSheetBtn, &QPushButton::clicked, this, &Test3::showTaskSheet);
+    connect(viewTaskSheetBtn, &QPushButton::clicked, [this](){
+        // Get selected index
+        int idx = taskListWidget->currentRow();
+        if (idx < 0 && taskListWidget->count() > 0) idx = 0;
+        showTaskSheet(idx);
+    });
     rightLayout->addWidget(viewTaskSheetBtn);
-
-    taskListWidget = new QListWidget();
-    taskListWidget->setStyleSheet("color: black; background: white;");
-    rightLayout->addWidget(taskListWidget);
 
     QLabel *invTitle = new QLabel("推车存货 (拖拽使用):");
     invTitle->setStyleSheet("font-weight: bold; color: #ecf0f1; margin-top: 10px;");
@@ -172,15 +180,11 @@ void Test3::refreshInventoryList() {
 
 void Test3::refreshTaskList() {
     taskListWidget->clear();
-    for (const Task &t : gameState.tasks) {
-        if (!t.isCompleted) {
-            QString txt = QString("%1楼 %2\n").arg(t.targetFloor).arg(t.isEmergency ? "[紧急]" : "");
-            for (auto it = t.requiredItems.begin(); it != t.requiredItems.end(); ++it) {
-                if (it.value() > 0)
-                    txt += QString("- %1: %2\n").arg(it.key()).arg(it.value());
-            }
-            taskListWidget->addItem(txt);
-        }
+    for (int i = 0; i < gameState.tasks.size(); ++i) {
+        const Task &t = gameState.tasks[i];
+        QString status = t.isCompleted ? "[已完成]" : "[进行中]";
+        QString txt = QString("任务%1: %2楼 %3 %4").arg(i+1).arg(t.targetFloor).arg(t.isEmergency ? "[紧急]" : "").arg(status);
+        taskListWidget->addItem(txt);
     }
 }
 
@@ -364,8 +368,27 @@ void Test3::renderWarehouseShelf() {
     auto createShelfArea = [&](const QString &name, const QRect &rect) {
         ShelfArea *area = new ShelfArea(name, rpgCenterPanel);
         area->setGeometry(rect);
+
+        // Set style for transparent grey background
+        area->setStyleSheet("background-color: rgba(200, 200, 200, 0.5); border: 2px solid #bdc3c7; border-radius: 4px;");
+
+        // Add image to shelf area
+        QString iconPath = QString(":/source/Test3/%1.png").arg(name);
+        if (QFile::exists(iconPath)) {
+            QPixmap pix(iconPath);
+            if (!pix.isNull()) {
+                 area->setPixmap(pix.scaled(80, 80, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+                 area->setAlignment(Qt::AlignCenter);
+            }
+        }
+
         // Put back logic: If dropped here, remove from cart
-        area->onDropCallback = [this](QString item) {
+        area->onDropCallback = [this, name](QString item) {
+             // Validation: Check if item matches shelf
+             if (item != name) {
+                 QMessageBox::critical(this, "错误", QString("存放失败：不能将 %1 放入 %2 的位置！").arg(item, name));
+                 return;
+             }
              handleSceneDrop(item, true); // true = warehouse (put back)
         };
         area->show();
@@ -462,16 +485,30 @@ void Test3::renderLinenRoom() {
          gameState.dirtyBagState[gameState.currentFloor] = false;
     }
 
-    // Create Drop Targets (Using DropLabel logic, but we can reuse ShelfArea for consistency if we wanted,
-    // but DropLabel was already defined for this purpose. Let's stick to DropLabel for LinenRoom
-    // OR switch to ShelfArea which handles Drag too if we want to take back?
-    // User only said "Put". But usually we might want to take back if we put wrong.
-    // Let's use ShelfArea for consistency and power!
-
+    // Create Drop Targets
     auto createShelfArea = [&](const QString &name, const QRect &rect) {
         ShelfArea *area = new ShelfArea(name, rpgCenterPanel);
         area->setGeometry(rect);
-        area->onDropCallback = [this](QString item) {
+
+        // Set style for transparent grey background
+        area->setStyleSheet("background-color: rgba(200, 200, 200, 0.5); border: 2px solid #bdc3c7; border-radius: 4px;");
+
+        // Add image to shelf area (Grey background, item icon inside)
+        QString iconPath = QString(":/source/Test3/%1.png").arg(name);
+        if (QFile::exists(iconPath)) {
+            QPixmap pix(iconPath);
+            if (!pix.isNull()) {
+                 area->setPixmap(pix.scaled(80, 80, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+                 area->setAlignment(Qt::AlignCenter);
+            }
+        }
+
+        area->onDropCallback = [this, name](QString item) {
+             // Validation: Check if item matches shelf
+             if (item != name) {
+                 QMessageBox::critical(this, "错误", QString("放置失败：不能将 %1 放置在 %2 的位置！").arg(item, name));
+                 return;
+             }
              handleSceneDrop(item, false); // false = linen room (delivery)
         };
         area->show();
@@ -553,6 +590,7 @@ void Test3::handleSceneDrop(QString itemName, bool isWarehouse) {
     bool taskFound = false;
     bool needed = false;
 
+    // Check against all tasks for current floor
     for (int i = 0; i < gameState.tasks.size(); ++i) {
         Task &t = gameState.tasks[i];
         if (t.targetFloor == gameState.currentFloor && !t.isCompleted) {
@@ -569,8 +607,14 @@ void Test3::handleSceneDrop(QString itemName, bool isWarehouse) {
                 if (allDone) {
                     t.isCompleted = true;
                     emit logMessage("任务完成: " + QString::number(gameState.currentFloor) + "楼");
-                    checkEmergencyTask();
+
+                    bool allAllDone = true;
+                    for(const auto &checkT : gameState.tasks) if(!checkT.isCompleted) allAllDone = false;
+                    if (allAllDone) {
+                         QMessageBox::information(this, "提示", "所有任务已完成！请回办公室汇报。");
+                    }
                 }
+                break; // Found the task that needs it, stop checking others to avoid double decrement if multiple tasks same floor (unlikely but safe)
             }
         }
     }
@@ -586,12 +630,20 @@ void Test3::handleSceneDrop(QString itemName, bool isWarehouse) {
 }
 
 void Test3::checkEmergencyTask() {
-    if (QRandomGenerator::global()->bounded(100) < 50) {
-        QMessageBox::information(this, "紧急情况", "收到新的紧急请求：回收脏布草！");
-        int otherFloor = (gameState.currentFloor == 6) ? 7 : 6;
-        gameState.dirtyBagState[otherFloor] = true;
-        emit logMessage("生成紧急任务: " + QString::number(otherFloor) + "楼 脏布草");
-    }
+    // Deprecated in favor of handleGetTask events
+}
+
+int Test3::getNormalRandom(int min, int max) {
+    // Approximate normal distribution
+    double u1 = QRandomGenerator::global()->generateDouble();
+    while (u1 <= 0.0) u1 = QRandomGenerator::global()->generateDouble(); // Guard against log(0)
+
+    double u2 = QRandomGenerator::global()->generateDouble();
+    double randStd = std::sqrt(-2.0 * std::log(u1)) * std::cos(2.0 * M_PI * u2);
+    int val = std::round(5.0 + 2.0 * randStd); // Mean 5, StdDev 2
+    if (val < min) val = min;
+    if (val > max) val = max;
+    return val;
 }
 
 void Test3::handleClockIn() {
@@ -611,27 +663,53 @@ void Test3::handleClockOut() {
 void Test3::handleGetTask() {
     if (gameState.hasReceivedTask) return;
 
-    Task t;
-    t.targetFloor = (QRandomGenerator::global()->bounded(2) == 0) ? 6 : 7;
-    t.isEmergency = false;
-    t.isCompleted = false;
+    auto generateTask = [this](int floor, bool emergency) -> Task {
+        Task t;
+        t.targetFloor = floor;
+        t.isEmergency = emergency;
+        t.isCompleted = false;
 
-    QStringList allTypes = {"大床单", "大被套", "小被套", "枕巾", "晚安巾", "毛巾"};
-    for (int i = 0; i < allTypes.size(); ++i) {
-        int j = QRandomGenerator::global()->bounded(allTypes.size());
-        allTypes.swapItemsAt(i, j);
-    }
-    int typesCount = QRandomGenerator::global()->bounded(4, 7);
-    for (int i = 0; i < typesCount; ++i) {
-        t.requiredItems.insert(allTypes[i], QRandomGenerator::global()->bounded(1, 6));
+        QStringList allTypes = {"大床单", "大被套", "小被套", "枕巾", "晚安巾", "毛巾"};
+        // Randomize
+        for (int i = 0; i < allTypes.size(); ++i) {
+            int j = QRandomGenerator::global()->bounded(allTypes.size());
+            allTypes.swapItemsAt(i, j);
+        }
+        int typesCount = QRandomGenerator::global()->bounded(4, 7); // 4-6 types
+        for (int i = 0; i < typesCount; ++i) {
+            int count = getNormalRandom(1, 10);
+            t.requiredItems.insert(allTypes[i], count);
+        }
+        return t;
+    };
+
+    // Task 1
+    int floor1 = (QRandomGenerator::global()->bounded(2) == 0) ? 6 : 7;
+    gameState.tasks.append(generateTask(floor1, false));
+
+    // Emergency
+    if (isEmergencyEnabled) {
+        bool isEventA = QRandomGenerator::global()->bounded(2) == 0;
+        if (isEventA) {
+            // Event A: Extra Task
+            int floor2 = QRandomGenerator::global()->bounded(2, 13);
+            while (floor2 == floor1) floor2 = QRandomGenerator::global()->bounded(2, 13);
+
+            gameState.tasks.append(generateTask(floor2, true));
+            QMessageBox::warning(this, "突发事件", QString("突发事件A：新增 %1 楼任务！").arg(floor2));
+            emit logMessage(QString("突发事件A: %1楼").arg(floor2));
+        } else {
+            // Event B: Dirty Linen
+            gameState.dirtyBagState[floor1] = true;
+            QMessageBox::warning(this, "突发事件", "突发事件B：目标楼层布草间有脏布草需回收！");
+            emit logMessage("突发事件B: 脏布草回收");
+        }
     }
 
-    gameState.tasks.append(t);
     gameState.hasReceivedTask = true;
-
     refreshTaskList();
-    emit logMessage(QString("领取任务: %1楼").arg(t.targetFloor));
-    showTaskSheet();
+    emit logMessage("领取任务完成");
+    showTaskSheet(0);
     renderScene();
 }
 
@@ -655,16 +733,17 @@ void Test3::handleElevatorButton(int floor) {
     });
 }
 
-void Test3::showTaskSheet() {
+void Test3::showTaskSheet(int taskIndex) {
     if (gameState.tasks.isEmpty()) {
         QMessageBox::information(this, "提示", "当前没有任务。");
         return;
     }
-    const Task &t = gameState.tasks.last();
+    if (taskIndex < 0 || taskIndex >= gameState.tasks.size()) taskIndex = 0;
+    const Task &t = gameState.tasks[taskIndex];
 
     QDialog *dlg = new QDialog(this);
     dlg->setAttribute(Qt::WA_DeleteOnClose);
-    dlg->setWindowTitle("物资申领表");
+    dlg->setWindowTitle(QString("物资申领表 (任务 %1)").arg(taskIndex + 1));
     dlg->setFixedSize(600, 800);
 
     if (isDeveloperMode) {
