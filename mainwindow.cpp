@@ -257,13 +257,20 @@ QWidget *MainWindow::createSlideshowPage() {
 }
 
 void MainWindow::updateSlide() {
-    // [自定义说明] 这里加载幻灯片图片。可以修改 "Slide %1" 为您的图片路径逻辑。
-    // [Customization] Load slide images here.
-    slideImageLabel->setPixmap(generatePlaceholder(
-        QString("幻灯片 %1").arg(currentSlideIndex + 1), // Slide
-        Qt::blue, 
-        QSize(800, 450)
-    ));
+    // Load slide images from source/Test1/
+    QString imagePath = QString("source/Test1/fig%1.png").arg(currentSlideIndex + 1);
+    QPixmap pixmap(imagePath);
+
+    if (!pixmap.isNull()) {
+        slideImageLabel->setPixmap(pixmap.scaled(800, 450, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    } else {
+        // Fallback
+        slideImageLabel->setPixmap(generatePlaceholder(
+            QString("幻灯片 %1 (Missing: %2)").arg(currentSlideIndex + 1).arg(imagePath),
+            Qt::blue,
+            QSize(800, 450)
+        ));
+    }
 }
 
 void MainWindow::finishSlideshow() {
@@ -298,9 +305,9 @@ QWidget *MainWindow::createQuizPage() {
     // Generate Questions
     for (int i = 1; i <= 19; ++i) {
         Question q;
-        q.text = QString("问题 %1: 某某操作的正确流程是...?").arg(i); // Question X: What is the correct procedure for...?
-        q.options = QStringList() << "选项 A" << "选项 B" << "选项 C" << "选项 D"; // Option A/B/C/D
-        q.correctIndex = 1; // Always B for simplicity in this demo
+        q.text = QString("问题 %1: 请选择正确的图片 (点击图片预览):").arg(i);
+        q.options = QStringList() << "选项 A" << "选项 B" << "选项 C" << "选项 D";
+        q.correctIndex = 1; // Always B for simplicity
         questions.append(q);
     }
 
@@ -309,33 +316,40 @@ QWidget *MainWindow::createQuizPage() {
     questionLabel->setAlignment(Qt::AlignCenter);
     layout->addWidget(questionLabel);
 
-    // Image for question
-    QLabel *qImage = new QLabel();
-    qImage->setPixmap(generatePlaceholder("问题示例图", Qt::darkCyan, QSize(400, 200))); // Question Image
-    qImage->setAlignment(Qt::AlignCenter);
-    layout->addWidget(qImage);
-
+    // Options Area
     optionGroup = new QButtonGroup(this);
-    QWidget *optionsWidget = new QWidget();
-    QVBoxLayout *optsLayout = new QVBoxLayout(optionsWidget);
+    optionsContainer = new QWidget();
+    QGridLayout *grid = new QGridLayout(optionsContainer);
+
+    char optionChars[] = {'A', 'B', 'C', 'D'};
+
     for (int i = 0; i < 4; ++i) {
-        options[i] = new QRadioButton();
-        optionGroup->addButton(options[i], i);
-        optsLayout->addWidget(options[i]);
+        QWidget *optWidget = new QWidget();
+        QVBoxLayout *optLayout = new QVBoxLayout(optWidget);
+
+        // Thumbnail Button (Click to preview)
+        optionImages[i] = new QPushButton();
+        optionImages[i]->setFixedSize(150, 100);
+        optionImages[i]->setFlat(true);
+        optionImages[i]->setStyleSheet("border: 1px solid #ccc;");
+
+        // Connect later in loadQuestion to specific path
+
+        // Radio Button (Selection)
+        optionRadios[i] = new QRadioButton(QString("选项 %1").arg(optionChars[i]));
+        optionGroup->addButton(optionRadios[i], i);
+
+        optLayout->addWidget(optionImages[i], 0, Qt::AlignCenter);
+        optLayout->addWidget(optionRadios[i], 0, Qt::AlignCenter);
+
+        grid->addWidget(optWidget, i / 2, i % 2); // 2x2 Grid
     }
-    layout->addWidget(optionsWidget);
-
-    feedbackLabel = new QLabel("");
-    feedbackLabel->setStyleSheet("font-weight: bold; font-size: 16px;");
-    layout->addWidget(feedbackLabel);
-
-    QPushButton *checkBtn = new QPushButton("检查答案"); // Check Answer
-    connect(checkBtn, &QPushButton::clicked, this, &MainWindow::checkAnswer);
-    layout->addWidget(checkBtn);
+    layout->addWidget(optionsContainer);
 
     QHBoxLayout *navLayout = new QHBoxLayout();
-    QPushButton *prevQBtn = new QPushButton("上一题"); // Previous Question
-    QPushButton *nextQBtn = new QPushButton("下一题"); // Next Question
+
+    QPushButton *prevQBtn = new QPushButton("上一题");
+    QPushButton *nextQBtn = new QPushButton("下一题 (提交)"); // Next (Submit)
     navLayout->addWidget(prevQBtn);
     navLayout->addWidget(nextQBtn);
     layout->addLayout(navLayout);
@@ -351,15 +365,7 @@ QWidget *MainWindow::createQuizPage() {
     });
 
     connect(nextQBtn, &QPushButton::clicked, [this]() {
-        if (currentQuestionIndex < questions.size() - 1) {
-            currentQuestionIndex++;
-            loadQuestion();
-        } else {
-             // Finish Quiz
-             QMessageBox::information(this, "测验结束", QString("最终得分: %1").arg(quizScore)); // Quiz Finished, Final Score
-             mainStack->setCurrentIndex(3); // Go to RPG
-             logAction("测验结束。得分: " + QString::number(quizScore));
-        }
+         checkAnswerAndNext();
     });
 
     loadQuestion();
@@ -369,29 +375,82 @@ QWidget *MainWindow::createQuizPage() {
 void MainWindow::loadQuestion() {
     Question &q = questions[currentQuestionIndex];
     questionLabel->setText(q.text);
+
+    // Clear previous check
+    optionGroup->setExclusive(false);
     for (int i = 0; i < 4; ++i) {
-        options[i]->setText(q.options[i]);
-        options[i]->setChecked(false);
+        optionRadios[i]->setChecked(false);
+        optionRadios[i]->setText(q.options[i]);
+
+        // Load Image: source/Test2/[QNum][A/B/C/D].jpg
+        char suffix = 'A' + i;
+        QString imgName = QString("%1%2").arg(currentQuestionIndex + 1).arg(suffix);
+
+        // Try extensions jpg, png
+        QString path = QString("source/Test2/%1.jpg").arg(imgName);
+        if (!QFile::exists(path)) path = QString("source/Test2/%1.png").arg(imgName);
+
+        QPixmap pix(path);
+        if (pix.isNull()) {
+            optionImages[i]->setIcon(QIcon());
+            optionImages[i]->setText("(No Img)");
+        } else {
+            optionImages[i]->setText("");
+            optionImages[i]->setIcon(QIcon(pix));
+            optionImages[i]->setIconSize(QSize(140, 90));
+        }
+
+        // Disconnect previous connections
+        optionImages[i]->disconnect();
+        // Connect to lightbox
+        connect(optionImages[i], &QPushButton::clicked, [this, path]() {
+            showImagePreview(path);
+        });
     }
-    feedbackLabel->setText("");
-    // Reset radio buttons state if needed, but simple checkAnswer logic is enough
+    optionGroup->setExclusive(true);
 }
 
-void MainWindow::checkAnswer() {
+void MainWindow::checkAnswerAndNext() {
     int id = optionGroup->checkedId();
-    if (id == -1) return;
-
-    if (id == questions[currentQuestionIndex].correctIndex) {
-        feedbackLabel->setText("回答正确!"); // Correct!
-        feedbackLabel->setStyleSheet("color: green; font-weight: bold;");
-        // Simple scoring: only add if not already answered correctly? 
-        // For simplicity, just increment and don't worry about re-answering
-        quizScore++; 
-        scoreLabel->setText("得分: " + QString::number(quizScore));
-    } else {
-        feedbackLabel->setText("回答错误!"); // Incorrect!
-        feedbackLabel->setStyleSheet("color: red; font-weight: bold;");
+    if (id != -1) {
+        if (id == questions[currentQuestionIndex].correctIndex) {
+            quizScore += 1;
+        }
     }
+
+    scoreLabel->setText("得分: " + QString::number(quizScore));
+
+    if (currentQuestionIndex < questions.size() - 1) {
+        currentQuestionIndex++;
+        loadQuestion();
+    } else {
+         QMessageBox::information(this, "测验结束", QString("最终得分: %1").arg(quizScore));
+         mainStack->setCurrentIndex(3); // Go to RPG
+         logAction("测验结束。得分: " + QString::number(quizScore));
+    }
+}
+
+void MainWindow::showImagePreview(QString imagePath) {
+    QDialog *dlg = new QDialog(this);
+    dlg->setWindowTitle("图片预览");
+    dlg->resize(800, 600);
+
+    QVBoxLayout *layout = new QVBoxLayout(dlg);
+    QScrollArea *scroll = new QScrollArea(dlg);
+    QLabel *imgLbl = new QLabel();
+
+    QPixmap pix(imagePath);
+    if (!pix.isNull()) {
+        imgLbl->setPixmap(pix);
+        imgLbl->setScaledContents(false);
+    } else {
+        imgLbl->setText("无法加载图片");
+    }
+
+    scroll->setWidget(imgLbl);
+    layout->addWidget(scroll);
+
+    dlg->exec();
 }
 
 // --- Module 4: RPG Simulation ---
@@ -462,6 +521,7 @@ QWidget *MainWindow::createRPGPage() {
     gameState.currentScene = GameScene::Entrance;
     gameState.currentFloor = 0;
     gameState.hasClockedIn = false;
+    gameState.hasReceivedTask = false;
     gameState.inventory.cartCapacity = 10;
 
     renderScene();
@@ -534,16 +594,16 @@ void MainWindow::updateRPGStatusLabels() {
 
 void MainWindow::renderEntrance() {
     // Background
+    // Image: source/Test3/入口.jpg
     QLabel *bg = new QLabel(rpgCenterPanel);
-    bg->setPixmap(generatePlaceholder("酒店入口", Qt::darkGray, rpgCenterPanel->size())); // Entrance
+    QPixmap pix("source/Test3/入口.jpg");
+    if (pix.isNull()) pix = generatePlaceholder("酒店入口", Qt::darkGray, rpgCenterPanel->size());
+    bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     bg->setGeometry(0, 0, 896, 720);
 
-    // Input Name -> Auto transition
-    // Requirement: "Input Name -> Auto-transition to Hallway"
-    // Since we already input name in Module 1, we can just display a button to enter or auto enter.
-    // Let's make a button "Enter Hotel".
-    QPushButton *btn = new QPushButton("进入酒店", rpgCenterPanel); // Enter Hotel
-    btn->setGeometry(350, 300, 200, 50); // x=350, y=300, w=200, h=50
+    // Enter Hotel Button
+    QPushButton *btn = new QPushButton("进入酒店", rpgCenterPanel);
+    btn->setGeometry(350, 600, 200, 50); // Moved down to not obscure view
     connect(btn, &QPushButton::clicked, [this]() {
         goToScene(GameScene::StaffHallway);
     });
@@ -552,7 +612,10 @@ void MainWindow::renderEntrance() {
 
 void MainWindow::renderStaffHallway() {
     QLabel *bg = new QLabel(rpgCenterPanel);
-    bg->setPixmap(generatePlaceholder("员工通道", Qt::lightGray, rpgCenterPanel->size())); // Staff Hallway
+    // Image: source/Test3/员工通道走廊.jpg
+    QPixmap pix("source/Test3/员工通道走廊.jpg");
+    if (pix.isNull()) pix = generatePlaceholder("员工通道", Qt::lightGray, rpgCenterPanel->size());
+    bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     bg->setGeometry(0, 0, 896, 720);
 
     if (!gameState.hasClockedIn) {
@@ -561,19 +624,21 @@ void MainWindow::renderStaffHallway() {
         connect(clockInBtn, &QPushButton::clicked, this, &MainWindow::handleClockIn);
         clockInBtn->show();
     } else {
-        // Links to Office, Warehouse, Elevator Hall
+        // Navigation Buttons
+        // [Coordinates Customization] Adjust x,y,w,h to match the image perspective
+
         QPushButton *officeBtn = new QPushButton("去办公室", rpgCenterPanel); // Go to Office
-        officeBtn->setGeometry(100, 200, 150, 50);
+        officeBtn->setGeometry(50, 300, 150, 50);
         connect(officeBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::Office); });
         officeBtn->show();
 
         QPushButton *warehouseBtn = new QPushButton("去仓库", rpgCenterPanel); // Go to Warehouse
-        warehouseBtn->setGeometry(300, 200, 150, 50);
+        warehouseBtn->setGeometry(250, 300, 150, 50);
         connect(warehouseBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::Warehouse); });
         warehouseBtn->show();
 
         QPushButton *elevatorBtn = new QPushButton("去电梯", rpgCenterPanel); // Go to Elevator
-        elevatorBtn->setGeometry(500, 200, 150, 50);
+        elevatorBtn->setGeometry(450, 300, 150, 50);
         connect(elevatorBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::ElevatorHall); });
         elevatorBtn->show();
     }
@@ -588,12 +653,24 @@ void MainWindow::handleClockIn() {
 
 void MainWindow::renderOffice() {
     QLabel *bg = new QLabel(rpgCenterPanel);
-    bg->setPixmap(generatePlaceholder("办公室", Qt::darkBlue, rpgCenterPanel->size())); // Office
+    // Image: source/Test3/办公室.png
+    QPixmap pix("source/Test3/办公室.png");
+    if (pix.isNull()) pix = generatePlaceholder("办公室", Qt::darkBlue, rpgCenterPanel->size());
+    bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     bg->setGeometry(0, 0, 896, 720);
 
-    QPushButton *getTaskBtn = new QPushButton("领取任务", rpgCenterPanel); // Get Task
+    // Get Task Button
+    QPushButton *getTaskBtn = new QPushButton("领取任务", rpgCenterPanel);
     getTaskBtn->setGeometry(100, 100, 150, 50);
-    connect(getTaskBtn, &QPushButton::clicked, this, &MainWindow::handleGetTask);
+
+    // Logic: Limit to one task per session
+    if (gameState.hasReceivedTask) {
+        getTaskBtn->setEnabled(false);
+        getTaskBtn->setText("任务已领取");
+        getTaskBtn->setToolTip("一次只能领取一次任务");
+    } else {
+        connect(getTaskBtn, &QPushButton::clicked, this, &MainWindow::handleGetTask);
+    }
     getTaskBtn->show();
 
     QPushButton *clockOutBtn = new QPushButton("打卡下班", rpgCenterPanel); // Clock Out
@@ -608,6 +685,8 @@ void MainWindow::renderOffice() {
 }
 
 void MainWindow::handleGetTask() {
+    if (gameState.hasReceivedTask) return; // Double safety
+
     Task t;
     // Random floor 6 or 7
     t.targetFloor = (QRandomGenerator::global()->bounded(2) == 0) ? 6 : 7;
@@ -619,8 +698,13 @@ void MainWindow::handleGetTask() {
     t.requiredItems.insert("床单", QRandomGenerator::global()->bounded(1, 4)); // Sheet
     
     gameState.tasks.append(t);
+    gameState.hasReceivedTask = true; // Mark as received
+
     refreshTaskList();
     logAction(QString("领取任务: %1楼").arg(t.targetFloor));
+
+    // Refresh scene to disable button
+    renderScene();
 }
 
 void MainWindow::handleClockOut() {
@@ -643,23 +727,29 @@ void MainWindow::handleClockOut() {
 
 void MainWindow::renderWarehouse() {
     QLabel *bg = new QLabel(rpgCenterPanel);
-    bg->setPixmap(generatePlaceholder("仓库 (货架)", Qt::darkYellow, rpgCenterPanel->size())); // Warehouse (Shelves)
+    // Image: source/Test3/仓库1.jpg
+    QPixmap pix("source/Test3/仓库1.jpg");
+    if (pix.isNull()) pix = generatePlaceholder("仓库 (货架)", Qt::darkYellow, rpgCenterPanel->size());
+    bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     bg->setGeometry(0, 0, 896, 720);
 
     // Shelves with items
+    // Using transparent buttons over image areas
     QPushButton *towelBtn = new QPushButton("拿取毛巾", rpgCenterPanel); // Take Towel
     towelBtn->setGeometry(100, 200, 100, 100);
-    // Overlay transparent button on image technically, but here just a button
+    // Stylize to be semi-transparent or just text
+    towelBtn->setStyleSheet("background-color: rgba(255, 255, 255, 100); border: 1px solid white;");
     connect(towelBtn, &QPushButton::clicked, [this]() { handleWarehouseItemClick("毛巾"); }); // Towel
     towelBtn->show();
 
     QPushButton *sheetBtn = new QPushButton("拿取床单", rpgCenterPanel); // Take Sheet
     sheetBtn->setGeometry(250, 200, 100, 100);
+    sheetBtn->setStyleSheet("background-color: rgba(255, 255, 255, 100); border: 1px solid white;");
     connect(sheetBtn, &QPushButton::clicked, [this]() { handleWarehouseItemClick("床单"); }); // Sheet
     sheetBtn->show();
 
     QPushButton *loadCartBtn = new QPushButton("装车 (确认)", rpgCenterPanel); // Load Cart (Confirm)
-    loadCartBtn->setGeometry(500, 500, 200, 50);
+    loadCartBtn->setGeometry(500, 600, 200, 50);
     connect(loadCartBtn, &QPushButton::clicked, this, &MainWindow::handleLoadCart);
     loadCartBtn->show();
 
@@ -694,7 +784,10 @@ void MainWindow::handleLoadCart() {
 
 void MainWindow::renderElevatorHall() {
     QLabel *bg = new QLabel(rpgCenterPanel);
-    bg->setPixmap(generatePlaceholder("电梯厅", Qt::gray, rpgCenterPanel->size())); // Elevator Hall
+    // Image: source/Test3/电梯厅.jpg
+    QPixmap pix("source/Test3/电梯厅.jpg");
+    if (pix.isNull()) pix = generatePlaceholder("电梯厅", Qt::gray, rpgCenterPanel->size());
+    bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     bg->setGeometry(0, 0, 896, 720);
 
     // If floor is 0 (Staff), we can go to Hallway. If 6 or 7, we can go to Floor Corridor.
@@ -715,7 +808,10 @@ void MainWindow::renderElevatorHall() {
 
 void MainWindow::renderElevatorInside() {
     QLabel *bg = new QLabel(rpgCenterPanel);
-    bg->setPixmap(generatePlaceholder("电梯内部", Qt::lightGray, rpgCenterPanel->size())); // Elevator Inside
+    // Image: source/Test3/电梯内.jpg
+    QPixmap pix("source/Test3/电梯内.jpg");
+    if (pix.isNull()) pix = generatePlaceholder("电梯内部", Qt::lightGray, rpgCenterPanel->size());
+    bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     bg->setGeometry(0, 0, 896, 720);
 
     // Buttons for G, 6, 7
@@ -728,7 +824,7 @@ void MainWindow::renderElevatorInside() {
     for (auto it = floors.begin(); it != floors.end(); ++it) {
         int floor = it.key();
         QPushButton *btn = new QPushButton(it.value(), rpgCenterPanel);
-        btn->setGeometry(400, y, 80, 80);
+        btn->setGeometry(400, y, 80, 80); // Adjust Y as needed to match panel
         connect(btn, &QPushButton::clicked, [this, floor]() { handleElevatorButton(floor); });
         btn->show();
         y += 100;
@@ -751,7 +847,10 @@ void MainWindow::handleElevatorButton(int floor) {
 
 void MainWindow::renderFloorCorridor() {
     QLabel *bg = new QLabel(rpgCenterPanel);
-    bg->setPixmap(generatePlaceholder(QString("%1楼 走廊").arg(gameState.currentFloor), Qt::cyan, rpgCenterPanel->size())); // Corridor Floor X
+    // Image: source/Test3/楼层走廊-前.png
+    QPixmap pix("source/Test3/楼层走廊-前.png");
+    if (pix.isNull()) pix = generatePlaceholder(QString("%1楼 走廊").arg(gameState.currentFloor), Qt::cyan, rpgCenterPanel->size());
+    bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     bg->setGeometry(0, 0, 896, 720);
 
     QPushButton *linenRoomBtn = new QPushButton("布草间", rpgCenterPanel); // Linen Room
@@ -767,7 +866,10 @@ void MainWindow::renderFloorCorridor() {
 
 void MainWindow::renderLinenRoom() {
     QLabel *bg = new QLabel(rpgCenterPanel);
-    bg->setPixmap(generatePlaceholder("布草间", Qt::white, rpgCenterPanel->size())); // Linen Room
+    // Image: source/Test3/布草间-空.jpg
+    QPixmap pix("source/Test3/布草间-空.jpg");
+    if (pix.isNull()) pix = generatePlaceholder("布草间", Qt::white, rpgCenterPanel->size());
+    bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     bg->setGeometry(0, 0, 896, 720);
 
     // Persist/Initialize dirty bag state for this floor
@@ -786,7 +888,10 @@ void MainWindow::renderLinenRoom() {
     QLabel *dirtyBag = nullptr;
     if (dirtyBagPresent) {
         dirtyBag = new QLabel(rpgCenterPanel);
-        dirtyBag->setPixmap(generatePlaceholder("脏布草袋", Qt::darkRed, QSize(100, 100))); // Dirty Bag
+        // Image: source/Test3/脏布草.jpg (or bag image)
+        QPixmap bagPix("source/Test3/脏布草.jpg");
+        if (bagPix.isNull()) bagPix = generatePlaceholder("脏布草袋", Qt::darkRed, QSize(100, 100));
+        dirtyBag->setPixmap(bagPix.scaled(100, 100, Qt::KeepAspectRatio, Qt::SmoothTransformation));
         dirtyBag->setGeometry(100, 400, 100, 100);
         dirtyBag->show();
         
