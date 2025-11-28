@@ -1,4 +1,5 @@
 #include "test2.h"
+#include "config.h"
 
 Test2::Test2(QWidget *parent) : QWidget(parent) {
     QVBoxLayout *layout = new QVBoxLayout(this);
@@ -51,13 +52,13 @@ Test2::Test2(QWidget *parent) : QWidget(parent) {
         QVBoxLayout *optLayout = new QVBoxLayout(optWidget);
 
         optionImages[i] = new QPushButton();
-        optionImages[i]->setFixedSize(200, 150);
+        optionImages[i]->setFixedSize(Config::Test2::OPTION_IMG_SIZE);
         optionImages[i]->setFlat(true);
         optionImages[i]->setStyleSheet("border: 1px solid #ccc;");
 
         optionButtons[i] = new QPushButton(QString("选项 %1").arg(optionChars[i]));
         optionButtons[i]->setCheckable(true);
-        optionButtons[i]->setFixedSize(200, 40);
+        optionButtons[i]->setFixedSize(Config::Test2::OPTION_BTN_SIZE);
         optionButtons[i]->setStyleSheet(
             "QPushButton { background-color: white; border: 2px solid #ccc; color: #333; }"
             "QPushButton:checked { background-color: #3498db; border-color: #3498db; color: white; }"
@@ -117,8 +118,12 @@ void Test2::loadQuestion() {
 
         char suffix = 'A' + i;
         QString imgName = QString("%1%2").arg(currentQuestionIndex + 1).arg(suffix);
-        QString path = QString(":/source/Test2/%1.jpg").arg(imgName);
-        if (!QFile::exists(path)) path = QString(":/source/Test2/%1.png").arg(imgName);
+
+        // Use config path template
+        QString path = Config::Test2::IMG_PATH_FMT_JPG.arg(imgName);
+        if (!QFile::exists(path)) {
+            path = Config::Test2::IMG_PATH_FMT_PNG.arg(imgName);
+        }
 
         QPixmap pix(path);
         if (pix.isNull()) {
@@ -127,7 +132,7 @@ void Test2::loadQuestion() {
         } else {
             optionImages[i]->setText("");
             optionImages[i]->setIcon(QIcon(pix));
-            optionImages[i]->setIconSize(QSize(190, 140));
+            optionImages[i]->setIconSize(Config::Test2::OPTION_ICON_SIZE);
         }
 
         optionImages[i]->disconnect();

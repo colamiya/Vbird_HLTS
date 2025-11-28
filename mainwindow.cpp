@@ -1,12 +1,13 @@
 #include "mainwindow.h"
 #include <QFormLayout>
+#include "config.h"
 
 MainWindow::MainWindow(QWidget *parent, bool devModeDefault)
     : QMainWindow(parent)
 {
     isDeveloperMode = devModeDefault;
-    setFixedSize(1280, 720);
-    setWindowTitle("酒店管理学生实训系统");
+    setFixedSize(Config::MainWindow::WINDOW_SIZE);
+    setWindowTitle(Config::MainWindow::TITLE);
     setupStyle();
     setupUI();
 }
@@ -62,7 +63,7 @@ QWidget *MainWindow::createStartPage() {
     QVBoxLayout *layout = new QVBoxLayout(page);
     layout->setAlignment(Qt::AlignCenter);
 
-    QLabel *title = new QLabel("学生基础信息登记");
+    QLabel *title = new QLabel(Config::MainWindow::START_TITLE);
     title->setStyleSheet("font-size: 24px; font-weight: bold;");
     layout->addWidget(title);
 
@@ -81,11 +82,11 @@ QWidget *MainWindow::createStartPage() {
 
     QWidget *formWidget = new QWidget();
     formWidget->setLayout(form);
-    formWidget->setFixedWidth(400);
+    formWidget->setFixedWidth(Config::MainWindow::FORM_WIDTH);
     layout->addWidget(formWidget);
 
     QPushButton *startBtn = new QPushButton("开始培训");
-    startBtn->setFixedWidth(200);
+    startBtn->setFixedWidth(Config::MainWindow::BTN_WIDTH);
     connect(startBtn, &QPushButton::clicked, this, &MainWindow::onStartTraining);
     layout->addWidget(startBtn, 0, Qt::AlignCenter);
 
@@ -139,7 +140,7 @@ QWidget *MainWindow::createMainMenu() {
 
     auto addBtn = [&](QString text, int idx) {
         QPushButton *btn = new QPushButton(text);
-        btn->setFixedSize(400, 80);
+        btn->setFixedSize(Config::MainWindow::MENU_BTN_SIZE);
         btn->setStyleSheet("font-size: 18px;");
         connect(btn, &QPushButton::clicked, [this, idx](){ mainStack->setCurrentIndex(idx); });
         layout->addWidget(btn, 0, Qt::AlignCenter);

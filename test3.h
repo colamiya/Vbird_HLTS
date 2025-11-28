@@ -15,30 +15,7 @@
 #include <QPoint>
 
 #include "utils.h"
-
-// --- Constants for Configuration ---
-
-// Task Sheet Text Coordinates (On "申领表.png")
-// [MAINTENANCE NOTE]
-// Adjust these coordinates if you replace "申领表.png".
-// Use Developer Mode to click on the sheet and get new X,Y values.
-const QPoint COORD_FLOOR = QPoint(200, 100);
-const QPoint COORD_ITEM_1 = QPoint(100, 200); // Large Sheet (大床单)
-const QPoint COORD_ITEM_2 = QPoint(300, 200); // Large Duvet (大被套)
-const QPoint COORD_ITEM_3 = QPoint(100, 300); // Small Duvet (小被套)
-const QPoint COORD_ITEM_4 = QPoint(300, 300); // Pillow Towel (枕巾)
-const QPoint COORD_ITEM_5 = QPoint(100, 400); // Good Night Towel (晚安巾)
-const QPoint COORD_ITEM_6 = QPoint(300, 400); // Towel (毛巾)
-
-// Shelf Item Coordinates (On "取布草的货架.jpg" and "布草间-空.jpg")
-// Used for both Taking (Warehouse) and Putting (Linen Room)
-// Format: x, y, width, height (width/height usually fixed for touch area)
-const QRect SHELF_RECT_1 = QRect(50, 150, 150, 150); // Large Sheet
-const QRect SHELF_RECT_2 = QRect(250, 150, 150, 150); // Large Duvet
-const QRect SHELF_RECT_3 = QRect(450, 150, 150, 150); // Small Duvet
-const QRect SHELF_RECT_4 = QRect(50, 350, 150, 150);  // Pillow Towel
-const QRect SHELF_RECT_5 = QRect(250, 350, 150, 150); // Good Night Towel
-const QRect SHELF_RECT_6 = QRect(450, 350, 150, 150); // Towel
+#include "config.h"
 
 // --- Data Structures ---
 
