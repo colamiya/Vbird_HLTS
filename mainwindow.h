@@ -30,6 +30,8 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFormLayout>
+#include <QDialog>
+#include <QScrollArea>
 #include <functional>
 
 // --- Data Structures ---
@@ -71,6 +73,7 @@ struct GameState {
     QList<Task> tasks;
     Inventory inventory;
     bool hasClockedIn;
+    bool hasReceivedTask; // New: Track if task has been claimed
     // Track state of dirty bag per floor to persist state
     // Key: Floor number, Value: isPresent
     QMap<int, bool> dirtyBagState; 
@@ -195,12 +198,17 @@ private:
     int currentQuestionIndex = 0;
     int quizScore = 0;
     QLabel *questionLabel;
-    QRadioButton *options[4];
+
+    // New Quiz UI elements
+    QWidget *optionsContainer;
+    QRadioButton *optionRadios[4];
+    QPushButton *optionImages[4]; // Clickable thumbnails
     QButtonGroup *optionGroup;
-    QLabel *feedbackLabel;
+
     QLabel *scoreLabel;
     void loadQuestion();
-    void checkAnswer();
+    void checkAnswerAndNext(); // Combined logic
+    void showImagePreview(QString imagePath); // Lightbox
 
     // --- Module 4: RPG Simulation ---
     QWidget *createRPGPage();
