@@ -32,6 +32,10 @@
 #include <QFormLayout>
 #include <QDialog>
 #include <QScrollArea>
+#include <QCheckBox>
+#include <QEvent>
+#include <QMouseEvent>
+#include <QTextEdit>
 #include <functional>
 
 // --- Data Structures ---
@@ -78,6 +82,8 @@ struct GameState {
     // Key: Floor number, Value: isPresent
     QMap<int, bool> dirtyBagState; 
     QList<QString> logs;
+    // New state flags for ending flow
+    bool hasReported = false;
 };
 
 // --- Helper Classes ---
@@ -182,6 +188,8 @@ private:
     void updateMainMenu();
     int progressState = 1; // 1=Slideshow, 2=Quiz, 3=RPG
     QList<QPushButton*> mainMenuButtons;
+    bool isDeveloperMode = false;
+    void toggleDeveloperMode(int state);
 
     // --- Module 2: Slideshow ---
     QWidget *createSlideshowPage();
@@ -199,6 +207,7 @@ private:
         QString text;
         QStringList options;
         int correctIndex;
+        int userSelection = -1; // -1 means no selection
     };
     QList<Question> questions;
     int currentQuestionIndex = 0;
@@ -207,13 +216,17 @@ private:
 
     // New Quiz UI elements
     QWidget *optionsContainer;
-    QRadioButton *optionRadios[4];
+    QPushButton *optionButtons[4]; // Combined selection buttons
     QPushButton *optionImages[4]; // Clickable thumbnails
     QButtonGroup *optionGroup;
 
     QLabel *scoreLabel;
+    QPushButton *nextQBtn; // To update text to "Submit"
+
     void loadQuestion();
-    void checkAnswerAndNext(); // Combined logic
+    void handleOptionSelect(int index);
+    void handleNextOrSubmit();
+    void showQuizSummary();
     void showImagePreview(QString imagePath); // Lightbox
 
     // --- Module 4: RPG Simulation ---
@@ -236,12 +249,15 @@ private:
     // Logic Handlers
     void handleClockIn();
     void handleGetTask();
+    void handleReportWork(); // New: Report work in office
+    void showTaskSheet(); // Popup for task list
     void handleWarehouseItemClick(QString itemName);
     void handleLoadCart();
     void handleElevatorButton(int floor);
     void handleLinenDrop(QString itemName);
     void checkEmergencyTask();
     void handleClockOut();
+    void handleGoHome(); // New: Final step
     void updateRPGStatusLabels();
     void refreshInventoryList();
     void refreshTaskList();
@@ -257,6 +273,9 @@ private:
     void renderLinenRoom();
 
     QStackedWidget *mainStack;
+
+protected:
+    bool eventFilter(QObject *watched, QEvent *event) override;
 };
 
 #endif // MAINWINDOW_H

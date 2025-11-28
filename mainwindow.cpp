@@ -262,6 +262,12 @@ QWidget *MainWindow::createMainMenu() {
     layout->addWidget(btn3, 0, Qt::AlignCenter);
     mainMenuButtons.append(btn3);
 
+    // Developer Mode Checkbox
+    QCheckBox *devCheck = new QCheckBox("开发者模式");
+    devCheck->setStyleSheet("margin-top: 20px; font-size: 14px;");
+    connect(devCheck, &QCheckBox::stateChanged, this, &MainWindow::toggleDeveloperMode);
+    layout->addWidget(devCheck, 0, Qt::AlignCenter);
+
     updateMainMenu();
     return page;
 }
@@ -269,7 +275,8 @@ QWidget *MainWindow::createMainMenu() {
 void MainWindow::updateMainMenu() {
     for (int i = 0; i < mainMenuButtons.size(); ++i) {
         QPushButton *btn = mainMenuButtons[i];
-        if (i < progressState) {
+        // If developer mode is on, enable all buttons
+        if (isDeveloperMode || i < progressState) {
             btn->setEnabled(true);
             btn->setToolTip("");
         } else {
@@ -277,6 +284,12 @@ void MainWindow::updateMainMenu() {
             btn->setToolTip("请先完成前一个测试");
         }
     }
+}
+
+void MainWindow::toggleDeveloperMode(int state) {
+    isDeveloperMode = (state == Qt::Checked);
+    updateMainMenu();
+    logAction(isDeveloperMode ? "开发者模式已开启" : "开发者模式已关闭");
 }
 
 // --- Module 2: Slideshow ---
@@ -431,18 +444,28 @@ QWidget *MainWindow::createQuizPage() {
 
         // Thumbnail Button (Click to preview)
         optionImages[i] = new QPushButton();
-        optionImages[i]->setFixedSize(200, 150); // Increased size (Task E)
+        optionImages[i]->setFixedSize(200, 150);
         optionImages[i]->setFlat(true);
         optionImages[i]->setStyleSheet("border: 1px solid #ccc;");
 
-        // Connect later in loadQuestion to specific path
+        // Option Select Button (Rectangular Card Style)
+        optionButtons[i] = new QPushButton(QString("选项 %1").arg(optionChars[i]));
+        optionButtons[i]->setCheckable(true);
+        optionButtons[i]->setFixedSize(200, 40);
+        optionButtons[i]->setStyleSheet(
+            "QPushButton { background-color: white; border: 2px solid #ccc; color: #333; }"
+            "QPushButton:checked { background-color: #3498db; border-color: #3498db; color: white; }"
+            "QPushButton:hover { border-color: #3498db; }"
+        );
+        optionGroup->addButton(optionButtons[i], i);
 
-        // Radio Button (Selection)
-        optionRadios[i] = new QRadioButton(QString("选项 %1").arg(optionChars[i]));
-        optionGroup->addButton(optionRadios[i], i);
+        // Connect click to handleOptionSelect
+        connect(optionButtons[i], &QPushButton::clicked, [this, i]() {
+            handleOptionSelect(i);
+        });
 
         optLayout->addWidget(optionImages[i], 0, Qt::AlignCenter);
-        optLayout->addWidget(optionRadios[i], 0, Qt::AlignCenter);
+        optLayout->addWidget(optionButtons[i], 0, Qt::AlignCenter);
 
         grid->addWidget(optWidget, i / 2, i % 2); // 2x2 Grid
     }
@@ -451,12 +474,12 @@ QWidget *MainWindow::createQuizPage() {
     QHBoxLayout *navLayout = new QHBoxLayout();
 
     QPushButton *prevQBtn = new QPushButton("上一题");
-    QPushButton *nextQBtn = new QPushButton("下一题");
+    nextQBtn = new QPushButton("下一题"); // Will change to Submit on last q
     navLayout->addWidget(prevQBtn);
     navLayout->addWidget(nextQBtn);
     layout->addLayout(navLayout);
 
-    scoreLabel = new QLabel("得分: 0");
+    scoreLabel = new QLabel(""); // Hidden until end
     layout->addWidget(scoreLabel);
 
     connect(prevQBtn, &QPushButton::clicked, [this]() {
@@ -467,7 +490,7 @@ QWidget *MainWindow::createQuizPage() {
     });
 
     connect(nextQBtn, &QPushButton::clicked, [this]() {
-         checkAnswerAndNext();
+         handleNextOrSubmit();
     });
 
     loadQuestion();
@@ -478,17 +501,23 @@ void MainWindow::loadQuestion() {
     Question &q = questions[currentQuestionIndex];
     questionLabel->setText(q.text);
 
-    // Clear previous check
-    optionGroup->setExclusive(false);
-    for (int i = 0; i < 4; ++i) {
-        optionRadios[i]->setChecked(false);
-        optionRadios[i]->setText(q.options[i]);
+    // Block signals to prevent triggering logic while setting state
+    optionGroup->blockSignals(true);
+    optionGroup->setExclusive(false); // Temporary to clear checks if needed
 
-        // Load Image: source/Test2/[QNum][A/B/C/D].jpg
+    for (int i = 0; i < 4; ++i) {
+        optionButtons[i]->setText(q.options[i]);
+
+        // Restore selection state
+        if (q.userSelection == i) {
+            optionButtons[i]->setChecked(true);
+        } else {
+            optionButtons[i]->setChecked(false);
+        }
+
+        // Load Image
         char suffix = 'A' + i;
         QString imgName = QString("%1%2").arg(currentQuestionIndex + 1).arg(suffix);
-
-        // Try extensions jpg, png
         QString path = QString("source/Test2/%1.jpg").arg(imgName);
         if (!QFile::exists(path)) path = QString("source/Test2/%1.png").arg(imgName);
 
@@ -499,48 +528,109 @@ void MainWindow::loadQuestion() {
         } else {
             optionImages[i]->setText("");
             optionImages[i]->setIcon(QIcon(pix));
-            optionImages[i]->setIconSize(QSize(190, 140)); // Adjusted for larger button
+            optionImages[i]->setIconSize(QSize(190, 140));
         }
 
-        // Disconnect previous connections
         optionImages[i]->disconnect();
-        // Connect to lightbox
         connect(optionImages[i], &QPushButton::clicked, [this, path]() {
             showImagePreview(path);
         });
     }
     optionGroup->setExclusive(true);
+    optionGroup->blockSignals(false);
+
+    // Update Next/Submit Button Text
+    if (currentQuestionIndex == questions.size() - 1) {
+        nextQBtn->setText("提交测验");
+        nextQBtn->setStyleSheet("background-color: #27ae60; color: white;");
+    } else {
+        nextQBtn->setText("下一题");
+        nextQBtn->setStyleSheet(""); // Revert to default
+    }
 }
 
-void MainWindow::checkAnswerAndNext() {
-    int id = optionGroup->checkedId();
+void MainWindow::handleOptionSelect(int index) {
+    questions[currentQuestionIndex].userSelection = index;
+}
 
-    // Validation: Must select an option (Task E)
-    if (id == -1) {
+void MainWindow::handleNextOrSubmit() {
+    // Check if current question is answered? (Optional, maybe allow skipping and coming back?)
+    // Requirement says: "Select option -> remember option".
+    // Does not strictly enforce answering before "Next", but usually expected.
+    // Let's enforce it to prevent accidental empty submission.
+    if (questions[currentQuestionIndex].userSelection == -1) {
         QMessageBox::warning(this, "提示", "请先选择一个选项！");
         return;
     }
-
-    if (id == questions[currentQuestionIndex].correctIndex) {
-        quizScore += 1;
-    }
-
-    scoreLabel->setText("得分: " + QString::number(quizScore));
 
     if (currentQuestionIndex < questions.size() - 1) {
         currentQuestionIndex++;
         loadQuestion();
     } else {
-         QMessageBox::information(this, "测验结束", QString("最终得分: %1").arg(quizScore));
-         if (progressState < 3) progressState = 3; // Unlock RPG
-         updateMainMenu();
-         mainStack->setCurrentIndex(1); // Back to Main Menu
-         logAction("测验结束。得分: " + QString::number(quizScore));
+        // Submit
+        showQuizSummary();
     }
+}
+
+void MainWindow::showQuizSummary() {
+    quizScore = 0;
+    QString summaryText;
+    summaryText += "<style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid #ddd; padding: 8px; text-align: left; } th { background-color: #f2f2f2; }</style>";
+    summaryText += "<h3>测验结果详情</h3>";
+    summaryText += "<table><tr><th>题目</th><th>您的选择</th><th>正确答案</th><th>结果</th></tr>";
+
+    char optionChars[] = {'A', 'B', 'C', 'D'};
+
+    for (int i = 0; i < questions.size(); ++i) {
+        const Question &q = questions[i];
+        bool isCorrect = (q.userSelection == q.correctIndex);
+        if (isCorrect) quizScore++;
+
+        QString resultStr = isCorrect ? "<font color='green'>正确</font>" : "<font color='red'>错误</font>";
+        QString userStr = (q.userSelection != -1) ? QString("选项 %1").arg(optionChars[q.userSelection]) : "未作答";
+        QString correctStr = QString("选项 %1").arg(optionChars[q.correctIndex]);
+
+        summaryText += QString("<tr><td>%1...</td><td>%2</td><td>%3</td><td>%4</td></tr>")
+                       .arg(q.text.left(10))
+                       .arg(userStr)
+                       .arg(correctStr)
+                       .arg(resultStr);
+
+        // Also log
+        logAction(QString("题目%1: 选%2 (正确%3) -> %4").arg(i+1).arg(userStr).arg(correctStr).arg(isCorrect ? "Win" : "Fail"));
+    }
+    summaryText += "</table>";
+
+    QString finalScoreStr = QString("最终得分: %1 / %2").arg(quizScore).arg(questions.size());
+    summaryText += QString("<h2>%1</h2>").arg(finalScoreStr);
+    logAction("测验完成. " + finalScoreStr);
+
+    QDialog *dlg = new QDialog(this);
+    dlg->setAttribute(Qt::WA_DeleteOnClose);
+    dlg->setWindowTitle("测验结果");
+    dlg->resize(600, 600);
+    QVBoxLayout *layout = new QVBoxLayout(dlg);
+
+    QTextEdit *edit = new QTextEdit();
+    edit->setHtml(summaryText);
+    edit->setReadOnly(true);
+    layout->addWidget(edit);
+
+    QPushButton *closeBtn = new QPushButton("关闭并返回菜单");
+    connect(closeBtn, &QPushButton::clicked, [this, dlg]() {
+        dlg->accept();
+        if (progressState < 3) progressState = 3; // Unlock RPG
+        updateMainMenu();
+        mainStack->setCurrentIndex(1); // Back to Main Menu
+    });
+    layout->addWidget(closeBtn);
+
+    dlg->exec();
 }
 
 void MainWindow::showImagePreview(QString imagePath) {
     QDialog *dlg = new QDialog(this);
+    dlg->setAttribute(Qt::WA_DeleteOnClose);
     dlg->setWindowTitle("图片预览");
     dlg->resize(800, 600);
 
@@ -562,15 +652,18 @@ void MainWindow::showImagePreview(QString imagePath) {
     dlg->exec();
 }
 
-// --- Module 4: RPG Simulation ---
+// --- Module 4: RPG Simulation (模拟实训) ---
+// 该模块包含一个简单的角色扮演游戏，模拟酒店工作流程。
+// 逻辑包括：场景切换、任务领取、物品收集、电梯模拟、布草配送、工作汇报和打卡下班。
 
 QWidget *MainWindow::createRPGPage() {
     QWidget *page = new QWidget();
-    // Layout: Left (15%), Center (70%), Right (15%)
-    // Since we need absolute positioning for Center, we can still use HBox for the main columns to keep it clean,
-    // or just absolute positioning for everything. 
-    // Requirement says: "Hardcoded Absolute Positioning: Do not use QVBoxLayout or QHBoxLayout for the game scenes."
-    // This implies the Center viewport must use absolute positioning.
+    // 布局说明：
+    // 左侧面板 (15%): 显示当前位置和工作车状态。
+    // 中间面板 (70%): 游戏主视口，使用绝对定位显示场景背景和交互按钮。
+    // 右侧面板 (15%): 显示当前任务列表、申领表按钮和库存列表。
+
+    // 需求要求在游戏场景中使用“硬编码绝对定位”，因此 Center Panel 内部没有 Layout。
     
     // I will use a QHBoxLayout for the high-level 3 panels to respect the "Left/Center/Right" structure easily,
     // but the content of the Center panel will be purely absolute positioned.
@@ -612,6 +705,12 @@ QWidget *MainWindow::createRPGPage() {
     taskTitle->setStyleSheet("font-weight: bold; color: #ecf0f1; margin-top: 10px;");
     rightLayout->addWidget(taskTitle);
 
+    // Button to view detailed task sheet
+    QPushButton *viewTaskSheetBtn = new QPushButton("查看申领表");
+    viewTaskSheetBtn->setStyleSheet("font-size: 12px; padding: 5px; background-color: #e67e22;");
+    connect(viewTaskSheetBtn, &QPushButton::clicked, this, &MainWindow::showTaskSheet);
+    rightLayout->addWidget(viewTaskSheetBtn);
+
     taskListWidget = new QListWidget();
     // Inherits global list style, but we ensure text is visible against white list bg
     rightLayout->addWidget(taskListWidget);
@@ -633,9 +732,24 @@ QWidget *MainWindow::createRPGPage() {
     gameState.hasReceivedTask = false;
     gameState.inventory.cartCapacity = 10;
 
+    rpgCenterPanel->installEventFilter(this); // Install filter for coord capturing
+
     renderScene();
 
     return page;
+}
+
+bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
+    if (watched == rpgCenterPanel && event->type() == QEvent::MouseButtonPress && isDeveloperMode) {
+        QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+        QPoint pos = mouseEvent->pos();
+        QString coordText = QString("DevMode Click: (%1, %2)").arg(pos.x()).arg(pos.y());
+        qDebug() << coordText;
+        logAction(coordText); // Also log to internal log for visibility
+        QMessageBox::information(this, "坐标", coordText); // Pop up for immediate visibility
+        return true;
+    }
+    return QMainWindow::eventFilter(watched, event);
 }
 
 void MainWindow::goToScene(GameScene scene) {
@@ -693,17 +807,22 @@ void MainWindow::updateRPGStatusLabels() {
 // --- Specific Scene Renderers ---
 
 // [自定义说明] 场景渲染函数
-// 每个 renderX 函数负责绘制一个场景。
-// 使用 setGeometry(x, y, width, height) 绝对定位来放置按钮和背景。
-// 坐标系以 rpgCenterPanel 左上角 (0,0) 为原点，最大尺寸 896 x 720。
-// [自定义说明] 场景渲染函数
-// 每个 renderX 函数负责绘制一个场景。
-// 使用 setGeometry(x, y, width, height) 绝对定位来放置按钮和背景。
-// 坐标系以 rpgCenterPanel 左上角 (0,0) 为原点，最大尺寸 896 x 720。
+// 每个 renderX 函数负责绘制一个特定的游戏场景。
+// 我们使用 setGeometry(x, y, width, height) 绝对定位来放置按钮、标签和背景图片。
+// 坐标系以 rpgCenterPanel 左上角 (0,0) 为原点。
+// 面板总尺寸固定为 896 x 720。
+//
+// 调整位置指南：
+// 1. 开启“开发者模式”（在主菜单勾选）。
+// 2. 在RPG场景中点击任意位置，会弹出弹窗显示 (x, y) 坐标。
+// 3. 将显示的坐标填入下方代码 setGeometry 中。
 
 void MainWindow::renderEntrance() {
+    // 场景：酒店入口
+    // 功能：开始进入酒店。结束时（下班后）显示“下班回家”按钮。
+
     // 背景
-    // 图片: source/Test3/入口.jpg
+    // 图片路径: source/Test3/入口.jpg
     QLabel *bg = new QLabel(rpgCenterPanel);
     QPixmap pix("source/Test3/入口.jpg");
     if (pix.isNull()) pix = generatePlaceholder("酒店入口", Qt::darkGray, rpgCenterPanel->size());
@@ -712,17 +831,71 @@ void MainWindow::renderEntrance() {
     bg->show(); // Explicitly show the background
 
     // 进入酒店按钮
+    if (gameState.hasClockedIn && gameState.hasReported) {
+        // Only show "Go Home" if work is done and clocked out
+        // Logic: hasReported + hasClockedIn? Wait, Clock Out sets hasClockedIn=false?
+        // Let's use a specific state for "Work Done" which is implied by being at Entrance after ClockOut.
+        // Actually, ClockOut happens in Hallway now. After ClockOut, where do we go? Entrance.
+
+        // Let's check logic flow:
+        // 1. Entrance -> Hallway (Clock In)
+        // 2. ... Tasks ...
+        // 3. Office (Report) -> Hallway (Clock Out) -> Entrance (Go Home)
+
+        // So if we are here and clocked out?
+        // We need a flag 'hasClockedOut'.
+    }
+
     QPushButton *btn = new QPushButton("进入酒店", rpgCenterPanel);
     btn->setGeometry(350, 600, 200, 50);
-    connect(btn, &QPushButton::clicked, [this]() {
-        goToScene(GameScene::StaffHallway);
-    });
+
+    // If clocked out, change button to "Go Home"
+    // We reuse the same button pointer but change text/action?
+    // Or conditionally create.
+
+    // Check if we just clocked out.
+    // Since we don't have 'hasClockedOut' variable in struct yet, let's look at `gameState`.
+    // We added `hasReported`.
+    // Let's assume if `hasReported` is true and `hasClockedIn` is false (clocked out), then we are done.
+
+    if (gameState.hasReported && !gameState.hasClockedIn) {
+        btn->setText("下班回家");
+        btn->setStyleSheet("background-color: #27ae60; color: white; font-size: 18px;");
+        // Disconnect previous and connect new
+        connect(btn, &QPushButton::clicked, this, &MainWindow::handleGoHome);
+    } else {
+        connect(btn, &QPushButton::clicked, [this]() {
+            goToScene(GameScene::StaffHallway);
+        });
+    }
+
     btn->show();
 }
 
+void MainWindow::handleGoHome() {
+    logAction("下班回家");
+    QString filename = QString("training_log_%1.txt").arg(QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss"));
+    QFile file(filename);
+    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream out(&file);
+        out << "Student: " << student.name << "\n";
+        out << "Logs:\n";
+        for (const QString &log : gameState.logs) {
+            out << log << "\n";
+        }
+        file.close();
+        QMessageBox::information(this, "恭喜", "今日实训结束！日志已保存。");
+        QApplication::quit();
+    }
+}
+
 void MainWindow::renderStaffHallway() {
+    // 场景：员工通道走廊
+    // 功能：作为枢纽，连接办公室、仓库、电梯。
+    // 包含“打卡签到”和“打卡下班”逻辑。
+
     QLabel *bg = new QLabel(rpgCenterPanel);
-    // Image: source/Test3/员工通道走廊.jpg
+    // 图片路径: source/Test3/员工通道走廊.jpg
     QPixmap pix("source/Test3/员工通道走廊.jpg");
     if (pix.isNull()) pix = generatePlaceholder("员工通道", Qt::lightGray, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
@@ -730,14 +903,47 @@ void MainWindow::renderStaffHallway() {
     bg->show(); // Explicitly show the background
 
     if (!gameState.hasClockedIn) {
-        QPushButton *clockInBtn = new QPushButton("打卡签到", rpgCenterPanel);
-        clockInBtn->setGeometry(100, 100, 150, 50);
-        connect(clockInBtn, &QPushButton::clicked, this, &MainWindow::handleClockIn);
-        clockInBtn->show();
-    } else {
-        // 导航按钮
-        // [坐标自定义] 调整 x,y,w,h 以匹配图片透视
+        // Not clocked in.
+        // If we have reported, it means we just clocked out (handled in handleClockOut setting clockedIn=false).
+        // So we should see nothing or just be able to leave?
+        // Actually, logic flow: Report (ClockedIn) -> Hallway (ClockedIn) -> Click ClockOut -> (ClockedIn=False) -> Entrance -> Go Home.
 
+        // So if !hasClockedIn, we usually show "Clock In".
+        // But if we have reported and !hasClockedIn, we are effectively done with the hallway.
+        // We might just show a message "已下班".
+
+        if (gameState.hasReported) {
+            QLabel *lbl = new QLabel("已打卡下班", rpgCenterPanel);
+            lbl->setGeometry(100, 100, 200, 50);
+            lbl->setStyleSheet("font-size: 18px; color: green; font-weight: bold;");
+            lbl->show();
+
+            QPushButton *exitBtn = new QPushButton("返回入口", rpgCenterPanel);
+            exitBtn->setGeometry(350, 600, 200, 50);
+            connect(exitBtn, &QPushButton::clicked, [this]() {
+                goToScene(GameScene::Entrance);
+            });
+            exitBtn->show();
+        } else {
+             // Initial Clock In
+             QPushButton *clockInBtn = new QPushButton("打卡签到", rpgCenterPanel);
+             clockInBtn->setGeometry(100, 100, 150, 50);
+             connect(clockInBtn, &QPushButton::clicked, this, &MainWindow::handleClockIn);
+             clockInBtn->show();
+        }
+    } else {
+        // Logged In State
+
+        // If we have reported work, we should see the "Clock Out" button here.
+        if (gameState.hasReported) {
+             QPushButton *clockOutBtn = new QPushButton("打卡下班", rpgCenterPanel);
+             clockOutBtn->setGeometry(100, 100, 150, 50);
+             clockOutBtn->setStyleSheet("background-color: #e74c3c; color: white; font-size: 18px; font-weight: bold;");
+             connect(clockOutBtn, &QPushButton::clicked, this, &MainWindow::handleClockOut);
+             clockOutBtn->show();
+        }
+
+        // Navigation Buttons (Always visible or hidden during clock out phase? Maybe keep them)
         QPushButton *officeBtn = new QPushButton("去办公室", rpgCenterPanel);
         officeBtn->setGeometry(50, 300, 150, 50);
         connect(officeBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::Office); });
@@ -756,39 +962,60 @@ void MainWindow::renderStaffHallway() {
 }
 
 void MainWindow::handleClockIn() {
-    QMessageBox::information(this, "通知", "打卡成功!");
+    QMessageBox::information(this, "通知", "上班打卡成功!");
     gameState.hasClockedIn = true;
-    logAction("已打卡");
-    renderScene(); // 刷新以显示导航按钮
+    logAction("已上班打卡");
+    renderScene();
 }
 
 void MainWindow::renderOffice() {
+    // 场景：办公室
+    // 功能：领取任务（上班时）、汇报工作（任务完成后）。
+
     QLabel *bg = new QLabel(rpgCenterPanel);
-    // Image: source/Test3/办公室.png
+    // 图片路径: source/Test3/办公室.png
     QPixmap pix("source/Test3/办公室.png");
     if (pix.isNull()) pix = generatePlaceholder("办公室", Qt::darkBlue, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     bg->setGeometry(0, 0, 896, 720);
     bg->show(); // Explicitly show the background
 
-    // 领取任务按钮
-    QPushButton *getTaskBtn = new QPushButton("领取任务", rpgCenterPanel);
-    getTaskBtn->setGeometry(100, 100, 150, 50);
+    // Logic: If tasks done -> Show Report Button
+    // If not received -> Show Get Task
+    // Else -> Show status
 
-    // 逻辑：每此只能领取一次任务
-    if (gameState.hasReceivedTask) {
-        getTaskBtn->setEnabled(false);
-        getTaskBtn->setText("任务已领取");
-        getTaskBtn->setToolTip("一次只能领取一次任务");
-    } else {
-        connect(getTaskBtn, &QPushButton::clicked, this, &MainWindow::handleGetTask);
+    bool allTasksDone = !gameState.tasks.isEmpty();
+    for(const auto &t : gameState.tasks) {
+        if (!t.isCompleted) allTasksDone = false;
     }
-    getTaskBtn->show();
+    if (gameState.tasks.isEmpty()) allTasksDone = false;
 
-    QPushButton *clockOutBtn = new QPushButton("打卡下班", rpgCenterPanel);
-    clockOutBtn->setGeometry(300, 100, 150, 50);
-    connect(clockOutBtn, &QPushButton::clicked, this, &MainWindow::handleClockOut);
-    clockOutBtn->show();
+    if (allTasksDone && !gameState.hasReported) {
+        QPushButton *reportBtn = new QPushButton("汇报工作", rpgCenterPanel);
+        reportBtn->setGeometry(100, 100, 150, 50);
+        reportBtn->setStyleSheet("background-color: #f1c40f; color: black;");
+        connect(reportBtn, &QPushButton::clicked, this, &MainWindow::handleReportWork);
+        reportBtn->show();
+    } else if (gameState.hasReported) {
+         QLabel *lbl = new QLabel("工作已汇报，请去走廊下班。", rpgCenterPanel);
+         lbl->setGeometry(100, 100, 300, 50);
+         lbl->setStyleSheet("font-size: 16px; color: green; font-weight: bold;");
+         lbl->show();
+    } else {
+        // Get Task Logic
+        QPushButton *getTaskBtn = new QPushButton("领取任务", rpgCenterPanel);
+        getTaskBtn->setGeometry(100, 100, 150, 50);
+
+        if (gameState.hasReceivedTask) {
+            getTaskBtn->setEnabled(false);
+            getTaskBtn->setText("任务进行中...");
+        } else {
+            connect(getTaskBtn, &QPushButton::clicked, this, &MainWindow::handleGetTask);
+        }
+        getTaskBtn->show();
+    }
+
+    // Removed "Clock Out" from Office. It is now in Hallway after report.
 
     QPushButton *backBtn = new QPushButton("返回通道", rpgCenterPanel);
     backBtn->setGeometry(100, 600, 150, 50);
@@ -805,9 +1032,24 @@ void MainWindow::handleGetTask() {
     t.isEmergency = false;
     t.isCompleted = false;
     
-    // 物品
-    t.requiredItems.insert("毛巾", QRandomGenerator::global()->bounded(1, 4));
-    t.requiredItems.insert("床单", QRandomGenerator::global()->bounded(1, 4));
+    // 物品 generation logic:
+    // 6 Types: 大床单, 大被套, 小被套, 枕巾, 晚安巾, 毛巾
+    // Randomly select 4-6 types to be required
+    QStringList allTypes = {"大床单", "大被套", "小被套", "枕巾", "晚安巾", "毛巾"};
+
+    // Shuffle
+    for (int i = 0; i < allTypes.size(); ++i) {
+        int j = QRandomGenerator::global()->bounded(allTypes.size());
+        allTypes.swapItemsAt(i, j);
+    }
+
+    // Pick 4 to 6 items
+    int typesCount = QRandomGenerator::global()->bounded(4, 7); // 4, 5, 6
+    for (int i = 0; i < typesCount; ++i) {
+        // Quantity 1-5
+        int qty = QRandomGenerator::global()->bounded(1, 6);
+        t.requiredItems.insert(allTypes[i], qty);
+    }
     
     gameState.tasks.append(t);
     gameState.hasReceivedTask = true; // 标记已领取
@@ -815,31 +1057,104 @@ void MainWindow::handleGetTask() {
     refreshTaskList();
     logAction(QString("领取任务: %1楼").arg(t.targetFloor));
 
+    // Auto show task sheet on claim?
+    showTaskSheet();
+
     // 刷新场景以禁用按钮
+    renderScene();
+}
+
+void MainWindow::showTaskSheet() {
+    if (gameState.tasks.isEmpty()) {
+        QMessageBox::information(this, "提示", "当前没有任务。");
+        return;
+    }
+
+    // Assume the last task is the current active claim for simplicity
+    const Task &t = gameState.tasks.last();
+    
+    QDialog *dlg = new QDialog(this);
+    dlg->setAttribute(Qt::WA_DeleteOnClose);
+    dlg->setWindowTitle("物资申领表");
+    dlg->setFixedSize(600, 800);
+
+    QLabel *bg = new QLabel(dlg);
+    QPixmap pix("source/Test3/申领表.png");
+    if (pix.isNull()) {
+        pix = QPixmap(600, 800);
+        pix.fill(Qt::white);
+        QPainter p(&pix);
+        p.drawText(50, 50, "申领表背景图缺失");
+    } else {
+        pix = pix.scaled(600, 800, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    }
+    bg->setPixmap(pix);
+    bg->setGeometry(0, 0, 600, 800);
+
+    // Overlay text
+    // Coordinate calibration needed based on actual image "申领表.png"
+    // For now, I will list them in a clear text area overlay or try to position them.
+    // Since I can't see the image grid, I'll place a transparent widget over it with a list.
+
+    QWidget *overlay = new QWidget(dlg);
+    overlay->setGeometry(50, 200, 500, 400); // Approximate center area
+    QVBoxLayout *vbox = new QVBoxLayout(overlay);
+
+    QLabel *title = new QLabel(QString("目标楼层: %1").arg(t.targetFloor));
+    title->setStyleSheet("font-size: 24px; color: black; font-weight: bold; background: rgba(255,255,255,0.7);");
+    vbox->addWidget(title);
+
+    for (auto it = t.requiredItems.begin(); it != t.requiredItems.end(); ++it) {
+        QLabel *itemLbl = new QLabel(QString("%1: %2").arg(it.key()).arg(it.value()));
+        itemLbl->setStyleSheet("font-size: 20px; color: blue; font-weight: bold; background: rgba(255,255,255,0.7);");
+        vbox->addWidget(itemLbl);
+    }
+    vbox->addStretch();
+
+    QPushButton *closeBtn = new QPushButton("关闭", dlg);
+    closeBtn->setGeometry(250, 700, 100, 50);
+    connect(closeBtn, &QPushButton::clicked, dlg, &QDialog::accept);
+
+    dlg->exec();
+}
+
+void MainWindow::handleReportWork() {
+    QMessageBox::information(this, "汇报", "工作汇报完成！主管：‘做得好，去打卡下班吧。’");
+    gameState.hasReported = true;
+    gameState.hasClockedIn = false; // Effectively logs out of "work mode" to enable "Clock Out" interaction in Hallway logic?
+    // Actually my Hallway logic:
+    // if (!gameState.hasClockedIn) { if (hasReported) Show ClockOut; else Show ClockIn; }
+    // So yes, setting hasClockedIn = false here is a trick to trigger the "Login/Logout" UI state in Hallway.
+    // However, "Clock Out" usually means ending the shift.
+    // Let's adjust:
+    // User is technically "Clocked In" until they click "Clock Out".
+    // So in Hallway:
+    // If (ClockedIn) -> Show Nav Buttons.
+    // But we need to show "Clock Out" button.
+    // Maybe add a special condition in Hallway:
+    // If (ClockedIn AND HasReported) -> Show "Clock Out" button instead of (or in addition to) Nav buttons?
+    // Let's refine `renderStaffHallway`.
+
+    // Correction: I will NOT set hasClockedIn = false here.
+    logAction("已汇报工作");
     renderScene();
 }
 
 void MainWindow::handleClockOut() {
     logAction("已打卡下班");
-    
-    QString filename = QString("training_log_%1.txt").arg(QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss"));
-    QFile file(filename);
-    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QTextStream out(&file);
-        out << "Student: " << student.name << "\n";
-        out << "Logs:\n";
-        for (const QString &log : gameState.logs) {
-            out << log << "\n";
-        }
-        file.close();
-        QMessageBox::information(this, "再见", "培训日志已保存。正在退出...");
-        QApplication::quit();
-    }
+    gameState.hasClockedIn = false; // Now we are clocked out
+    QMessageBox::information(this, "通知", "下班打卡成功! 请回到入口回家。");
+    renderScene(); // Should update Hallway to show "Clock In" (or nothing) and Entrance to show "Go Home"
 }
 
 void MainWindow::renderWarehouse() {
+    // 场景：布草仓库
+    // 功能：从货架上拿取物品（毛巾、床单等）。
+    // 点击物品按钮会将物品添加到库存。
+    // 装车确认后返回通道。
+
     QLabel *bg = new QLabel(rpgCenterPanel);
-    // 图片: source/Test3/仓库1.jpg
+    // 图片路径: source/Test3/仓库1.jpg
     QPixmap pix("source/Test3/仓库1.jpg");
     if (pix.isNull()) pix = generatePlaceholder("仓库 (货架)", Qt::darkYellow, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
@@ -896,8 +1211,11 @@ void MainWindow::handleLoadCart() {
 }
 
 void MainWindow::renderElevatorHall() {
+    // 场景：电梯厅
+    // 功能：连接员工通道（0楼）和客房楼层（6楼、7楼）。
+
     QLabel *bg = new QLabel(rpgCenterPanel);
-    // 图片: source/Test3/电梯厅.jpg
+    // 图片路径: source/Test3/电梯厅.jpg
     QPixmap pix("source/Test3/电梯厅.jpg");
     if (pix.isNull()) pix = generatePlaceholder("电梯厅", Qt::gray, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
@@ -921,8 +1239,11 @@ void MainWindow::renderElevatorHall() {
 }
 
 void MainWindow::renderElevatorInside() {
+    // 场景：电梯内部
+    // 功能：选择楼层。
+
     QLabel *bg = new QLabel(rpgCenterPanel);
-    // 图片: source/Test3/电梯内.jpg
+    // 图片路径: source/Test3/电梯内.jpg
     QPixmap pix("source/Test3/电梯内.jpg");
     if (pix.isNull()) pix = generatePlaceholder("电梯内部", Qt::lightGray, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
@@ -961,8 +1282,11 @@ void MainWindow::handleElevatorButton(int floor) {
 }
 
 void MainWindow::renderFloorCorridor() {
+    // 场景：楼层走廊 (6楼或7楼)
+    // 功能：连接电梯和布草间。
+
     QLabel *bg = new QLabel(rpgCenterPanel);
-    // 图片: source/Test3/楼层走廊-前.png
+    // 图片路径: source/Test3/楼层走廊-前.png
     QPixmap pix("source/Test3/楼层走廊-前.png");
     if (pix.isNull()) pix = generatePlaceholder(QString("%1楼 走廊").arg(gameState.currentFloor), Qt::cyan, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
@@ -981,8 +1305,14 @@ void MainWindow::renderFloorCorridor() {
 }
 
 void MainWindow::renderLinenRoom() {
+    // 场景：布草间 (6楼或7楼)
+    // 功能：处理脏布草袋，配送新布草。
+    // 逻辑：
+    // 1. 如果有脏布草袋（随机生成），必须先移走。
+    // 2. 移走后，可以将库存物品拖拽到货架区域进行配送。
+
     QLabel *bg = new QLabel(rpgCenterPanel);
-    // 图片: source/Test3/布草间-空.jpg
+    // 图片路径: source/Test3/布草间-空.jpg
     QPixmap pix("source/Test3/布草间-空.jpg");
     if (pix.isNull()) pix = generatePlaceholder("布草间", Qt::white, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
