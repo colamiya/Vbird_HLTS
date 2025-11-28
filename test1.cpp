@@ -1,4 +1,5 @@
 #include "test1.h"
+#include "config.h"
 
 Test1::Test1(QWidget *parent) : QWidget(parent) {
     QVBoxLayout *layout = new QVBoxLayout(this);
@@ -43,17 +44,23 @@ Test1::Test1(QWidget *parent) : QWidget(parent) {
 }
 
 void Test1::updateSlide() {
-    QString imagePath = QString(":/source/Test1/fig%1.png").arg(currentSlideIndex + 1);
-    QPixmap pixmap(imagePath);
+    // Check if index is within bounds of config list
+    if (currentSlideIndex >= 0 && currentSlideIndex < Config::Test1::SLIDE_IMAGES.size()) {
+        QString imagePath = Config::Test1::SLIDE_IMAGES[currentSlideIndex];
+        QPixmap pixmap(imagePath);
 
-    if (!pixmap.isNull()) {
-        slideImageLabel->setPixmap(pixmap.scaled(800, 450, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        if (!pixmap.isNull()) {
+            slideImageLabel->setPixmap(pixmap.scaled(Config::Test1::SLIDE_DISPLAY_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        } else {
+            slideImageLabel->setPixmap(generatePlaceholder(
+                QString("幻灯片 %1 (缺失: %2)").arg(currentSlideIndex + 1).arg(imagePath),
+                Qt::blue,
+                Config::Test1::SLIDE_DISPLAY_SIZE
+            ));
+        }
     } else {
-        slideImageLabel->setPixmap(generatePlaceholder(
-            QString("幻灯片 %1 (缺失: %2)").arg(currentSlideIndex + 1).arg(imagePath),
-            Qt::blue,
-            QSize(800, 450)
-        ));
+        // Fallback
+        slideImageLabel->setPixmap(generatePlaceholder("无效的幻灯片索引", Qt::red, Config::Test1::SLIDE_DISPLAY_SIZE));
     }
 }
 
@@ -65,12 +72,17 @@ void Test1::finishSlideshow() {
     for (int i = 0; i < totalSlides; ++i) {
         QLabel *thumb = new QLabel();
 
-        QString imagePath = QString(":/source/Test1/fig%1.png").arg(i + 1);
+        // Use config paths
+        QString imagePath = "";
+        if (i < Config::Test1::SLIDE_IMAGES.size()) {
+            imagePath = Config::Test1::SLIDE_IMAGES[i];
+        }
+
         QPixmap pix(imagePath);
         if (pix.isNull()) {
-             pix = generatePlaceholder(QString("图 %1").arg(i + 1), Qt::gray, QSize(200, 150));
+             pix = generatePlaceholder(QString("图 %1").arg(i + 1), Qt::gray, Config::Test1::THUMBNAIL_SIZE);
         } else {
-             pix = pix.scaled(200, 150, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+             pix = pix.scaled(Config::Test1::THUMBNAIL_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         }
 
         thumb->setPixmap(pix);
