@@ -164,14 +164,14 @@ QWidget *MainWindow::createStartPage() {
     QVBoxLayout *layout = new QVBoxLayout(page);
     layout->setAlignment(Qt::AlignCenter);
 
-    QLabel *title = new QLabel("学生信息登记");
+    QLabel *title = new QLabel("学生基础信息登记");
     title->setStyleSheet("font-size: 24px; font-weight: bold;");
     layout->addWidget(title);
 
     QFormLayout *form = new QFormLayout();
     nameInput = new QLineEdit();
     ageInput = new QSpinBox(); ageInput->setRange(16, 100);
-    genderInput = new QComboBox(); genderInput->addItems({"男", "女", "其他"});
+    genderInput = new QComboBox(); genderInput->addItems({"男", "女"});
     classInput = new QLineEdit();
     durationInput = new QLineEdit();
 
@@ -384,25 +384,25 @@ QWidget *MainWindow::createQuizPage() {
     // Generate Questions with specific text and answers
     struct QuizItem { QString text; int correctIndex; };
     QList<QuizItem> quizData = {
-        {"1.上午8:00上班，谁的工作态度正确？", 2}, // C
-        {"2.开始工作前主管安排任务。谁的工作态度正确？", 3}, // D
-        {"3.工作时，谁的工作方式正确？", 3}, // D
+        {"1. 上午8:00上班，谁的工作态度正确？", 2}, // C
+        {"2. 开始工作前主管安排任务。谁的工作态度正确？", 3}, // D
+        {"3. 工作时，谁的工作方式正确？", 3}, // D
         {"4. 工作时，谁的工作方式正确？", 3}, // D
         {"5. 工作时，谁的工作方式正确？", 0}, // A
         {"6. 进行交接时，谁的工作方式正确？", 0}, // A
-        {"7.发现床单破洞了，谁的工作方式正确？", 0}, // A
+        {"7. 发现床单破洞了，谁的工作方式正确？", 0}, // A
         {"8. 工作时，谁的工作方式正确？", 0}, // A
         {"9. 遇到了紧急任务，需要送到15楼，谁的工作方式正确？", 0}, // A
         {"10. 下午4:00汇报工作时，谁的方式正确？", 1}, // B
-        {"11.推车轮子坏了，谁的处理方式正确？", 3}, // D
+        {"11. 推车轮子坏了，谁的处理方式正确？", 3}, // D
         {"12. 工作时，谁的工作方式正确？", 0}, // A
         {"13. 工作时，谁的工作方式正确？", 3}, // D
-        {"14.地面湿滑，谁的处理方式正确？", 2}, // C
+        {"14. 地面湿滑，谁的处理方式正确？", 2}, // C
         {"15. 工作时，谁的工作方式正确？", 2}, // C
         {"16. 房间里的布草不够了，谁的工作方式正确？", 1}, // B
-        {"17.和同事相处时，谁的做法错误？", 3}, // D
-        {"18.被批评了，谁的态度是对的？", 1}, // B
-        {"19.下午17:00下班了，谁做的是对的？", 0}  // A
+        {"17. 和同事相处时，谁的做法错误？", 3}, // D
+        {"18. 被批评了，谁的态度是对的？", 1}, // B
+        {"19. 下午17:00下班了，谁做的是对的？", 0}  // A
     };
 
     for (const auto &item : quizData) {
