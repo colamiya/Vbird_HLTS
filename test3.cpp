@@ -4,6 +4,7 @@
 #include <QMouseEvent>
 #include <QDialog>
 #include <QMap>
+#include <QFile>
 
 Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode(isDevMode) {
     QHBoxLayout *mainLayout = new QHBoxLayout(this);
@@ -120,11 +121,11 @@ void Test3::updateRPGStatusLabels() {
     for (auto v : gameState.inventory.cleanItems) cleanCount += v;
 
     if (gameState.inventory.dirtyItemsCount > 0) {
-        statusImg = "source/Test3/推车-脏布草.png";
+        statusImg = ":/source/Test3/推车-脏布草.png";
     } else if (cleanCount > 0) {
-        statusImg = "source/Test3/推车-布草.png";
+        statusImg = ":/source/Test3/推车-布草.png";
     } else {
-        statusImg = "source/Test3/推车-空.png";
+        statusImg = ":/source/Test3/推车-空.png";
     }
 
     QPixmap pix(statusImg);
@@ -149,7 +150,7 @@ void Test3::refreshInventoryList() {
             item->setData(Qt::UserRole, it.key()); // Drag data
 
             // Load Icon
-            QString iconPath = QString("source/Test3/%1.png").arg(it.key());
+            QString iconPath = QString(":/source/Test3/%1.png").arg(it.key());
             if (QFile::exists(iconPath)) {
                 item->setIcon(QIcon(iconPath));
             }
@@ -161,7 +162,7 @@ void Test3::refreshInventoryList() {
     // Show Dirty Items
     if (gameState.inventory.dirtyItemsCount > 0) {
          QListWidgetItem *item = new QListWidgetItem("脏布草");
-         QString iconPath = "source/Test3/脏布草.jpg";
+         QString iconPath = ":/source/Test3/脏布草.jpg";
          if (QFile::exists(iconPath)) item->setIcon(QIcon(iconPath));
          item->setData(Qt::UserRole, "DirtyLinen");
          inventoryListWidget->addItem(item);
@@ -209,7 +210,7 @@ void Test3::renderScene() {
 
 void Test3::renderEntrance() {
     QLabel *bg = new QLabel(rpgCenterPanel);
-    QPixmap pix("source/Test3/入口.jpg");
+    QPixmap pix(":/source/Test3/入口.jpg");
     if (pix.isNull()) pix = generatePlaceholder("酒店入口", Qt::darkGray, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     bg->setGeometry(0, 0, 896, 720);
@@ -232,7 +233,7 @@ void Test3::renderEntrance() {
 
 void Test3::renderStaffHallway() {
     QLabel *bg = new QLabel(rpgCenterPanel);
-    QPixmap pix("source/Test3/员工通道走廊.jpg");
+    QPixmap pix(":/source/Test3/员工通道走廊.jpg");
     if (pix.isNull()) pix = generatePlaceholder("员工通道", Qt::lightGray, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     bg->setGeometry(0, 0, 896, 720);
@@ -285,7 +286,7 @@ void Test3::renderStaffHallway() {
 
 void Test3::renderOffice() {
     QLabel *bg = new QLabel(rpgCenterPanel);
-    QPixmap pix("source/Test3/办公室.png");
+    QPixmap pix(":/source/Test3/办公室.png");
     if (pix.isNull()) pix = generatePlaceholder("办公室", Qt::darkBlue, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     bg->setGeometry(0, 0, 896, 720);
@@ -329,7 +330,7 @@ void Test3::renderOffice() {
 void Test3::renderWarehouse() {
     // 1. Show Entry view: 仓库1.jpg
     QLabel *bg = new QLabel(rpgCenterPanel);
-    QPixmap pix("source/Test3/仓库1.jpg");
+    QPixmap pix(":/source/Test3/仓库1.jpg");
     if (pix.isNull()) pix = generatePlaceholder("仓库 (入口)", Qt::darkYellow, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     bg->setGeometry(0, 0, 896, 720);
@@ -353,7 +354,7 @@ void Test3::renderWarehouse() {
 void Test3::renderWarehouseShelf() {
     // Shelf View: 取布草的货架.jpg
     QLabel *bg = new QLabel(rpgCenterPanel);
-    QPixmap pix("source/Test3/取布草的货架.jpg");
+    QPixmap pix(":/source/Test3/取布草的货架.jpg");
     if (pix.isNull()) pix = generatePlaceholder("货架", Qt::darkYellow, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     bg->setGeometry(0, 0, 896, 720);
@@ -385,7 +386,7 @@ void Test3::renderWarehouseShelf() {
 
 void Test3::renderElevatorHall() {
     QLabel *bg = new QLabel(rpgCenterPanel);
-    QPixmap pix("source/Test3/电梯厅.jpg");
+    QPixmap pix(":/source/Test3/电梯厅.jpg");
     if (pix.isNull()) pix = generatePlaceholder("电梯厅", Qt::gray, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     bg->setGeometry(0, 0, 896, 720);
@@ -407,7 +408,7 @@ void Test3::renderElevatorHall() {
 
 void Test3::renderElevatorInside() {
     QLabel *bg = new QLabel(rpgCenterPanel);
-    QPixmap pix("source/Test3/电梯内.jpg");
+    QPixmap pix(":/source/Test3/电梯内.jpg");
     if (pix.isNull()) pix = generatePlaceholder("电梯内部", Qt::lightGray, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     bg->setGeometry(0, 0, 896, 720);
@@ -431,7 +432,7 @@ void Test3::renderElevatorInside() {
 
 void Test3::renderFloorCorridor() {
     QLabel *bg = new QLabel(rpgCenterPanel);
-    QPixmap pix("source/Test3/楼层走廊-前.png");
+    QPixmap pix(":/source/Test3/楼层走廊-前.png");
     if (pix.isNull()) pix = generatePlaceholder("走廊", Qt::cyan, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     bg->setGeometry(0, 0, 896, 720);
@@ -450,7 +451,7 @@ void Test3::renderFloorCorridor() {
 
 void Test3::renderLinenRoom() {
     QLabel *bg = new QLabel(rpgCenterPanel);
-    QPixmap pix("source/Test3/布草间-空.jpg");
+    QPixmap pix(":/source/Test3/布草间-空.jpg");
     if (pix.isNull()) pix = generatePlaceholder("布草间", Qt::white, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     bg->setGeometry(0, 0, 896, 720);
@@ -486,7 +487,7 @@ void Test3::renderLinenRoom() {
     // If Dirty Linen Present
     if (gameState.dirtyBagState[gameState.currentFloor]) {
         DragSourceLabel *dirty = new DragSourceLabel("脏布草", rpgCenterPanel);
-        QPixmap dirtyPix("source/Test3/脏布草.jpg");
+        QPixmap dirtyPix(":/source/Test3/脏布草.jpg");
         if (!dirtyPix.isNull()) dirty->setPixmap(dirtyPix.scaled(100, 100));
         dirty->setText("脏布草(拖拽)");
         dirty->setGeometry(700, 400, 100, 100);
@@ -671,7 +672,7 @@ void Test3::showTaskSheet() {
     }
 
     QLabel *bg = new QLabel(dlg);
-    QPixmap pix("source/Test3/申领表.png");
+    QPixmap pix(":/source/Test3/申领表.png");
     if (pix.isNull()) {
         pix = QPixmap(600, 800);
         pix.fill(Qt::white);

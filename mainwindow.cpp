@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include <QFormLayout>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -131,7 +132,7 @@ QWidget *MainWindow::createMainMenu() {
     addBtn("测试 3: 模拟实训 (RPG)", 4);
 
     QCheckBox *devCheck = new QCheckBox("开发者模式");
-    connect(devCheck, &QCheckBox::stateChanged, this, &MainWindow::toggleDeveloperMode);
+    connect(devCheck, &QCheckBox::checkStateChanged, this, &MainWindow::toggleDeveloperMode);
     layout->addWidget(devCheck, 0, Qt::AlignCenter);
 
     return page;

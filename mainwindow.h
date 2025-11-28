@@ -9,6 +9,9 @@
 #include <QMessageBox>
 #include <QCheckBox>
 #include <QApplication>
+#include <QLineEdit>
+#include <QSpinBox>
+#include <QComboBox>
 
 #include "test1.h"
 #include "test2.h"
