@@ -381,18 +381,35 @@ QWidget *MainWindow::createQuizPage() {
     QVBoxLayout *layout = new QVBoxLayout(page);
     layout->setAlignment(Qt::AlignCenter);
 
-    // Generate Questions with customizable text
-    // Placeholder logic for 19 questions, but structure allows specific text
-    for (int i = 1; i <= 19; ++i) {
+    // Generate Questions with specific text and answers
+    struct QuizItem { QString text; int correctIndex; };
+    QList<QuizItem> quizData = {
+        {"1.上午8:00上班，谁的工作态度正确？", 2}, // C
+        {"2.开始工作前主管安排任务。谁的工作态度正确？", 3}, // D
+        {"3.工作时，谁的工作方式正确？", 3}, // D
+        {"4. 工作时，谁的工作方式正确？", 3}, // D
+        {"5. 工作时，谁的工作方式正确？", 0}, // A
+        {"6. 进行交接时，谁的工作方式正确？", 0}, // A
+        {"7.发现床单破洞了，谁的工作方式正确？", 0}, // A
+        {"8. 工作时，谁的工作方式正确？", 0}, // A
+        {"9. 遇到了紧急任务，需要送到15楼，谁的工作方式正确？", 0}, // A
+        {"10. 下午4:00汇报工作时，谁的方式正确？", 1}, // B
+        {"11.推车轮子坏了，谁的处理方式正确？", 3}, // D
+        {"12. 工作时，谁的工作方式正确？", 0}, // A
+        {"13. 工作时，谁的工作方式正确？", 3}, // D
+        {"14.地面湿滑，谁的处理方式正确？", 2}, // C
+        {"15. 工作时，谁的工作方式正确？", 2}, // C
+        {"16. 房间里的布草不够了，谁的工作方式正确？", 1}, // B
+        {"17.和同事相处时，谁的做法错误？", 3}, // D
+        {"18.被批评了，谁的态度是对的？", 1}, // B
+        {"19.下午17:00下班了，谁做的是对的？", 0}  // A
+    };
+
+    for (const auto &item : quizData) {
         Question q;
-        // Allows setting specific text per question if needed
-        q.text = QString("问题 %1: 请仔细观察并选择正确的图片 (点击图片预览):").arg(i);
-
-        // Example of specific override (Task D capability):
-        // if (i == 1) q.text = "具体问题文本...";
-
+        q.text = item.text;
         q.options = QStringList() << "选项 A" << "选项 B" << "选项 C" << "选项 D";
-        q.correctIndex = 1; // Always B for simplicity
+        q.correctIndex = item.correctIndex;
         questions.append(q);
     }
 
