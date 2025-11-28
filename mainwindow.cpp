@@ -1,12 +1,13 @@
 #include "mainwindow.h"
 #include <QFormLayout>
+#include "config.h"
 
 MainWindow::MainWindow(QWidget *parent, bool devModeDefault)
     : QMainWindow(parent)
 {
     isDeveloperMode = devModeDefault;
-    setFixedSize(1280, 720);
-    setWindowTitle("酒店管理学生实训系统");
+    setFixedSize(Config::Global::WINDOW_SIZE);
+    setWindowTitle(Config::Global::APP_TITLE);
     setupStyle();
     setupUI();
 }
@@ -14,17 +15,7 @@ MainWindow::MainWindow(QWidget *parent, bool devModeDefault)
 MainWindow::~MainWindow() {}
 
 void MainWindow::setupStyle() {
-    QString qss = R"(
-        QMainWindow { background-color: #f4f6f9; font-family: "Microsoft YaHei"; color: #2c3e50; }
-        QPushButton { background-color: #3498db; color: white; border-radius: 6px; padding: 10px 20px; font-weight: 600; font-size: 14px; }
-        QPushButton:hover { background-color: #2980b9; }
-        QPushButton:disabled { background-color: #bdc3c7; color: #7f8c8d; }
-        QLineEdit, QSpinBox, QComboBox { background-color: white; border: 2px solid #dfe6e9; border-radius: 6px; padding: 8px; }
-        QListWidget { background-color: white; border: 2px solid #dfe6e9; border-radius: 6px; outline: none; }
-        QListWidget::item { padding: 10px; color: #2c3e50; }
-        QListWidget::item:selected { background-color: #e1f0fa; color: #2c3e50; }
-    )";
-    this->setStyleSheet(qss);
+    this->setStyleSheet(Config::Global::GLOBAL_STYLESHEET);
 }
 
 void MainWindow::setupUI() {
@@ -62,8 +53,8 @@ QWidget *MainWindow::createStartPage() {
     QVBoxLayout *layout = new QVBoxLayout(page);
     layout->setAlignment(Qt::AlignCenter);
 
-    QLabel *title = new QLabel("学生基础信息登记");
-    title->setStyleSheet("font-size: 24px; font-weight: bold;");
+    QLabel *title = new QLabel(Config::Global::TITLE_START_PAGE);
+    title->setStyleSheet(QString("font-size: %1px; font-weight: bold;").arg(Config::Global::FONT_SIZE_SUBTITLE));
     layout->addWidget(title);
 
     QFormLayout *form = new QFormLayout();
@@ -81,18 +72,19 @@ QWidget *MainWindow::createStartPage() {
 
     QWidget *formWidget = new QWidget();
     formWidget->setLayout(form);
-    formWidget->setFixedWidth(400);
+    formWidget->setFixedWidth(Config::Global::SIZE_FORM_WIDTH);
     layout->addWidget(formWidget);
 
-    QPushButton *startBtn = new QPushButton("开始培训");
-    startBtn->setFixedWidth(200);
+    QPushButton *startBtn = new QPushButton(Config::Global::BTN_TEXT_START);
+    startBtn->setFixedWidth(Config::Global::SIZE_START_BTN_WIDTH);
     connect(startBtn, &QPushButton::clicked, this, &MainWindow::onStartTraining);
     layout->addWidget(startBtn, 0, Qt::AlignCenter);
 
     // Emergency Event Toggle (Bottom Right)
-    emergencyToggle = new QCheckBox("启用突发事件 (Enable Emergency)");
+    emergencyToggle = new QCheckBox(Config::Global::CHECKBOX_TEXT_EMERGENCY);
     emergencyToggle->setChecked(false); // Default off
-    emergencyToggle->setStyleSheet("color: #7f8c8d; font-size: 12px;");
+    // Use dynamic color string from config
+    emergencyToggle->setStyleSheet(QString("color: %1; font-size: 12px;").arg(Config::Global::COL_TEXT_DISABLED));
 
     // Use a wrapper to position it bottom right
     QWidget *bottomRight = new QWidget();
@@ -133,24 +125,24 @@ QWidget *MainWindow::createMainMenu() {
     layout->setAlignment(Qt::AlignCenter);
     layout->setSpacing(30);
 
-    QLabel *title = new QLabel("请选择测试项");
-    title->setStyleSheet("font-size: 28px; font-weight: bold;");
+    QLabel *title = new QLabel(Config::Global::TITLE_MAIN_MENU);
+    title->setStyleSheet(QString("font-size: %1px; font-weight: bold;").arg(Config::Global::FONT_SIZE_TITLE));
     layout->addWidget(title, 0, Qt::AlignCenter);
 
     auto addBtn = [&](QString text, int idx) {
         QPushButton *btn = new QPushButton(text);
-        btn->setFixedSize(400, 80);
+        btn->setFixedSize(Config::Global::SIZE_MENU_BTN);
         btn->setStyleSheet("font-size: 18px;");
         connect(btn, &QPushButton::clicked, [this, idx](){ mainStack->setCurrentIndex(idx); });
         layout->addWidget(btn, 0, Qt::AlignCenter);
         mainMenuButtons.append(btn);
     };
 
-    addBtn("测试 1: 业务学习 (幻灯片)", 2);
-    addBtn("测试 2: 知识测验 (选择题)", 3);
-    addBtn("测试 3: 模拟实训 (RPG)", 4);
+    addBtn(Config::Global::BTN_TEXT_TEST1, 2);
+    addBtn(Config::Global::BTN_TEXT_TEST2, 3);
+    addBtn(Config::Global::BTN_TEXT_TEST3, 4);
 
-    QCheckBox *devCheck = new QCheckBox("开发者模式");
+    QCheckBox *devCheck = new QCheckBox(Config::Global::CHECKBOX_TEXT_DEV_MODE);
     devCheck->setChecked(isDeveloperMode); // Set initial state
     connect(devCheck, &QCheckBox::checkStateChanged, this, &MainWindow::toggleDeveloperMode);
     layout->addWidget(devCheck, 0, Qt::AlignCenter);
