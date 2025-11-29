@@ -80,18 +80,18 @@ namespace Config {
             constexpr const char* BTN_GO_WAREHOUSE = "去仓库";
             constexpr const char* BTN_GO_ELEVATOR = "去电梯";
             constexpr const char* BTN_REPORT_WORK = "汇报工作";
-            constexpr const char* LBL_WORK_REPORTED = "工作已汇报，请去走廊下班。";
+            constexpr const char* LBL_WORK_REPORTED = "工作已汇报，请去走廊打卡下班。";
             constexpr const char* BTN_GET_TASK = "领取任务";
             constexpr const char* BTN_TASK_IN_PROGRESS = "任务进行中...";
             constexpr const char* BTN_RETURN_HALLWAY = "返回通道";
             constexpr const char* BTN_TAKE_LINEN = "拿取布草";
             constexpr const char* BTN_RETURN_WAREHOUSE_ENTRY = "返回入口"; // 货架视图返回
-            constexpr const char* BTN_ENTER_ELEVATOR = "进入电梯";
-            constexpr const char* BTN_RETURN_BACK = "返回";
+            constexpr const char* BTN_ENTER_ELEVATOR = "乘坐电梯";
+            constexpr const char* BTN_RETURN_BACK = "进入走廊";
             constexpr const char* BTN_GO_LINEN_ROOM = "布草间";
             constexpr const char* BTN_GO_ELEVATOR_HALL = "电梯厅";
             constexpr const char* BTN_RETURN_CORRIDOR = "返回走廊";
-            constexpr const char* LBL_DIRTY_LINEN_DRAG = "脏布草(拖拽)";
+            constexpr const char* LBL_DIRTY_LINEN_DRAG = "脏布草";
         }
 
         // --- 样式与颜色 (Styles) ---
@@ -106,10 +106,10 @@ namespace Config {
 
             // 按钮特殊颜色
             constexpr const char* BTN_ORANGE = "background-color: #FF9500; color: white;"; // 查看申领表
-            constexpr const char* BTN_GREEN = "background-color: #34C759; color: white; font-size: 16px; font-weight: 600;"; // 下班回家
-            constexpr const char* BTN_RED = "background-color: #FF3B30; color: white; font-size: 16px; font-weight: bold;"; // 打卡下班
-            constexpr const char* BTN_YELLOW = "background-color: #FFCC00; color: black; font-weight: 600;"; // 汇报工作
-            constexpr const char* BTN_BLUE = "font-size: 16px; background-color: #007AFF; color: white; font-weight: 600;"; // 拿取布草
+            //constexpr const char* BTN_GREEN = "background-color: #34C759; color: white; font-size: 16px; font-weight: 600;"; // 下班回家
+            //constexpr const char* BTN_RED = "background-color: #FF3B30; color: white; font-size: 16px; font-weight: bold;"; // 打卡下班
+            //constexpr const char* BTN_YELLOW = "background-color: #FFCC00; color: black; font-weight: 600;"; // 汇报工作
+            //constexpr const char* BTN_BLUE = "font-size: 16px; background-color: #007AFF; color: white; font-weight: 600;"; // 拿取布草
             constexpr const char* BTN_RETURN_MENU = "background-color: #FF3B30; color: white; font-weight: bold; border-radius: 6px;"; // 返回主菜单
 
             // 货架区域样式 (半透明灰色背景)
@@ -121,32 +121,32 @@ namespace Config {
             // --- 独立按钮样式配置 (Specific Button Styles) ---
             // 格式: 背景色, 前景色, 边框, 圆角, 字体粗细
             constexpr const char* STYLE_BTN_ENTRANCE_ENTER = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";
-            constexpr const char* STYLE_BTN_ENTRANCE_HOME = "background-color: #34C759; color: white; border: 1px solid #28a745; border-radius: 8px; padding: 10px; font-weight: 600;";
+            constexpr const char* STYLE_BTN_ENTRANCE_HOME = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";
 
-            constexpr const char* STYLE_BTN_HALLWAY_EXIT = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; font-weight: 600;";
-            constexpr const char* STYLE_BTN_HALLWAY_CLOCK = "background-color: #007AFF; color: white; border: none; border-radius: 8px; font-weight: bold;"; // 签到
-            constexpr const char* STYLE_BTN_HALLWAY_CLOCK_OFF = "background-color: #FF3B30; color: white; border: none; border-radius: 8px; font-weight: bold;"; // 下班
-            constexpr const char* STYLE_BTN_HALLWAY_OFFICE = "background-color: rgba(255, 255, 255, 0.9); color: #333; border: 1px solid #999; border-radius: 8px; font-weight: 600;";
-            constexpr const char* STYLE_BTN_HALLWAY_WAREHOUSE = "background-color: rgba(255, 255, 255, 0.9); color: #333; border: 1px solid #999; border-radius: 8px; font-weight: 600;";
-            constexpr const char* STYLE_BTN_HALLWAY_ELEVATOR = "background-color: rgba(255, 255, 255, 0.9); color: #333; border: 1px solid #999; border-radius: 8px; font-weight: 600;";
+            constexpr const char* STYLE_BTN_HALLWAY_EXIT = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";
+            constexpr const char* STYLE_BTN_HALLWAY_CLOCK = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;"; // 签到
+            constexpr const char* STYLE_BTN_HALLWAY_CLOCK_OFF = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;"; // 下班
+            constexpr const char* STYLE_BTN_HALLWAY_OFFICE = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";
+            constexpr const char* STYLE_BTN_HALLWAY_WAREHOUSE = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";
+            constexpr const char* STYLE_BTN_HALLWAY_ELEVATOR = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";
 
             constexpr const char* STYLE_BTN_OFFICE_ACTION = "background-color: #FFCC00; color: black; border-radius: 8px; font-weight: bold;"; // 汇报/领任务
-            constexpr const char* STYLE_BTN_OFFICE_BACK = "background-color: rgba(255, 255, 255, 0.8); color: #555; border: 1px solid #ccc; border-radius: 8px;";
+            constexpr const char* STYLE_BTN_OFFICE_BACK = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";
 
             constexpr const char* STYLE_BTN_WAREHOUSE_TAKE = "background-color: #007AFF; color: white; border-radius: 8px; font-weight: bold; font-size: 16px;";
-            constexpr const char* STYLE_BTN_WAREHOUSE_BACK = "background-color: rgba(255, 255, 255, 0.8); color: #555; border: 1px solid #ccc; border-radius: 8px;";
-            constexpr const char* STYLE_BTN_SHELF_BACK = "background-color: rgba(255, 255, 255, 0.8); color: #555; border: 1px solid #ccc; border-radius: 8px;";
+            constexpr const char* STYLE_BTN_WAREHOUSE_BACK = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";
+            constexpr const char* STYLE_BTN_SHELF_BACK = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";
 
-            constexpr const char* STYLE_BTN_ELEVATOR_ENTER = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 2px solid #007AFF; border-radius: 12px; font-size: 18px; font-weight: bold;";
-            constexpr const char* STYLE_BTN_ELEVATOR_BACK = "background-color: rgba(255, 255, 255, 0.8); color: #555; border: 1px solid #ccc; border-radius: 8px;";
+            constexpr const char* STYLE_BTN_ELEVATOR_ENTER = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";
+            constexpr const char* STYLE_BTN_ELEVATOR_BACK = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";
 
             // 电梯内部楼层按钮样式 (Sidebar)
             constexpr const char* STYLE_BTN_ELEVATOR_FLOOR = "background-color: #EFEFF4; color: #007AFF; border: 1px solid #C7C7CC; border-radius: 5px; font-weight: bold; font-size: 14px;";
 
-            constexpr const char* STYLE_BTN_CORRIDOR_LINEN = "background-color: rgba(255, 255, 255, 0.95); color: #333; border: 2px solid #333; border-radius: 10px; font-weight: bold;";
-            constexpr const char* STYLE_BTN_CORRIDOR_ELEVATOR = "background-color: rgba(255, 255, 255, 0.95); color: #333; border: 2px solid #333; border-radius: 10px; font-weight: bold;";
+            constexpr const char* STYLE_BTN_CORRIDOR_LINEN = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";
+            constexpr const char* STYLE_BTN_CORRIDOR_ELEVATOR = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";
 
-            constexpr const char* STYLE_BTN_LINEN_BACK = "background-color: rgba(255, 255, 255, 0.8); color: #555; border: 1px solid #ccc; border-radius: 8px;";
+            constexpr const char* STYLE_BTN_LINEN_BACK = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";
         }
 
         // --- 字体配置 (Fonts) ---
@@ -175,39 +175,39 @@ namespace Config {
             // --- 场景元素布局 (x_center, y_center, w, h) ---
 
             // 1. 入口场景 (Entrance)
-            const QRect RECT_BTN_ENTRANCE_ENTER(350, 600, 200, 50); // 进入酒店
-            const QRect RECT_BTN_ENTRANCE_HOME(350, 600, 200, 50);  // 下班回家 (位置相同)
+            const QRect RECT_BTN_ENTRANCE_ENTER(683, 473, 150, 40); // 进入酒店
+            const QRect RECT_BTN_ENTRANCE_HOME(129, 632, 150, 40);  // 下班回家 (位置相同)
 
             // 2. 员工通道 (Staff Hallway)
-            const QRect RECT_LBL_HALLWAY_STATUS(100, 100, 200, 50);   // 状态标签
-            const QRect RECT_BTN_HALLWAY_EXIT(350, 600, 200, 50);     // 返回入口
-            const QRect RECT_BTN_HALLWAY_CLOCK(100, 100, 160, 50);    // 签到/下班
-            const QRect RECT_BTN_HALLWAY_OFFICE(100, 350, 160, 60);   // 去办公室
-            const QRect RECT_BTN_HALLWAY_WAREHOUSE(300, 350, 160, 60);// 去仓库
-            const QRect RECT_BTN_HALLWAY_ELEVATOR(500, 350, 160, 60); // 去电梯
+            const QRect RECT_LBL_HALLWAY_STATUS(425, 256, 200, 50);   // 状态标签
+            const QRect RECT_BTN_HALLWAY_EXIT(350, 600, 150, 40);     // 返回入口
+            const QRect RECT_BTN_HALLWAY_CLOCK(171, 442, 150, 40);    // 签到/下班
+            const QRect RECT_BTN_HALLWAY_OFFICE(271, 307, 150, 40);   // 去办公室
+            const QRect RECT_BTN_HALLWAY_WAREHOUSE(659, 348, 150, 40);// 去仓库
+            const QRect RECT_BTN_HALLWAY_ELEVATOR(516, 389, 150, 40); // 去电梯
 
             // 3. 办公室 (Office)
-            const QRect RECT_BTN_OFFICE_ACTION(100, 100, 160, 50);    // 汇报/领任务
-            const QRect RECT_LBL_OFFICE_MSG(100, 100, 300, 50);       // 消息提示
-            const QRect RECT_BTN_OFFICE_BACK(100, 600, 160, 50);      // 返回通道
+            const QRect RECT_BTN_OFFICE_ACTION(490, 352, 150, 40);    // 汇报/领任务
+            const QRect RECT_LBL_OFFICE_MSG(425, 256, 300, 50);       // 消息提示
+            const QRect RECT_BTN_OFFICE_BACK(214, 654, 150, 40);      // 返回通道
 
             // 4. 仓库入口 (Warehouse Entry)
-            const QRect RECT_BTN_WAREHOUSE_TAKE(100, 300, 160, 60);   // 拿取布草
-            const QRect RECT_BTN_WAREHOUSE_BACK(100, 600, 160, 50);   // 返回通道
+            const QRect RECT_BTN_WAREHOUSE_TAKE(541, 357, 150, 40);   // 拿取布草
+            const QRect RECT_BTN_WAREHOUSE_BACK(259, 659, 150, 40);   // 返回通道
 
             // 5. 仓库货架 (Warehouse Shelf)
-            const QRect RECT_BTN_SHELF_BACK(100, 600, 160, 50);       // 返回仓库入口
+            const QRect RECT_BTN_SHELF_BACK(100, 600, 150, 40);       // 返回仓库入口
             // 货架物品区域 (中心坐标)
-            const QRect AREA_SHEET(150, 200, 150, 150);
-            const QRect AREA_DUVET(350, 200, 150, 150);
-            const QRect AREA_S_DUVET(550, 200, 150, 150);
-            const QRect AREA_PILLOW(150, 450, 150, 150);
-            const QRect AREA_GN_TOWEL(350, 450, 150, 150);
-            const QRect AREA_TOWEL(550, 450, 150, 150);
+            const QRect AREA_SHEET(348, 561, 100, 100);      //大床单
+            const QRect AREA_DUVET(754, 136, 100, 100);      //大被套
+            const QRect AREA_S_DUVET(262, 141, 100, 100);    //小被套
+            const QRect AREA_PILLOW(216, 428, 100, 100);     //枕巾
+            const QRect AREA_GN_TOWEL(517, 578, 100, 100);   //晚安巾
+            const QRect AREA_TOWEL(757, 572, 100, 100);      //毛巾
 
             // 6. 电梯厅 (Elevator Hall)
-            const QRect RECT_BTN_ELEVATOR_ENTER(350, 300, 200, 100);  // 进入电梯
-            const QRect RECT_BTN_ELEVATOR_BACK(100, 600, 160, 50);    // 返回
+            const QRect RECT_BTN_ELEVATOR_ENTER(656, 368, 150, 40);  // 进入电梯
+            const QRect RECT_BTN_ELEVATOR_BACK(186, 655, 150, 40);    // 返回
 
             // 7. 电梯内 (Elevator Inside) - 侧边栏按钮布局
             // 侧边栏宽度约 220，内部按钮网格布局
@@ -216,33 +216,34 @@ namespace Config {
             // 注意: 这些按钮将添加到 Right Panel 的 Layout 中，而非绝对定位
 
             // 8. 楼层走廊 (Floor Corridor)
-            const QRect RECT_BTN_CORRIDOR_LINEN(200, 250, 200, 100);    // 去布草间
-            const QRect RECT_BTN_CORRIDOR_ELEVATOR(500, 250, 200, 100); // 去电梯厅
+            const QRect RECT_BTN_CORRIDOR_LINEN(463, 339, 150, 40);    // 去布草间
+            const QRect RECT_BTN_CORRIDOR_ELEVATOR(439, 647, 150, 40); // 去电梯厅
 
             // 9. 布草间 (Linen Room)
-            const QRect RECT_LBL_DIRTY_SOURCE(700, 400, 100, 100);      // 脏布草堆位置
-            const QRect RECT_BTN_LINEN_BACK(100, 600, 160, 50);         // 返回走廊
+            //const QRect RECT_LBL_DIRTY_SOURCE(700, 400, 150, 150);      // 脏布草堆位置
+            const QRect RECT_BTN_LINEN_BACK(240, 667, 150, 40);         // 返回走廊
 
             // 紧急任务 脏布草 (Event B) 位置配置
-            const QRect RECT_EVENT_DIRTY_LINEN(350, 350, 120, 120); // 突发事件B 脏布草位置
+            const QRect RECT_EVENT_DIRTY_LINEN(621, 628, 100, 100); // 突发事件B 脏布草位置
 
             // 货架物品区域 - 楼层布草间专用
-            const QRect AREA_LINEN_SHEET(150, 200, 150, 150);
-            const QRect AREA_LINEN_DUVET(350, 200, 150, 150);
-            const QRect AREA_LINEN_S_DUVET(550, 200, 150, 150);
-            const QRect AREA_LINEN_PILLOW(150, 450, 150, 150);
-            const QRect AREA_LINEN_GN_TOWEL(350, 450, 150, 150);
-            const QRect AREA_LINEN_TOWEL(550, 450, 150, 150);
+            const QRect AREA_LINEN_SHEET(604, 350, 100, 100);    //大床单
+            const QRect AREA_LINEN_DUVET(346, 530, 100, 100);    //大被套
+            const QRect AREA_LINEN_S_DUVET(128, 179, 100, 100);  //小被套
+            const QRect AREA_LINEN_PILLOW(351, 200, 100, 100);   //枕巾
+            const QRect AREA_LINEN_GN_TOWEL(337, 343, 100, 100); //晚安巾
+            const QRect AREA_LINEN_TOWEL(608, 180, 100, 100);    //毛巾
 
             // 申领表弹窗
-            const QSize SHEET_DIALOG(600, 580);
-            const QPoint TXT_FLOOR(180, 65);
-            const QPoint TXT_SHEET(288, 305);
-            const QPoint TXT_DUVET(288, 375);
-            const QPoint TXT_S_DUVET(288, 435);
-            const QPoint TXT_PILLOW(288, 495);
-            const QPoint TXT_GN_TOWEL(288, 555);
-            const QPoint TXT_TOWEL(288, 625);
+            const QSize SHEET_DIALOG(600, 560);
+            const QPoint TXT_FLOOR(190, 50);
+
+            const QPoint TXT_SHEET(295, 185);
+            const QPoint TXT_DUVET(295, 250);
+            const QPoint TXT_S_DUVET(295, 315);
+            const QPoint TXT_PILLOW(295, 380);
+            const QPoint TXT_GN_TOWEL(295, 445);
+            const QPoint TXT_TOWEL(295, 510);
         }
     }
 }

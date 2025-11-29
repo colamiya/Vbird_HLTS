@@ -1,7 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>source/Test3/被套.png</file>
-        <file>source/Test3/床单.png</file>
         <file>source/Test3/晚安巾.png</file>
         <file>source/Test3/毛巾.png</file>
         <file>source/Test3/布草间-空.jpg</file>
@@ -107,5 +105,7 @@
         <file>source/Test1/fig4.png</file>
         <file>source/Test1/fig6.png</file>
         <file>source/Test1/fig3.png</file>
+        <file>source/Test3/大被套.png</file>
+        <file>source/Test3/大床单.png</file>
     </qresource>
 </RCC>
