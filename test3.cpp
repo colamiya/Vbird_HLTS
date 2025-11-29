@@ -115,7 +115,7 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
 
     // Create G, 2-10 buttons (No 1F)
     auto createEleBtn = [&](int floor) {
-        QString txt = (floor == 0) ? "G" : QString::number(floor);
+        QString txt = (floor == 0) ? "G层" : QString("%1楼").arg(floor);
         QPushButton *btn = new QPushButton(txt);
         btn->setFixedSize(Config::Test3::Geometry::SIZE_ELEVATOR_BTN_SIDEBAR);
         btn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_ELEVATOR_FLOOR);
@@ -589,6 +589,16 @@ void Test3::renderElevatorInside() {
     bg->show();
 
     // Floor buttons are now in the sidebar (handled by toggle logic in renderScene)
+
+    // Add "Exit Elevator" button
+    QPushButton *exitBtn = new QPushButton(Config::Test3::Texts::BTN_EXIT_ELEVATOR, rpgCenterPanel);
+    setGeometryCentered(exitBtn, Config::Test3::Geometry::RECT_BTN_ELEVATOR_EXIT);
+    exitBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_ELEVATOR_EXIT);
+    exitBtn->setCursor(Qt::PointingHandCursor);
+    connect(exitBtn, &QPushButton::clicked, [this]() {
+         goToScene(GameScene::ElevatorHall);
+    });
+    exitBtn->show();
 }
 
 void Test3::renderFloorCorridor() {

@@ -88,6 +88,7 @@ namespace Config {
             constexpr const char* BTN_RETURN_WAREHOUSE_ENTRY = "返回入口"; // 货架视图返回
             constexpr const char* BTN_ENTER_ELEVATOR = "乘坐电梯";
             constexpr const char* BTN_RETURN_BACK = "进入走廊";
+            constexpr const char* BTN_EXIT_ELEVATOR = "出电梯"; // New button text
             constexpr const char* BTN_GO_LINEN_ROOM = "布草间";
             constexpr const char* BTN_GO_ELEVATOR_HALL = "电梯厅";
             constexpr const char* BTN_RETURN_CORRIDOR = "返回走廊";
@@ -139,6 +140,7 @@ namespace Config {
 
             constexpr const char* STYLE_BTN_ELEVATOR_ENTER = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";
             constexpr const char* STYLE_BTN_ELEVATOR_BACK = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";
+            constexpr const char* STYLE_BTN_ELEVATOR_EXIT = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";
 
             // 电梯内部楼层按钮样式 (Sidebar) - 金属质感高对比度 (Dark Grey background, White Text)
             constexpr const char* STYLE_BTN_ELEVATOR_FLOOR = "background-color: #444444; color: #FFFFFF; border: 2px solid #999999; border-radius: 4px; font-weight: bold; font-size: 18px;";
@@ -209,7 +211,10 @@ namespace Config {
             const QRect RECT_BTN_ELEVATOR_ENTER(656, 368, 150, 40);  // 进入电梯
             const QRect RECT_BTN_ELEVATOR_BACK(186, 655, 150, 40);    // 返回
 
-            // 7. 电梯内 (Elevator Inside) - 侧边栏按钮布局
+            // 7. 电梯内 (Elevator Inside)
+            const QRect RECT_BTN_ELEVATOR_EXIT(448, 650, 150, 40); // 出电梯按钮
+
+            // 侧边栏按钮布局
             // 侧边栏宽度约 220，内部按钮网格布局
             const QSize SIZE_ELEVATOR_BTN_SIDEBAR(50, 50); // 侧边栏按钮大小
             const int GRID_SPACING_ELEVATOR = 10;
