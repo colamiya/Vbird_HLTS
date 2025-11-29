@@ -140,8 +140,8 @@ namespace Config {
             constexpr const char* STYLE_BTN_ELEVATOR_ENTER = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";
             constexpr const char* STYLE_BTN_ELEVATOR_BACK = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";
 
-            // 电梯内部楼层按钮样式 (Sidebar) - 金属质感高对比度
-            constexpr const char* STYLE_BTN_ELEVATOR_FLOOR = "background-color: #BDC3C7; color: black; border: 2px solid #7F8C8D; border-radius: 4px; font-weight: bold; font-size: 18px;";
+            // 电梯内部楼层按钮样式 (Sidebar) - 金属质感高对比度 (Dark Grey background, White Text)
+            constexpr const char* STYLE_BTN_ELEVATOR_FLOOR = "background-color: #444444; color: #FFFFFF; border: 2px solid #999999; border-radius: 4px; font-weight: bold; font-size: 18px;";
 
             constexpr const char* STYLE_BTN_CORRIDOR_LINEN = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";
             constexpr const char* STYLE_BTN_CORRIDOR_ELEVATOR = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";

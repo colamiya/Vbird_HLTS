@@ -886,24 +886,33 @@ void Test3::handleGetTask() {
     int floor1 = (QRandomGenerator::global()->bounded(2) == 0) ? 6 : 7;
     gameState.tasks.append(generateTask(floor1, false));
 
-    // Emergency Timer Trigger
+    // Emergency Events Logic
     if (isEmergencyEnabled) {
-        int delay = QRandomGenerator::global()->bounded(20000, 40001); // 20-40s
-        QTimer::singleShot(delay, this, [this, floor1, generateTask]() {
-            // Check if all tasks are already completed
-            bool allDone = true;
-            for(const auto &t : gameState.tasks) if(!t.isCompleted) allDone = false;
+        // Decide which event will happen (50/50 split)
+        bool isEventB = QRandomGenerator::global()->bounded(2) == 0;
 
-            if (allDone) {
-                emit logMessage("任务已完成，跳过突发事件");
-                return;
+        if (isEventB) {
+            // Event B: Dirty Linen (Triggers IMMEDIATELY)
+            gameState.dirtyBagState[floor1] = true;
+            emit logMessage("突发事件B: 脏布草回收 (立即触发)");
+            // If currently in Linen Room (unlikely but possible), re-render
+            if (gameState.currentScene == GameScene::LinenRoom && gameState.currentFloor == floor1) {
+                renderScene();
             }
+        } else {
+            // Event A: Extra Task (Delayed 20-40s)
+            int delay = QRandomGenerator::global()->bounded(20000, 40001); // 20-40s
+            QTimer::singleShot(delay, this, [this, floor1, generateTask]() {
+                // Check if all tasks are already completed
+                bool allDone = true;
+                for(const auto &t : gameState.tasks) if(!t.isCompleted) allDone = false;
 
-            bool isEventA = QRandomGenerator::global()->bounded(2) == 0;
-            if (isEventA) {
-                // Event A: Extra Task
-                // Random floor 2-10 (Exclude 1F/G, since G is 1st floor)
-                // floor1 is 6 or 7, so it's safe.
+                if (allDone) {
+                    emit logMessage("任务已完成，跳过突发事件A");
+                    return;
+                }
+
+                // Execute Event A
                 int floor2 = QRandomGenerator::global()->bounded(2, 11);
                 while (floor2 == floor1) floor2 = QRandomGenerator::global()->bounded(2, 11);
 
@@ -912,17 +921,8 @@ void Test3::handleGetTask() {
                 QMessageBox::warning(this, "突发事件", QString("突发事件A：新增 %1 楼任务！").arg(floor2));
                 emit logMessage(QString("突发事件A: %1楼").arg(floor2));
                 refreshTaskList();
-            } else {
-                // Event B: Dirty Linen (Silent, no popup)
-                gameState.dirtyBagState[floor1] = true;
-                // No MessageBox here!
-                emit logMessage("突发事件B: 脏布草回收 (静默触发)");
-                // If currently in Linen Room, re-render to show it
-                if (gameState.currentScene == GameScene::LinenRoom && gameState.currentFloor == floor1) {
-                    renderScene();
-                }
-            }
-        });
+            });
+        }
     }
 
     gameState.hasReceivedTask = true;

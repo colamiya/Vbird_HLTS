@@ -178,6 +178,12 @@ void ShelfArea::dragEnterEvent(QDragEnterEvent *event) {
 }
 
 void ShelfArea::dropEvent(QDropEvent *event) {
+    // Prevent self-drop (dragging from shelf and dropping back on shelf) from triggering logic
+    if (event->source() == this) {
+        event->ignore();
+        return;
+    }
+
     if (event->mimeData()->hasText()) {
         QString text = event->mimeData()->text();
         if (text == m_itemName) {
