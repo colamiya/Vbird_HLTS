@@ -161,10 +161,14 @@ QWidget *MainWindow::createMainMenu() {
     addBtn(Config::Global::BTN_TEXT_TEST2, 3);
     addBtn(Config::Global::BTN_TEXT_TEST3, 4);
 
+    // 开发者模式切换按钮已移除，请在 main.cpp 中设置 DEV_MODE_DEFAULT
+    // Developer mode toggle removed. Set DEV_MODE_DEFAULT in main.cpp instead.
+    /*
     QCheckBox *devCheck = new QCheckBox(Config::Global::CHECKBOX_TEXT_DEV_MODE);
     devCheck->setChecked(isDeveloperMode); // Set initial state
     connect(devCheck, &QCheckBox::checkStateChanged, this, &MainWindow::toggleDeveloperMode);
     layout->addWidget(devCheck, 0, Qt::AlignCenter);
+    */
 
     return page;
 }

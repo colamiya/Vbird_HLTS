@@ -152,7 +152,9 @@ namespace Config {
         }
 
         // --- 坐标与尺寸 (Geometry) ---
-        // 注意: 所有 (x, y) 坐标均为控件中心点
+        // 注意: 所有 (x, y) 坐标均为控件中心点，而非左上角。
+        // 包括按钮位置、文本绘制位置等。
+        // Note: All (x, y) coordinates represent the CENTER point of the widget/text.
         namespace Geometry {
             // 全局尺寸
             const QSize CENTER_PANEL_SIZE(896, 720);
