@@ -2,8 +2,10 @@
 #include <QApplication>
 
 // 开发者模式开关 (Developer Mode Switch)
-// 将此变量设置为 true 即可默认开启开发者模式
-// Set this to true to enable developer mode by default
+// 将此变量设置为 true 即可默认开启开发者模式。
+// 开启后，将跳过前置任务限制，并在 RPG 模块中显示坐标点击信息。
+// Set this to true to enable developer mode by default.
+// When enabled, it bypasses task restrictions and shows coordinate click info in RPG module.
 const bool DEV_MODE_DEFAULT = false;
 
 int main(int argc, char *argv[])

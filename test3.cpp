@@ -973,7 +973,17 @@ void Test3::showTaskSheet(int taskIndex) {
     painter.setPen(QColor(0, 0, 0));
     painter.setFont(QFont("Arial", 16, QFont::Bold));
 
-    painter.drawText(Config::Test3::Geometry::TXT_FLOOR, QString::number(t.targetFloor));
+    // 辅助函数：以坐标点为中心绘制文本
+    // Helper: Draw text centered around the coordinate point
+    auto drawCenteredText = [&](QPoint center, QString text) {
+        int w = 100; // 宽度足以容纳数字 (Width sufficient for numbers)
+        int h = 50;
+        // 计算居中矩形 (Calculate centered rectangle)
+        QRect rect(center.x() - w/2, center.y() - h/2, w, h);
+        painter.drawText(rect, Qt::AlignCenter, text);
+    };
+
+    drawCenteredText(Config::Test3::Geometry::TXT_FLOOR, QString::number(t.targetFloor));
 
     QMap<QString, QPoint> itemCoords;
     itemCoords["大床单"] = Config::Test3::Geometry::TXT_SHEET;
@@ -985,7 +995,7 @@ void Test3::showTaskSheet(int taskIndex) {
 
     for (auto it = itemCoords.begin(); it != itemCoords.end(); ++it) {
         int count = t.requiredItems.value(it.key(), 0);
-        painter.drawText(it.value(), QString::number(count));
+        drawCenteredText(it.value(), QString::number(count));
     }
 
     bg->setPixmap(pix);
