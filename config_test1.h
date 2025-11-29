@@ -17,28 +17,31 @@ namespace Config {
         // --- 资源路径 (Image Paths) ---
         // 幻灯片图片列表
         // 按照顺序播放。可在此处添加或移除图片路径。
-        const QList<QString> SLIDE_IMAGES = {
-            ":/source/Test1/fig1.png",
-            ":/source/Test1/fig2.png",
-            ":/source/Test1/fig3.png",
-            ":/source/Test1/fig4.png",
-            ":/source/Test1/fig5.png",
-            ":/source/Test1/fig6.png",
-            ":/source/Test1/fig7.png",
-            ":/source/Test1/fig8.png",
-            ":/source/Test1/fig9.png",
-            ":/source/Test1/fig10.png"
-        };
+        static const QList<QString>& SLIDE_IMAGES() {
+            static const QList<QString> list = {
+                ":/source/Test1/fig1.png",
+                ":/source/Test1/fig2.png",
+                ":/source/Test1/fig3.png",
+                ":/source/Test1/fig4.png",
+                ":/source/Test1/fig5.png",
+                ":/source/Test1/fig6.png",
+                ":/source/Test1/fig7.png",
+                ":/source/Test1/fig8.png",
+                ":/source/Test1/fig9.png",
+                ":/source/Test1/fig10.png"
+            };
+            return list;
+        }
 
         // --- 界面文本 (UI Texts) ---
         // 上一页按钮
-        const QString BTN_TEXT_PREV = "上一页";
+        constexpr const char* BTN_TEXT_PREV = "上一页";
         // 下一页按钮
-        const QString BTN_TEXT_NEXT = "下一页";
+        constexpr const char* BTN_TEXT_NEXT = "下一页";
         // 完成按钮
-        const QString BTN_TEXT_FINISH = "完成学习 (返回主菜单)";
+        constexpr const char* BTN_TEXT_FINISH = "完成学习 (返回主菜单)";
         // 返回主菜单按钮 (右上角)
-        const QString BTN_TEXT_BACK_TO_MENU = "返回主界面";
+        constexpr const char* BTN_TEXT_BACK_TO_MENU = "返回主界面";
 
         // --- 尺寸配置 (Dimensions) ---
         // 幻灯片显示区域大小 (宽, 高)
@@ -52,11 +55,11 @@ namespace Config {
         // 占位符背景颜色 (当图片缺失时显示)
         const QColor COL_PLACEHOLDER_BG = Qt::blue;
         // 缩略图边框样式
-        const QString STYLE_THUMBNAIL_BORDER = "border: 0px solid #ccc;";
+        constexpr const char* STYLE_THUMBNAIL_BORDER = "border: 0px solid #ccc;";
         // 占位符文字大小
         const int FONT_SIZE_PLACEHOLDER = 20;
         // 返回按钮样式
-        const QString BTN_RETURN_STYLE = "background-color: #c0392b; color: white; font-weight: bold;";
+        constexpr const char* BTN_RETURN_STYLE = "background-color: #c0392b; color: white; font-weight: bold;";
     }
 }
 

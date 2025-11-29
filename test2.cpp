@@ -141,9 +141,9 @@ void Test2::loadQuestion() {
         QString imgName = QString("%1%2").arg(currentQuestionIndex + 1).arg(suffix);
 
         // Use config path template
-        QString path = Config::Test2::PATH_FMT_JPG.arg(imgName);
+        QString path = QString(Config::Test2::PATH_FMT_JPG).arg(imgName);
         if (!QFile::exists(path)) {
-            path = Config::Test2::PATH_FMT_PNG.arg(imgName);
+            path = QString(Config::Test2::PATH_FMT_PNG).arg(imgName);
         }
 
         QPixmap pix(path);

@@ -21,134 +21,138 @@ namespace Config {
         // --- 资源路径 (Images) ---
         namespace Images {
             // 场景背景图
-            const QString SCENE_ENTRANCE = ":/source/Test3/入口.jpg";
-            const QString SCENE_HALLWAY = ":/source/Test3/员工通道走廊.jpg";
-            const QString SCENE_OFFICE = ":/source/Test3/办公室.png";
-            const QString SCENE_WAREHOUSE_ENTRY = ":/source/Test3/仓库1.jpg";
-            const QString SCENE_WAREHOUSE_SHELF = ":/source/Test3/取布草的货架.jpg";
-            const QString SCENE_ELEVATOR_HALL = ":/source/Test3/电梯厅.jpg";
-            const QString SCENE_ELEVATOR_INSIDE = ":/source/Test3/电梯内.jpg";
-            const QString SCENE_FLOOR_CORRIDOR = ":/source/Test3/楼层走廊-前.png";
-            const QString SCENE_LINEN_ROOM_EMPTY = ":/source/Test3/布草间-空.jpg";
+            constexpr const char* SCENE_ENTRANCE = ":/source/Test3/入口.jpg";
+            constexpr const char* SCENE_HALLWAY = ":/source/Test3/员工通道走廊.jpg";
+            constexpr const char* SCENE_OFFICE = ":/source/Test3/办公室.png";
+            constexpr const char* SCENE_WAREHOUSE_ENTRY = ":/source/Test3/仓库1.jpg";
+            constexpr const char* SCENE_WAREHOUSE_SHELF = ":/source/Test3/取布草的货架.jpg";
+            constexpr const char* SCENE_ELEVATOR_HALL = ":/source/Test3/电梯厅.jpg";
+            constexpr const char* SCENE_ELEVATOR_INSIDE = ":/source/Test3/电梯内.jpg";
+            constexpr const char* SCENE_FLOOR_CORRIDOR = ":/source/Test3/楼层走廊-前.png";
+            constexpr const char* SCENE_LINEN_ROOM_EMPTY = ":/source/Test3/布草间-空.jpg";
 
             // UI 图标
-            const QString UI_CART_DIRTY = ":/source/Test3/推车-脏布草.png";
-            const QString UI_CART_CLEAN = ":/source/Test3/推车-布草.png";
-            const QString UI_CART_EMPTY = ":/source/Test3/推车-空.png";
-            const QString UI_DIRTY_LINEN = ":/source/Test3/脏布草.jpg";
-            const QString UI_TASK_SHEET = ":/source/Test3/申领表.png";
+            constexpr const char* UI_CART_DIRTY = ":/source/Test3/推车-脏布草.png";
+            constexpr const char* UI_CART_CLEAN = ":/source/Test3/推车-布草.png";
+            constexpr const char* UI_CART_EMPTY = ":/source/Test3/推车-空.png";
+            constexpr const char* UI_DIRTY_LINEN = ":/source/Test3/脏布草.jpg";
+            constexpr const char* UI_TASK_SHEET = ":/source/Test3/申领表.png";
 
             // 物品对应的图标路径映射 (Key: 物品名, Value: 路径)
-            const QMap<QString, QString> ITEMS = {
-                {"大床单", ":/source/Test3/大床单.png"},
-                {"大被套", ":/source/Test3/大被套.png"},
-                {"小被套", ":/source/Test3/小被套.png"},
-                {"枕巾", ":/source/Test3/枕巾.png"},
-                {"晚安巾", ":/source/Test3/晚安巾.png"},
-                {"毛巾", ":/source/Test3/毛巾.png"},
-                {"脏布草", ":/source/Test3/脏布草.jpg"}
-            };
+            // Use static function to avoid global static construction
+            static const QMap<QString, QString>& ITEMS() {
+                static const QMap<QString, QString> map = {
+                    {"大床单", ":/source/Test3/大床单.png"},
+                    {"大被套", ":/source/Test3/大被套.png"},
+                    {"小被套", ":/source/Test3/小被套.png"},
+                    {"枕巾", ":/source/Test3/枕巾.png"},
+                    {"晚安巾", ":/source/Test3/晚安巾.png"},
+                    {"毛巾", ":/source/Test3/毛巾.png"},
+                    {"脏布草", ":/source/Test3/脏布草.jpg"}
+                };
+                return map;
+            }
         }
 
         // --- 界面文本 (Texts) ---
         namespace Texts {
             // 侧边栏文本
-            const QString LBL_LOCATION_PREFIX = "当前位置:\n";
-            const QString LBL_TASK_TITLE = "当前任务:";
-            const QString BTN_VIEW_TASK_SHEET = "查看申领表";
-            const QString LBL_INVENTORY_TITLE = "推车存货 (拖拽使用):";
-            const QString LBL_ELEVATOR_PANEL_TITLE = "电梯楼层选择:"; // New title for elevator panel
-            const QString LBL_CART_DIRTY = "脏布草";
-            const QString LBL_CART_HAS_ITEMS = "有布草";
-            const QString LBL_CART_EMPTY = "空车";
+            constexpr const char* LBL_LOCATION_PREFIX = "当前位置:\n";
+            constexpr const char* LBL_TASK_TITLE = "当前任务:";
+            constexpr const char* BTN_VIEW_TASK_SHEET = "查看申领表";
+            constexpr const char* LBL_INVENTORY_TITLE = "推车存货 (拖拽使用):";
+            constexpr const char* LBL_ELEVATOR_PANEL_TITLE = "电梯楼层选择:"; // New title for elevator panel
+            constexpr const char* LBL_CART_DIRTY = "脏布草";
+            constexpr const char* LBL_CART_HAS_ITEMS = "有布草";
+            constexpr const char* LBL_CART_EMPTY = "空车";
 
             // 返回主菜单按钮
-            const QString BTN_TEXT_BACK_TO_MENU = "返回主界面";
+            constexpr const char* BTN_TEXT_BACK_TO_MENU = "返回主界面";
 
             // 场景交互按钮文本
-            const QString BTN_ENTER_HOTEL = "进入酒店";
-            const QString BTN_GO_HOME = "下班回家";
-            const QString LBL_CLOCKED_OFF = "已打卡下班";
-            const QString BTN_RETURN_ENTRANCE = "返回入口";
-            const QString BTN_CLOCK_IN = "打卡签到";
-            const QString BTN_CLOCK_OUT = "打卡下班";
-            const QString BTN_GO_OFFICE = "去办公室";
-            const QString BTN_GO_WAREHOUSE = "去仓库";
-            const QString BTN_GO_ELEVATOR = "去电梯";
-            const QString BTN_REPORT_WORK = "汇报工作";
-            const QString LBL_WORK_REPORTED = "工作已汇报，请去走廊下班。";
-            const QString BTN_GET_TASK = "领取任务";
-            const QString BTN_TASK_IN_PROGRESS = "任务进行中...";
-            const QString BTN_RETURN_HALLWAY = "返回通道";
-            const QString BTN_TAKE_LINEN = "拿取布草";
-            const QString BTN_RETURN_WAREHOUSE_ENTRY = "返回入口"; // 货架视图返回
-            const QString BTN_ENTER_ELEVATOR = "进入电梯";
-            const QString BTN_RETURN_BACK = "返回";
-            const QString BTN_GO_LINEN_ROOM = "布草间";
-            const QString BTN_GO_ELEVATOR_HALL = "电梯厅";
-            const QString BTN_RETURN_CORRIDOR = "返回走廊";
-            const QString LBL_DIRTY_LINEN_DRAG = "脏布草(拖拽)";
+            constexpr const char* BTN_ENTER_HOTEL = "进入酒店";
+            constexpr const char* BTN_GO_HOME = "下班回家";
+            constexpr const char* LBL_CLOCKED_OFF = "已打卡下班";
+            constexpr const char* BTN_RETURN_ENTRANCE = "返回入口";
+            constexpr const char* BTN_CLOCK_IN = "打卡签到";
+            constexpr const char* BTN_CLOCK_OUT = "打卡下班";
+            constexpr const char* BTN_GO_OFFICE = "去办公室";
+            constexpr const char* BTN_GO_WAREHOUSE = "去仓库";
+            constexpr const char* BTN_GO_ELEVATOR = "去电梯";
+            constexpr const char* BTN_REPORT_WORK = "汇报工作";
+            constexpr const char* LBL_WORK_REPORTED = "工作已汇报，请去走廊下班。";
+            constexpr const char* BTN_GET_TASK = "领取任务";
+            constexpr const char* BTN_TASK_IN_PROGRESS = "任务进行中...";
+            constexpr const char* BTN_RETURN_HALLWAY = "返回通道";
+            constexpr const char* BTN_TAKE_LINEN = "拿取布草";
+            constexpr const char* BTN_RETURN_WAREHOUSE_ENTRY = "返回入口"; // 货架视图返回
+            constexpr const char* BTN_ENTER_ELEVATOR = "进入电梯";
+            constexpr const char* BTN_RETURN_BACK = "返回";
+            constexpr const char* BTN_GO_LINEN_ROOM = "布草间";
+            constexpr const char* BTN_GO_ELEVATOR_HALL = "电梯厅";
+            constexpr const char* BTN_RETURN_CORRIDOR = "返回走廊";
+            constexpr const char* LBL_DIRTY_LINEN_DRAG = "脏布草(拖拽)";
         }
 
         // --- 样式与颜色 (Styles) ---
         namespace Styles {
             // 侧边栏样式
-            const QString SIDEBAR_LEFT = "background-color: #f2f2f7; color: #333333; border-right: 1px solid #d1d1d6;";
-            const QString SIDEBAR_RIGHT = "background-color: #f2f2f7; color: #333333; border-left: 1px solid #d1d1d6;";
-            const QString LBL_TITLE = "font-weight: bold; color: #333333; margin-top: 10px; font-size: 16px;";
+            constexpr const char* SIDEBAR_LEFT = "background-color: #f2f2f7; color: #333333; border-right: 1px solid #d1d1d6;";
+            constexpr const char* SIDEBAR_RIGHT = "background-color: #f2f2f7; color: #333333; border-left: 1px solid #d1d1d6;";
+            constexpr const char* LBL_TITLE = "font-weight: bold; color: #333333; margin-top: 10px; font-size: 16px;";
 
             // 任务列表样式
-            const QString LIST_WIDGET = "color: #333333; background: white; font-size: 13px; border: 1px solid #d1d1d6; border-radius: 6px;";
+            constexpr const char* LIST_WIDGET = "color: #333333; background: white; font-size: 13px; border: 1px solid #d1d1d6; border-radius: 6px;";
 
             // 按钮特殊颜色
-            const QString BTN_ORANGE = "background-color: #FF9500; color: white;"; // 查看申领表
-            const QString BTN_GREEN = "background-color: #34C759; color: white; font-size: 16px; font-weight: 600;"; // 下班回家
-            const QString BTN_RED = "background-color: #FF3B30; color: white; font-size: 16px; font-weight: bold;"; // 打卡下班
-            const QString BTN_YELLOW = "background-color: #FFCC00; color: black; font-weight: 600;"; // 汇报工作
-            const QString BTN_BLUE = "font-size: 16px; background-color: #007AFF; color: white; font-weight: 600;"; // 拿取布草
-            const QString BTN_RETURN_MENU = "background-color: #FF3B30; color: white; font-weight: bold; border-radius: 6px;"; // 返回主菜单
+            constexpr const char* BTN_ORANGE = "background-color: #FF9500; color: white;"; // 查看申领表
+            constexpr const char* BTN_GREEN = "background-color: #34C759; color: white; font-size: 16px; font-weight: 600;"; // 下班回家
+            constexpr const char* BTN_RED = "background-color: #FF3B30; color: white; font-size: 16px; font-weight: bold;"; // 打卡下班
+            constexpr const char* BTN_YELLOW = "background-color: #FFCC00; color: black; font-weight: 600;"; // 汇报工作
+            constexpr const char* BTN_BLUE = "font-size: 16px; background-color: #007AFF; color: white; font-weight: 600;"; // 拿取布草
+            constexpr const char* BTN_RETURN_MENU = "background-color: #FF3B30; color: white; font-weight: bold; border-radius: 6px;"; // 返回主菜单
 
             // 货架区域样式 (半透明灰色背景)
-            const QString SHELF_AREA = "background-color: rgba(255, 255, 255, 0.6); border: 2px dashed #8e8e93; border-radius: 8px;";
+            constexpr const char* SHELF_AREA = "background-color: rgba(255, 255, 255, 0.6); border: 2px dashed #8e8e93; border-radius: 8px;";
 
             // 提示标签颜色
-            const QString LBL_SUCCESS_GREEN = "font-size: 18px; color: #34C759; font-weight: bold;";
+            constexpr const char* LBL_SUCCESS_GREEN = "font-size: 18px; color: #34C759; font-weight: bold;";
 
             // --- 独立按钮样式配置 (Specific Button Styles) ---
             // 格式: 背景色, 前景色, 边框, 圆角, 字体粗细
-            const QString STYLE_BTN_ENTRANCE_ENTER = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";
-            const QString STYLE_BTN_ENTRANCE_HOME = "background-color: #34C759; color: white; border: 1px solid #28a745; border-radius: 8px; padding: 10px; font-weight: 600;";
+            constexpr const char* STYLE_BTN_ENTRANCE_ENTER = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";
+            constexpr const char* STYLE_BTN_ENTRANCE_HOME = "background-color: #34C759; color: white; border: 1px solid #28a745; border-radius: 8px; padding: 10px; font-weight: 600;";
 
-            const QString STYLE_BTN_HALLWAY_EXIT = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; font-weight: 600;";
-            const QString STYLE_BTN_HALLWAY_CLOCK = "background-color: #007AFF; color: white; border: none; border-radius: 8px; font-weight: bold;"; // 签到
-            const QString STYLE_BTN_HALLWAY_CLOCK_OFF = "background-color: #FF3B30; color: white; border: none; border-radius: 8px; font-weight: bold;"; // 下班
-            const QString STYLE_BTN_HALLWAY_OFFICE = "background-color: rgba(255, 255, 255, 0.9); color: #333; border: 1px solid #999; border-radius: 8px; font-weight: 600;";
-            const QString STYLE_BTN_HALLWAY_WAREHOUSE = "background-color: rgba(255, 255, 255, 0.9); color: #333; border: 1px solid #999; border-radius: 8px; font-weight: 600;";
-            const QString STYLE_BTN_HALLWAY_ELEVATOR = "background-color: rgba(255, 255, 255, 0.9); color: #333; border: 1px solid #999; border-radius: 8px; font-weight: 600;";
+            constexpr const char* STYLE_BTN_HALLWAY_EXIT = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; font-weight: 600;";
+            constexpr const char* STYLE_BTN_HALLWAY_CLOCK = "background-color: #007AFF; color: white; border: none; border-radius: 8px; font-weight: bold;"; // 签到
+            constexpr const char* STYLE_BTN_HALLWAY_CLOCK_OFF = "background-color: #FF3B30; color: white; border: none; border-radius: 8px; font-weight: bold;"; // 下班
+            constexpr const char* STYLE_BTN_HALLWAY_OFFICE = "background-color: rgba(255, 255, 255, 0.9); color: #333; border: 1px solid #999; border-radius: 8px; font-weight: 600;";
+            constexpr const char* STYLE_BTN_HALLWAY_WAREHOUSE = "background-color: rgba(255, 255, 255, 0.9); color: #333; border: 1px solid #999; border-radius: 8px; font-weight: 600;";
+            constexpr const char* STYLE_BTN_HALLWAY_ELEVATOR = "background-color: rgba(255, 255, 255, 0.9); color: #333; border: 1px solid #999; border-radius: 8px; font-weight: 600;";
 
-            const QString STYLE_BTN_OFFICE_ACTION = "background-color: #FFCC00; color: black; border-radius: 8px; font-weight: bold;"; // 汇报/领任务
-            const QString STYLE_BTN_OFFICE_BACK = "background-color: rgba(255, 255, 255, 0.8); color: #555; border: 1px solid #ccc; border-radius: 8px;";
+            constexpr const char* STYLE_BTN_OFFICE_ACTION = "background-color: #FFCC00; color: black; border-radius: 8px; font-weight: bold;"; // 汇报/领任务
+            constexpr const char* STYLE_BTN_OFFICE_BACK = "background-color: rgba(255, 255, 255, 0.8); color: #555; border: 1px solid #ccc; border-radius: 8px;";
 
-            const QString STYLE_BTN_WAREHOUSE_TAKE = "background-color: #007AFF; color: white; border-radius: 8px; font-weight: bold; font-size: 16px;";
-            const QString STYLE_BTN_WAREHOUSE_BACK = "background-color: rgba(255, 255, 255, 0.8); color: #555; border: 1px solid #ccc; border-radius: 8px;";
-            const QString STYLE_BTN_SHELF_BACK = "background-color: rgba(255, 255, 255, 0.8); color: #555; border: 1px solid #ccc; border-radius: 8px;";
+            constexpr const char* STYLE_BTN_WAREHOUSE_TAKE = "background-color: #007AFF; color: white; border-radius: 8px; font-weight: bold; font-size: 16px;";
+            constexpr const char* STYLE_BTN_WAREHOUSE_BACK = "background-color: rgba(255, 255, 255, 0.8); color: #555; border: 1px solid #ccc; border-radius: 8px;";
+            constexpr const char* STYLE_BTN_SHELF_BACK = "background-color: rgba(255, 255, 255, 0.8); color: #555; border: 1px solid #ccc; border-radius: 8px;";
 
-            const QString STYLE_BTN_ELEVATOR_ENTER = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 2px solid #007AFF; border-radius: 12px; font-size: 18px; font-weight: bold;";
-            const QString STYLE_BTN_ELEVATOR_BACK = "background-color: rgba(255, 255, 255, 0.8); color: #555; border: 1px solid #ccc; border-radius: 8px;";
+            constexpr const char* STYLE_BTN_ELEVATOR_ENTER = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 2px solid #007AFF; border-radius: 12px; font-size: 18px; font-weight: bold;";
+            constexpr const char* STYLE_BTN_ELEVATOR_BACK = "background-color: rgba(255, 255, 255, 0.8); color: #555; border: 1px solid #ccc; border-radius: 8px;";
 
             // 电梯内部楼层按钮样式 (Sidebar)
-            const QString STYLE_BTN_ELEVATOR_FLOOR = "background-color: #EFEFF4; color: #007AFF; border: 1px solid #C7C7CC; border-radius: 5px; font-weight: bold; font-size: 14px;";
+            constexpr const char* STYLE_BTN_ELEVATOR_FLOOR = "background-color: #EFEFF4; color: #007AFF; border: 1px solid #C7C7CC; border-radius: 5px; font-weight: bold; font-size: 14px;";
 
-            const QString STYLE_BTN_CORRIDOR_LINEN = "background-color: rgba(255, 255, 255, 0.95); color: #333; border: 2px solid #333; border-radius: 10px; font-weight: bold;";
-            const QString STYLE_BTN_CORRIDOR_ELEVATOR = "background-color: rgba(255, 255, 255, 0.95); color: #333; border: 2px solid #333; border-radius: 10px; font-weight: bold;";
+            constexpr const char* STYLE_BTN_CORRIDOR_LINEN = "background-color: rgba(255, 255, 255, 0.95); color: #333; border: 2px solid #333; border-radius: 10px; font-weight: bold;";
+            constexpr const char* STYLE_BTN_CORRIDOR_ELEVATOR = "background-color: rgba(255, 255, 255, 0.95); color: #333; border: 2px solid #333; border-radius: 10px; font-weight: bold;";
 
-            const QString STYLE_BTN_LINEN_BACK = "background-color: rgba(255, 255, 255, 0.8); color: #555; border: 1px solid #ccc; border-radius: 8px;";
+            constexpr const char* STYLE_BTN_LINEN_BACK = "background-color: rgba(255, 255, 255, 0.8); color: #555; border: 1px solid #ccc; border-radius: 8px;";
         }
 
         // --- 字体配置 (Fonts) ---
         namespace Fonts {
             const int SIZE_LINEN_COUNT = 32;
-            const QString COL_LINEN_COUNT = "#FF3B30"; // Red color for visibility
+            constexpr const char* COL_LINEN_COUNT = "#FF3B30"; // Red color for visibility
         }
 
         // --- 坐标与尺寸 (Geometry) ---

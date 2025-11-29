@@ -15,13 +15,13 @@ namespace Config {
 
         // --- 窗口设置 (Window Settings) ---
         // 应用程序标题
-        const QString APP_TITLE = "XXX培训系统";
+        constexpr const char* APP_TITLE = "XXX培训系统";
         // 窗口大小 (宽, 高)
         const QSize WINDOW_SIZE(1440, 900);
 
         // --- 字体设置 (Fonts) ---
         // 默认字体家族 (MacOS Style)
-        const QString FONT_FAMILY = "Segoe UI, Microsoft YaHei";
+        constexpr const char* FONT_FAMILY = "Segoe UI, Microsoft YaHei";
         // 默认字体大小
         const int FONT_SIZE_DEFAULT = 14;
         // 主菜单标题字体大小
@@ -31,28 +31,28 @@ namespace Config {
 
         // --- 颜色主题 (Color Theme - MacOS Inspired) ---
         // 主背景色 (Off-white)
-        const QString COL_BACKGROUND = "#fbfbfb";
+        constexpr const char* COL_BACKGROUND = "#fbfbfb";
         // 默认文字颜色 (Dark Gray)
-        const QString COL_TEXT_PRIMARY = "#333333";
+        constexpr const char* COL_TEXT_PRIMARY = "#333333";
         // 按钮默认颜色 (Apple Blue)
-        const QString COL_BTN_PRIMARY = "#007AFF";
+        constexpr const char* COL_BTN_PRIMARY = "#007AFF";
         // 按钮悬停颜色 (Darker Blue)
-        const QString COL_BTN_HOVER = "#0051a8";
+        constexpr const char* COL_BTN_HOVER = "#0051a8";
         // 按钮禁用颜色 (Light Gray)
-        const QString COL_BTN_DISABLED = "#d1d1d6";
+        constexpr const char* COL_BTN_DISABLED = "#d1d1d6";
         // 禁用文字颜色
-        const QString COL_TEXT_DISABLED = "#8e8e93";
+        constexpr const char* COL_TEXT_DISABLED = "#8e8e93";
         // 输入框背景色 (White)
-        const QString COL_INPUT_BG = "#ffffff";
+        constexpr const char* COL_INPUT_BG = "#ffffff";
         // 边框颜色 (Soft Gray)
-        const QString COL_BORDER = "#d1d1d6";
+        constexpr const char* COL_BORDER = "#d1d1d6";
         // 列表选中背景色 (Soft Blue)
-        const QString COL_LIST_SELECTED = "#e5f1fb";
+        constexpr const char* COL_LIST_SELECTED = "#e5f1fb";
 
         // --- 全局样式表 (Global QSS) ---
         // 定义了主窗口、按钮、输入框、列表控件的默认样式。
         // MacOS 风格: 圆角, 扁平化, 柔和阴影 (Shadows are tricky in pure QSS without images, handled via clean borders)
-        const QString GLOBAL_STYLESHEET = R"(
+        constexpr const char* GLOBAL_STYLESHEET = R"(
             QMainWindow { background-color: #fbfbfb; font-family: "Segoe UI", "Microsoft YaHei"; color: #333333; }
 
             QPushButton {
@@ -94,11 +94,11 @@ namespace Config {
 
         // --- 首页设置 (Start Page) ---
         // 首页标题文本
-        const QString TITLE_START_PAGE = "学生基础信息登记";
+        constexpr const char* TITLE_START_PAGE = "学生基础信息登记";
         // 开始按钮文本
-        const QString BTN_TEXT_START = "开始培训";
+        constexpr const char* BTN_TEXT_START = "开始培训";
         // 突发事件复选框文本
-        const QString CHECKBOX_TEXT_EMERGENCY = "启用突发事件";
+        constexpr const char* CHECKBOX_TEXT_EMERGENCY = "启用突发事件";
         // 表单区域宽度 (控制输入框的整体宽度)
         const int SIZE_FORM_WIDTH = 420;
         // 开始按钮宽度
@@ -106,15 +106,15 @@ namespace Config {
 
         // --- 主菜单设置 (Main Menu) ---
         // 主菜单标题
-        const QString TITLE_MAIN_MENU = "请选择测试项";
+        constexpr const char* TITLE_MAIN_MENU = "请选择测试项";
         // 测试1 按钮文本
-        const QString BTN_TEXT_TEST1 = "测试 1: 业务学习 (幻灯片)";
+        constexpr const char* BTN_TEXT_TEST1 = "测试 1: 业务学习 (幻灯片)";
         // 测试2 按钮文本
-        const QString BTN_TEXT_TEST2 = "测试 2: 知识测验 (选择题)";
+        constexpr const char* BTN_TEXT_TEST2 = "测试 2: 知识测验 (选择题)";
         // 测试3 按钮文本
-        const QString BTN_TEXT_TEST3 = "测试 3: 模拟实训 (RPG)";
+        constexpr const char* BTN_TEXT_TEST3 = "测试 3: 模拟实训 (RPG)";
         // 开发者模式复选框文本
-        const QString CHECKBOX_TEXT_DEV_MODE = "开发者模式";
+        constexpr const char* CHECKBOX_TEXT_DEV_MODE = "开发者模式";
         // 菜单按钮尺寸 (宽, 高)
         const QSize SIZE_MENU_BTN(420, 90);
     }

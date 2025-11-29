@@ -83,8 +83,8 @@ Test1::Test1(QWidget *parent) : QWidget(parent) {
 
 void Test1::updateSlide() {
     // Check if index is within bounds of config list
-    if (currentSlideIndex >= 0 && currentSlideIndex < Config::Test1::SLIDE_IMAGES.size()) {
-        QString imagePath = Config::Test1::SLIDE_IMAGES[currentSlideIndex];
+    if (currentSlideIndex >= 0 && currentSlideIndex < Config::Test1::SLIDE_IMAGES().size()) {
+        QString imagePath = Config::Test1::SLIDE_IMAGES()[currentSlideIndex];
         QPixmap pixmap(imagePath);
 
         if (!pixmap.isNull()) {
@@ -112,8 +112,8 @@ void Test1::finishSlideshow() {
 
         // Use config paths
         QString imagePath = "";
-        if (i < Config::Test1::SLIDE_IMAGES.size()) {
-            imagePath = Config::Test1::SLIDE_IMAGES[i];
+        if (i < Config::Test1::SLIDE_IMAGES().size()) {
+            imagePath = Config::Test1::SLIDE_IMAGES()[i];
         }
 
         QPixmap pix(imagePath);

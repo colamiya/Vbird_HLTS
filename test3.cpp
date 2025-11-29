@@ -27,7 +27,7 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     leftPanel->setFixedWidth(Config::Test3::Geometry::SIDEBAR_WIDTH);
     leftPanel->setStyleSheet(Config::Test3::Styles::SIDEBAR_LEFT);
     QVBoxLayout *leftLayout = new QVBoxLayout(leftPanel);
-    locationLabel = new QLabel(Config::Test3::Texts::LBL_LOCATION_PREFIX + "入口");
+    locationLabel = new QLabel(QString(Config::Test3::Texts::LBL_LOCATION_PREFIX) + "入口");
     locationLabel->setStyleSheet(Config::Test3::Styles::LBL_TITLE);
     cartStatusLabel = new QLabel(); // Image label
     cartStatusLabel->setFixedSize(Config::Test3::Geometry::ICON_CART);
@@ -213,7 +213,7 @@ void Test3::updateRPGStatusLabels() {
         case GameScene::FloorCorridor: locStr = QString("%1楼 走廊").arg(gameState.currentFloor); break;
         case GameScene::LinenRoom: locStr = QString("%1楼 布草间").arg(gameState.currentFloor); break;
     }
-    locationLabel->setText(Config::Test3::Texts::LBL_LOCATION_PREFIX + locStr);
+    locationLabel->setText(QString(Config::Test3::Texts::LBL_LOCATION_PREFIX) + locStr);
 
     // Cart Status Image
     QString statusImg;
@@ -251,7 +251,7 @@ void Test3::refreshInventoryList() {
             item->setData(Qt::UserRole, it.key()); // Drag data
 
             // Load Icon from Config Map
-            QString iconPath = Config::Test3::Images::ITEMS.value(it.key());
+            QString iconPath = Config::Test3::Images::ITEMS().value(it.key());
             if (QFile::exists(iconPath)) {
                 item->setIcon(QIcon(iconPath));
             }
@@ -510,7 +510,7 @@ void Test3::renderWarehouseShelf() {
         area->setDraggable(true); // Infinite supply in Warehouse
 
         // Add image to shelf area
-        QString iconPath = Config::Test3::Images::ITEMS.value(name);
+        QString iconPath = Config::Test3::Images::ITEMS().value(name);
         if (QFile::exists(iconPath)) {
             QPixmap pix(iconPath);
             if (!pix.isNull()) {
@@ -644,7 +644,7 @@ void Test3::renderLinenRoom() {
             // Can be taken back
             area->setDraggable(true);
 
-            QString iconPath = Config::Test3::Images::ITEMS.value(name);
+            QString iconPath = Config::Test3::Images::ITEMS().value(name);
             if (QFile::exists(iconPath)) {
                 QPixmap pix(iconPath);
                 if (!pix.isNull()) {
