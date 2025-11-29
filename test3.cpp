@@ -113,7 +113,7 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     QGridLayout *btnGrid = new QGridLayout();
     btnGrid->setSpacing(Config::Test3::Geometry::GRID_SPACING_ELEVATOR);
 
-    // Create G, 1-10 buttons
+    // Create G, 2-10 buttons (No 1F)
     auto createEleBtn = [&](int floor) {
         QString txt = (floor == 0) ? "G" : QString::number(floor);
         QPushButton *btn = new QPushButton(txt);
@@ -124,24 +124,30 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
         return btn;
     };
 
-    // Layout: 3 columns?
-    // G at bottom?
-    // Order: 10, 9, 8 ... 1, G
-    int row = 0;
-    int col = 0;
-    // 7, 8, 9, 10
-    // 4, 5, 6
-    // 1, 2, 3
-    // G
+    // Layout: 2 columns
+    // G at bottom left, 2 at bottom right
+    // Rows fill from bottom
+    // Row 4: G, 2
+    // Row 3: 3, 4
+    // Row 2: 5, 6
+    // Row 1: 7, 8
+    // Row 0: 9, 10
 
-    QList<int> floors = {10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
-    int c = 0;
-    int r = 0;
-    for(int f : floors) {
-        btnGrid->addWidget(createEleBtn(f), r, c);
-        c++;
-        if (c > 2) { c=0; r++; }
-    }
+    // Explicit placement
+    btnGrid->addWidget(createEleBtn(9), 0, 0);
+    btnGrid->addWidget(createEleBtn(10), 0, 1);
+
+    btnGrid->addWidget(createEleBtn(7), 1, 0);
+    btnGrid->addWidget(createEleBtn(8), 1, 1);
+
+    btnGrid->addWidget(createEleBtn(5), 2, 0);
+    btnGrid->addWidget(createEleBtn(6), 2, 1);
+
+    btnGrid->addWidget(createEleBtn(3), 3, 0);
+    btnGrid->addWidget(createEleBtn(4), 3, 1);
+
+    btnGrid->addWidget(createEleBtn(0), 4, 0); // G (Logic 0)
+    btnGrid->addWidget(createEleBtn(2), 4, 1);
 
     elePanelLayout->addLayout(btnGrid);
     elePanelLayout->addStretch();
@@ -655,7 +661,8 @@ void Test3::renderLinenRoom() {
 
             // Create Label for Count
             QLabel *countLbl = new QLabel(QString("x%1").arg(placedCount), area);
-            countLbl->setStyleSheet(QString("color: %1; font-weight: bold; font-size: %2px; background: rgba(255,255,255,0.7); border-radius: 4px; padding: 2px;")
+            // Modified: Transparent background, smaller font
+            countLbl->setStyleSheet(QString("color: %1; font-weight: bold; font-size: %2px; background: transparent; padding: 2px;")
                                     .arg(Config::Test3::Fonts::COL_LINEN_COUNT)
                                     .arg(Config::Test3::Fonts::SIZE_LINEN_COUNT));
             countLbl->adjustSize();
@@ -707,7 +714,8 @@ void Test3::renderLinenRoom() {
         DragSourceLabel *dirty = new DragSourceLabel("脏布草", rpgCenterPanel);
         QPixmap dirtyPix(Config::Test3::Images::UI_DIRTY_LINEN);
         if (!dirtyPix.isNull()) dirty->setPixmap(dirtyPix.scaled(Config::Test3::Geometry::ICON_DIRTY_DRAG));
-        dirty->setText(Config::Test3::Texts::LBL_DIRTY_LINEN_DRAG);
+        // Removed setText to prevent overwriting Pixmap
+        // dirty->setText(Config::Test3::Texts::LBL_DIRTY_LINEN_DRAG);
         setGeometryCentered(dirty, Config::Test3::Geometry::RECT_EVENT_DIRTY_LINEN); // Use new config
         dirty->show();
     }
@@ -894,8 +902,10 @@ void Test3::handleGetTask() {
             bool isEventA = QRandomGenerator::global()->bounded(2) == 0;
             if (isEventA) {
                 // Event A: Extra Task
-                int floor2 = QRandomGenerator::global()->bounded(1, 11); // 1-10
-                while (floor2 == floor1) floor2 = QRandomGenerator::global()->bounded(1, 11);
+                // Random floor 2-10 (Exclude 1F/G, since G is 1st floor)
+                // floor1 is 6 or 7, so it's safe.
+                int floor2 = QRandomGenerator::global()->bounded(2, 11);
+                while (floor2 == floor1) floor2 = QRandomGenerator::global()->bounded(2, 11);
 
                 gameState.tasks.append(generateTask(floor2, true));
 
