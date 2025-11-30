@@ -85,6 +85,7 @@ signals:
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
+    void showEvent(QShowEvent *event) override; // Log when widget is shown
 
 private:
     bool isDeveloperMode;

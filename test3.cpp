@@ -196,7 +196,13 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     reset();
 }
 
+void Test3::showEvent(QShowEvent *event) {
+    emit logMessage("Test3 Widget Shown (showEvent triggered)");
+    QWidget::showEvent(event);
+}
+
 void Test3::reset() {
+    emit logMessage("Test3::reset() called");
     gameState.currentScene = GameScene::Entrance;
     gameState.currentFloor = 0;
     gameState.hasClockedIn = false;
@@ -252,6 +258,7 @@ bool Test3::eventFilter(QObject *watched, QEvent *event) {
 // --- Logic ---
 
 void Test3::goToScene(GameScene scene) {
+    emit logMessage(QString("goToScene: %1").arg((int)scene));
     // Logic for Lateness Timer
     // Condition: Switching scene FROM StaffHallway TO somewhere else (e.g. Office, Elevator, Warehouse)
     // AND Not Clocked In yet.
@@ -355,6 +362,7 @@ void Test3::refreshTaskList() {
 // --- Scene Rendering ---
 
 void Test3::renderScene() {
+    emit logMessage(QString("renderScene: %1").arg((int)gameState.currentScene));
     // Clear Center Panel
     QList<QObject*> children = rpgCenterPanel->children();
     for (QObject *child : children) {
