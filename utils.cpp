@@ -2,6 +2,7 @@
 #include <QDebug>
 #include <QMessageBox>
 #include <QPainterPath>
+#include <QtMath> // Required for qDegreesToRadians, qCos, qSin
 
 // --- DragSourceLabel ---
 DragSourceLabel::DragSourceLabel(const QString &itemName, QWidget *parent)
@@ -265,11 +266,15 @@ void ArrowButton::leaveEvent(QEvent *event) {
 
 void ArrowButton::paintEvent(QPaintEvent *) {
     QPainter p(this);
+    if (!p.isActive()) return; // Safety check
+
     p.setRenderHint(QPainter::Antialiasing);
 
     // Calculate Arrow Geometry
     int w = width();
     int h = height();
+    if (w <= 0 || h <= 0) return; // Skip invalid geometry
+
     int cx = w / 2;
     int cy = h / 2;
 

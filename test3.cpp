@@ -196,6 +196,10 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     reset();
 }
 
+void Test3::showEvent(QShowEvent *event) {
+    QWidget::showEvent(event);
+}
+
 void Test3::reset() {
     gameState.currentScene = GameScene::Entrance;
     gameState.currentFloor = 0;
