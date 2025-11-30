@@ -373,6 +373,7 @@ void Test3::renderScene() {
     // Clear Center Panel
     QList<QObject*> children = rpgCenterPanel->children();
     for (QObject *child : children) {
+        if (child == hoverHintLabel) continue; // Skip hover label
         if (child->isWidgetType()) static_cast<QWidget*>(child)->hide();
         child->deleteLater();
     }
@@ -403,6 +404,9 @@ void Test3::renderScene() {
 
     // Install Event Filter on ALL new children for Dev Mode
     installDevFilter(rpgCenterPanel);
+
+    // Ensure hover hint label is on top
+    if (hoverHintLabel) hoverHintLabel->raise();
 }
 
 void Test3::renderEntrance() {
@@ -419,7 +423,7 @@ void Test3::renderEntrance() {
     setGeometryCentered(btnHome, Config::Test3::Geometry::RECT_BTN_ENTRANCE_HOME);
     btnHome->setAngle(Config::Test3::Geometry::ANGLE_BTN_ENTRANCE_HOME);
     btnHome->setArrowText(Config::Test3::Texts::TEXT_BTN_ENTRANCE_HOME);
-    btnHome->setColor(QColor(Config::Test3::Styles::ARROW_COLOR));
+    btnHome->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
     connect(btnHome, &QPushButton::clicked, this, &Test3::handleGoHome);
     connect(btnHome, &ArrowButton::hovered, [this](bool status, QString text) {
         if (status) { hoverHintLabel->setText(text); hoverHintLabel->show(); hoverHintLabel->raise(); }
@@ -469,7 +473,7 @@ void Test3::renderStaffHallway() {
     setGeometryCentered(exitBtn, Config::Test3::Geometry::RECT_BTN_HALLWAY_EXIT);
     exitBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_HALLWAY_EXIT);
     exitBtn->setArrowText(Config::Test3::Texts::BTN_RETURN_ENTRANCE);
-    exitBtn->setColor(QColor(Config::Test3::Styles::ARROW_COLOR));
+    exitBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
     connect(exitBtn, &QPushButton::clicked, [this]() {
         goToScene(GameScene::Entrance);
     });
@@ -501,7 +505,7 @@ void Test3::renderStaffHallway() {
         setGeometryCentered(btn, rect);
         btn->setAngle(angle);
         btn->setArrowText(text);
-        btn->setColor(QColor(Config::Test3::Styles::ARROW_COLOR));
+        btn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
         connect(btn, &QPushButton::clicked, func);
         connect(btn, &ArrowButton::hovered, [this](bool status, QString t) {
             if (status) { hoverHintLabel->setText(t); hoverHintLabel->show(); hoverHintLabel->raise(); }
@@ -565,7 +569,7 @@ void Test3::renderOffice() {
     setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_OFFICE_BACK);
     backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_OFFICE_BACK);
     backBtn->setArrowText(Config::Test3::Texts::BTN_RETURN_HALLWAY);
-    backBtn->setColor(QColor(Config::Test3::Styles::ARROW_COLOR));
+    backBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
     connect(backBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::StaffHallway); });
     connect(backBtn, &ArrowButton::hovered, [this](bool status, QString text) {
         if (status) { hoverHintLabel->setText(text); hoverHintLabel->show(); hoverHintLabel->raise(); }
@@ -605,7 +609,7 @@ void Test3::renderWarehouse() {
     setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_WAREHOUSE_BACK);
     backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_WAREHOUSE_BACK);
     backBtn->setArrowText(Config::Test3::Texts::BTN_RETURN_HALLWAY);
-    backBtn->setColor(QColor(Config::Test3::Styles::ARROW_COLOR));
+    backBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
     connect(backBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::StaffHallway); });
     connect(backBtn, &ArrowButton::hovered, [this](bool status, QString text) {
         if (status) { hoverHintLabel->setText(text); hoverHintLabel->show(); hoverHintLabel->raise(); }
@@ -669,7 +673,7 @@ void Test3::renderWarehouseShelf() {
     setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_SHELF_BACK);
     backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_SHELF_BACK);
     backBtn->setArrowText(Config::Test3::Texts::BTN_RETURN_WAREHOUSE_ENTRY);
-    backBtn->setColor(QColor(Config::Test3::Styles::ARROW_COLOR));
+    backBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
     connect(backBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::Warehouse); });
     connect(backBtn, &ArrowButton::hovered, [this](bool status, QString text) {
         if (status) { hoverHintLabel->setText(text); hoverHintLabel->show(); hoverHintLabel->raise(); }
@@ -698,7 +702,7 @@ void Test3::renderElevatorHall() {
     setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_ELEVATOR_BACK);
     backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_ELEVATOR_BACK);
     backBtn->setArrowText(Config::Test3::Texts::BTN_RETURN_BACK);
-    backBtn->setColor(QColor(Config::Test3::Styles::ARROW_COLOR));
+    backBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
     connect(backBtn, &QPushButton::clicked, [this]() {
         if (gameState.currentFloor == 0) goToScene(GameScene::StaffHallway);
         else goToScene(GameScene::FloorCorridor);
@@ -743,7 +747,7 @@ void Test3::renderFloorCorridor() {
     setGeometryCentered(linenRoomBtn, Config::Test3::Geometry::RECT_BTN_CORRIDOR_LINEN);
     linenRoomBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_CORRIDOR_LINEN);
     linenRoomBtn->setArrowText(Config::Test3::Texts::BTN_GO_LINEN_ROOM);
-    linenRoomBtn->setColor(QColor(Config::Test3::Styles::ARROW_COLOR));
+    linenRoomBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
     connect(linenRoomBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::LinenRoom); });
     connect(linenRoomBtn, &ArrowButton::hovered, [this](bool status, QString text) {
         if (status) { hoverHintLabel->setText(text); hoverHintLabel->show(); hoverHintLabel->raise(); }
@@ -755,7 +759,7 @@ void Test3::renderFloorCorridor() {
     setGeometryCentered(elevatorBtn, Config::Test3::Geometry::RECT_BTN_CORRIDOR_ELEVATOR);
     elevatorBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_CORRIDOR_ELEVATOR);
     elevatorBtn->setArrowText(Config::Test3::Texts::BTN_GO_ELEVATOR_HALL);
-    elevatorBtn->setColor(QColor(Config::Test3::Styles::ARROW_COLOR));
+    elevatorBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
     connect(elevatorBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::ElevatorHall); });
     connect(elevatorBtn, &ArrowButton::hovered, [this](bool status, QString text) {
         if (status) { hoverHintLabel->setText(text); hoverHintLabel->show(); hoverHintLabel->raise(); }
@@ -869,7 +873,7 @@ void Test3::renderLinenRoom() {
     setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_LINEN_BACK);
     backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_LINEN_BACK);
     backBtn->setArrowText(Config::Test3::Texts::BTN_RETURN_CORRIDOR);
-    backBtn->setColor(QColor(Config::Test3::Styles::ARROW_COLOR));
+    backBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
     connect(backBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::FloorCorridor); });
     connect(backBtn, &ArrowButton::hovered, [this](bool status, QString text) {
         if (status) { hoverHintLabel->setText(text); hoverHintLabel->show(); hoverHintLabel->raise(); }
