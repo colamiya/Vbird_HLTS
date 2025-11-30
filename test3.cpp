@@ -47,6 +47,14 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     rpgCenterPanel->installEventFilter(this);
     rpgLayout->addWidget(rpgCenterPanel);
 
+    // Hover Hint Label
+    hoverHintLabel = new QLabel(rpgCenterPanel);
+    hoverHintLabel->setAlignment(Qt::AlignCenter);
+    hoverHintLabel->setStyleSheet("color: #E74C3C; font-weight: bold; font-size: 24px; background: rgba(255,255,255,0.8); border-radius: 5px; padding: 5px;");
+    hoverHintLabel->hide();
+    // Position it at the top center of the panel
+    hoverHintLabel->setGeometry(200, 20, 500, 50); // Approximately centered horizontally
+
     // --- Right Panel ---
     QWidget *rightPanel = new QWidget();
     rightPanel->setFixedWidth(Config::Test3::Geometry::SIDEBAR_WIDTH);
@@ -97,6 +105,28 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     inventoryListWidget->setIconSize(Config::Test3::Geometry::ICON_INVENTORY); // Large icons
     inventoryListWidget->setStyleSheet("color: black; background: white;");
     inventoryListWidget->onItemDroppedIn = [this](QString itemName) {
+        // Need to pass data, but the callback only gives string currently in utils.h?
+        // Wait, utils.h DraggableListWidget::dropEvent calls onItemDroppedIn(text).
+        // I need to update utils logic or capture the event logic?
+        // Actually, since I can't easily change the signature in utils (it's a std::function),
+        // I should have updated utils.h to pass QMimeData* or use a member variable.
+        // Let's rely on the drag source type check in handleInventoryDrop by checking the QMimeData manually?
+        // No, DraggableListWidget::dropEvent only passes the text string.
+        // Correction: I should update DraggableListWidget logic?
+        // Ah, in Test3 I can access the drag event? No.
+        // I will assume handleInventoryDrop handles logic, but I need the source info.
+        // Wait, I updated ShelfArea to put source info in MimeData.
+        // But DraggableListWidget::dropEvent (in utils.cpp) reads the text and calls the callback.
+        // It does NOT pass the MimeData.
+        // I should have updated the callback signature in Step 1.
+        // But since I didn't, I will use a workaround or update utils.h now?
+        // It's better to update utils.h to pass the MIME data or a Map.
+        // However, I can't go back to Step 1 easily without breaking flow?
+        // Wait, I can just modify utils.h/cpp now if needed.
+        // Or simpler: handleInventoryDrop checks if the current scene is LinenRoom?
+        // If current scene is LinenRoom, and we dropped an item, it MUST be from the shelf (since we can't drag from elsewhere easily).
+        // Exceptions: dragging from inventory to inventory (reorder) - but dropEvent handles `source() != this`.
+        // So any drop into inventory from "outside" while in Linen Room must be from the shelf.
         handleInventoryDrop(itemName);
     };
     rightLayout->addWidget(inventoryListWidget);
@@ -154,8 +184,10 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     latenessTimer->setInterval(Config::Test3::Logic::TIME_LATE_THRESHOLD_SEC * 1000);
     connect(latenessTimer, &QTimer::timeout, [this]() {
         isLate = true;
-        // If we are currently in Hallway, update the background immediately
-        if (gameState.currentScene == GameScene::StaffHallway && !gameState.hasClockedIn) {
+        emit logMessage("计时结束: 标记为迟到状态");
+        // If we are currently in Hallway, update the background immediately regardless of clock in status
+        // (Unless tasks are done, which is handled in renderStaffHallway priority)
+        if (gameState.currentScene == GameScene::StaffHallway) {
             renderStaffHallway();
         }
     });
@@ -177,6 +209,7 @@ void Test3::reset() {
 
     // Reset Logic Flags
     isLate = false;
+    isTimerTriggered = false;
     isEmergencyActive = false;
     latenessTimer->stop();
     errorLog = ErrorLog();
@@ -220,11 +253,13 @@ bool Test3::eventFilter(QObject *watched, QEvent *event) {
 
 void Test3::goToScene(GameScene scene) {
     // Logic for Lateness Timer
-    // If leaving Entrance AND not clocked in -> Start Timer
-    if (gameState.currentScene == GameScene::Entrance && scene != GameScene::Entrance) {
-        if (!gameState.hasClockedIn && !latenessTimer->isActive() && !isLate) {
+    // Condition: Switching scene FROM StaffHallway TO somewhere else (e.g. Office, Elevator, Warehouse)
+    // AND Not Clocked In yet.
+    if (gameState.currentScene == GameScene::StaffHallway && scene != GameScene::StaffHallway) {
+        if (!gameState.hasClockedIn && !isTimerTriggered && !isLate) {
+            isTimerTriggered = true;
             latenessTimer->start();
-            emit logMessage("计时开始: 迟到倒计时");
+            emit logMessage("计时开始: 10秒迟到倒计时");
         }
     }
 
@@ -364,12 +399,17 @@ void Test3::renderEntrance() {
                         Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
     bg->show();
 
-    // Go Home Area
-    ClickableArea *btnHome = new ClickableArea(rpgCenterPanel);
-    btnHome->setPolygon(Config::Test3::Geometry::POLY_ENTRANCE_HOME());
-    btnHome->setToolTip(Config::Test3::Texts::BTN_GO_HOME);
-    connect(btnHome, &ClickableArea::clicked, this, &Test3::handleGoHome);
-    btnHome->setGeometry(rpgCenterPanel->rect());
+    // Go Home Button (Arrow)
+    ArrowButton *btnHome = new ArrowButton(rpgCenterPanel);
+    setGeometryCentered(btnHome, Config::Test3::Geometry::RECT_BTN_ENTRANCE_HOME);
+    btnHome->setAngle(Config::Test3::Geometry::ANGLE_BTN_ENTRANCE_HOME);
+    btnHome->setArrowText(Config::Test3::Texts::TEXT_BTN_ENTRANCE_HOME);
+    btnHome->setColor(QColor(Config::Test3::Styles::ARROW_COLOR));
+    connect(btnHome, &QPushButton::clicked, this, &Test3::handleGoHome);
+    connect(btnHome, &ArrowButton::hovered, [this](bool status, QString text) {
+        if (status) { hoverHintLabel->setText(text); hoverHintLabel->show(); hoverHintLabel->raise(); }
+        else hoverHintLabel->hide();
+    });
     btnHome->show();
 
     // Enter Hotel Area
@@ -378,6 +418,10 @@ void Test3::renderEntrance() {
     btnEnter->setToolTip(Config::Test3::Texts::BTN_ENTER_HOTEL);
     connect(btnEnter, &ClickableArea::clicked, [this]() {
         goToScene(GameScene::StaffHallway);
+    });
+    connect(btnEnter, &ClickableArea::hovered, [this](bool status, QString text) {
+        if (status) { hoverHintLabel->setText(text); hoverHintLabel->show(); hoverHintLabel->raise(); }
+        else hoverHintLabel->hide();
     });
     btnEnter->setGeometry(rpgCenterPanel->rect());
     btnEnter->show();
@@ -414,6 +458,10 @@ void Test3::renderStaffHallway() {
     connect(exitBtn, &QPushButton::clicked, [this]() {
         goToScene(GameScene::Entrance);
     });
+    connect(exitBtn, &ArrowButton::hovered, [this](bool status, QString text) {
+        if (status) { hoverHintLabel->setText(text); hoverHintLabel->show(); hoverHintLabel->raise(); }
+        else hoverHintLabel->hide();
+    });
     exitBtn->show();
 
     // Clock In/Out (Irregular Area)
@@ -424,6 +472,10 @@ void Test3::renderStaffHallway() {
     connect(btnClock, &ClickableArea::clicked, [this]() {
         if (gameState.hasClockedIn) handleClockOut();
         else handleClockIn();
+    });
+    connect(btnClock, &ClickableArea::hovered, [this](bool status, QString text) {
+        if (status) { hoverHintLabel->setText(text); hoverHintLabel->show(); hoverHintLabel->raise(); }
+        else hoverHintLabel->hide();
     });
     btnClock->setGeometry(rpgCenterPanel->rect());
     btnClock->show();
@@ -436,6 +488,10 @@ void Test3::renderStaffHallway() {
         btn->setArrowText(text);
         btn->setColor(QColor(Config::Test3::Styles::ARROW_COLOR));
         connect(btn, &QPushButton::clicked, func);
+        connect(btn, &ArrowButton::hovered, [this](bool status, QString t) {
+            if (status) { hoverHintLabel->setText(t); hoverHintLabel->show(); hoverHintLabel->raise(); }
+            else hoverHintLabel->hide();
+        });
         btn->show();
     };
 
@@ -496,6 +552,10 @@ void Test3::renderOffice() {
     backBtn->setArrowText(Config::Test3::Texts::BTN_RETURN_HALLWAY);
     backBtn->setColor(QColor(Config::Test3::Styles::ARROW_COLOR));
     connect(backBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::StaffHallway); });
+    connect(backBtn, &ArrowButton::hovered, [this](bool status, QString text) {
+        if (status) { hoverHintLabel->setText(text); hoverHintLabel->show(); hoverHintLabel->raise(); }
+        else hoverHintLabel->hide();
+    });
     backBtn->show();
 
     if (gameState.hasReported) {
@@ -532,6 +592,10 @@ void Test3::renderWarehouse() {
     backBtn->setArrowText(Config::Test3::Texts::BTN_RETURN_HALLWAY);
     backBtn->setColor(QColor(Config::Test3::Styles::ARROW_COLOR));
     connect(backBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::StaffHallway); });
+    connect(backBtn, &ArrowButton::hovered, [this](bool status, QString text) {
+        if (status) { hoverHintLabel->setText(text); hoverHintLabel->show(); hoverHintLabel->raise(); }
+        else hoverHintLabel->hide();
+    });
     backBtn->show();
 }
 
@@ -551,6 +615,12 @@ void Test3::renderWarehouseShelf() {
         setGeometryCentered(area, rect);
         area->setStyleSheet(Config::Test3::Styles::SHELF_AREA);
         area->setDraggable(true); // Infinite supply in Warehouse
+        area->setSourceType("WarehouseShelf"); // Tag source
+        area->setToolTip(name + " (可拿取)");
+        connect(area, &ShelfArea::hovered, [this](bool status, QString text) {
+            if (status) { hoverHintLabel->setText(text); hoverHintLabel->show(); hoverHintLabel->raise(); }
+            else hoverHintLabel->hide();
+        });
 
         // Add image to shelf area
         QString iconPath = Config::Test3::Images::ITEMS().value(name);
@@ -586,6 +656,10 @@ void Test3::renderWarehouseShelf() {
     backBtn->setArrowText(Config::Test3::Texts::BTN_RETURN_WAREHOUSE_ENTRY);
     backBtn->setColor(QColor(Config::Test3::Styles::ARROW_COLOR));
     connect(backBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::Warehouse); });
+    connect(backBtn, &ArrowButton::hovered, [this](bool status, QString text) {
+        if (status) { hoverHintLabel->setText(text); hoverHintLabel->show(); hoverHintLabel->raise(); }
+        else hoverHintLabel->hide();
+    });
     backBtn->show();
 }
 
@@ -613,6 +687,10 @@ void Test3::renderElevatorHall() {
     connect(backBtn, &QPushButton::clicked, [this]() {
         if (gameState.currentFloor == 0) goToScene(GameScene::StaffHallway);
         else goToScene(GameScene::FloorCorridor);
+    });
+    connect(backBtn, &ArrowButton::hovered, [this](bool status, QString text) {
+        if (status) { hoverHintLabel->setText(text); hoverHintLabel->show(); hoverHintLabel->raise(); }
+        else hoverHintLabel->hide();
     });
     backBtn->show();
 }
@@ -652,6 +730,10 @@ void Test3::renderFloorCorridor() {
     linenRoomBtn->setArrowText(Config::Test3::Texts::BTN_GO_LINEN_ROOM);
     linenRoomBtn->setColor(QColor(Config::Test3::Styles::ARROW_COLOR));
     connect(linenRoomBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::LinenRoom); });
+    connect(linenRoomBtn, &ArrowButton::hovered, [this](bool status, QString text) {
+        if (status) { hoverHintLabel->setText(text); hoverHintLabel->show(); hoverHintLabel->raise(); }
+        else hoverHintLabel->hide();
+    });
     linenRoomBtn->show();
 
     ArrowButton *elevatorBtn = new ArrowButton(rpgCenterPanel);
@@ -660,6 +742,10 @@ void Test3::renderFloorCorridor() {
     elevatorBtn->setArrowText(Config::Test3::Texts::BTN_GO_ELEVATOR_HALL);
     elevatorBtn->setColor(QColor(Config::Test3::Styles::ARROW_COLOR));
     connect(elevatorBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::ElevatorHall); });
+    connect(elevatorBtn, &ArrowButton::hovered, [this](bool status, QString text) {
+        if (status) { hoverHintLabel->setText(text); hoverHintLabel->show(); hoverHintLabel->raise(); }
+        else hoverHintLabel->hide();
+    });
     elevatorBtn->show();
 }
 
@@ -682,6 +768,12 @@ void Test3::renderLinenRoom() {
         ShelfArea *area = new ShelfArea(name, rpgCenterPanel);
         setGeometryCentered(area, rect);
         area->setStyleSheet(Config::Test3::Styles::SHELF_AREA);
+        area->setSourceType("LinenRoomShelf"); // Tag as Linen Room source
+        area->setToolTip(name + " (拖拽取回/放置)");
+        connect(area, &ShelfArea::hovered, [this](bool status, QString text) {
+            if (status) { hoverHintLabel->setText(text); hoverHintLabel->show(); hoverHintLabel->raise(); }
+            else hoverHintLabel->hide();
+        });
 
         // Check if item has been placed
         int placedCount = 0;
@@ -764,12 +856,16 @@ void Test3::renderLinenRoom() {
     backBtn->setArrowText(Config::Test3::Texts::BTN_RETURN_CORRIDOR);
     backBtn->setColor(QColor(Config::Test3::Styles::ARROW_COLOR));
     connect(backBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::FloorCorridor); });
+    connect(backBtn, &ArrowButton::hovered, [this](bool status, QString text) {
+        if (status) { hoverHintLabel->setText(text); hoverHintLabel->show(); hoverHintLabel->raise(); }
+        else hoverHintLabel->hide();
+    });
     backBtn->show();
 }
 
 // --- Action Handlers ---
 
-void Test3::handleInventoryDrop(QString itemName) {
+void Test3::handleInventoryDrop(QString itemName, const QMimeData *mimeData) {
     if (itemName == "脏布草") {
         int cleanCount = 0;
         for (auto c : gameState.inventory.cleanItems) cleanCount += c;
@@ -792,8 +888,46 @@ void Test3::handleInventoryDrop(QString itemName) {
              return;
         }
 
+        // Logic Check: Source?
+        // If we are in Linen Room, assume it comes from Shelf if it's not internal drag
+        if (gameState.currentScene == GameScene::LinenRoom) {
+             // We need to decrease the count on the shelf (placed items)
+             // Find task for current floor
+             bool foundTask = false;
+             for (auto &t : gameState.tasks) {
+                 if (t.targetFloor == gameState.currentFloor && !t.isCompleted) {
+                     // Check if we have placed this item there
+                     if (t.placedItems.value(itemName, 0) > 0) {
+                         t.placedItems[itemName]--;
+                         t.requiredItems[itemName]++; // Add back to needed? Or just reduce placed?
+                         // Logic: "Placed" means it satisfied a requirement.
+                         // If we take it back, the requirement is no longer satisfied.
+                         // So yes, increase requiredItems (or just rely on the logic that checks placed vs needed)
+                         // My struct has `requiredItems` as "Remaining Needed".
+                         // So if I take back, `requiredItems` should increase.
+                         t.requiredItems[itemName]++;
+
+                         emit logMessage("从布草间货架取回: " + itemName);
+                         foundTask = true;
+                     }
+                     break; // Only one active task per floor usually
+                 }
+             }
+             if (!foundTask) {
+                 // Might be just taking from shelf but no task?
+                 // Or task completed?
+                 // If task completed, can we take back?
+                 // Assuming strictly active tasks for now based on logic in renderLinenRoom.
+             }
+        }
+
         gameState.inventory.cleanItems[itemName]++;
         emit logMessage("装车: " + itemName);
+
+        // Refresh scene to show updated shelf counts
+        if (gameState.currentScene == GameScene::LinenRoom) {
+            renderScene();
+        }
     }
     refreshInventoryList();
 }
