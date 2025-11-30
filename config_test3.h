@@ -61,22 +61,22 @@ namespace Config {
 
         // --- 逻辑配置 (Logic) ---
         namespace Logic {
-            const int TIME_LATE_THRESHOLD_SEC = 5; // 迟到判定时间 (秒)
+            const int TIME_LATE_THRESHOLD_SEC = 10; // 迟到判定时间 (秒)
             const int TASK_FIXED_FLOOR_1 = 6;       // 基础任务楼层 1
             const int TASK_FIXED_FLOOR_2 = 7;       // 基础任务楼层 2
-            const int MAX_TASK_ITEM_TYPES = 5;      // 任务物品种类最大数量
+            const int MAX_TASK_ITEM_TYPES = 6;      // 任务物品种类最大数量
             const int MAX_TASK_ITEM_COUNT = 3;      // 单个物品最大数量
 
             // 物品量词映射 (Classifiers)
             static const QMap<QString, QString>& CLASSIFIERS() {
                 static const QMap<QString, QString> map = {
-                    {"大床单", "条"},
-                    {"大被套", "条"},
-                    {"小被套", "条"},
+                    {"大床单", "件"},
+                    {"大被套", "件"},
+                    {"小被套", "件"},
                     {"枕巾", "条"},
                     {"晚安巾", "条"},
                     {"毛巾", "条"},
-                    {"脏布草", "件"}
+                    {"脏布草", "袋"}
                 };
                 return map;
             }
@@ -133,7 +133,7 @@ namespace Config {
             // 汇报工作与错误反馈
             constexpr const char* REPORT_SUCCESS = "经理：工作做得很好，流程很规范。";
             constexpr const char* REPORT_ERR_LATE = "经理：你今天迟到了。";
-            constexpr const char* REPORT_ERR_PRIORITY = "经理：你怎么不先完成紧急任务？";
+            constexpr const char* REPORT_ERR_PRIORITY = "经理：做的好，但以后需要先完成紧急任务？";
             constexpr const char* REPORT_ERR_MISSING_TASK = "经理：还有任务没做完。";
 
             constexpr const char* ERR_LOG_LATE_CLOCK = "上班迟到";
@@ -143,8 +143,8 @@ namespace Config {
             constexpr const char* ERR_LOG_MIXED_LINEN = "脏布草与净布草混装";
 
             // 新手教程提示文本 (新)
-            constexpr const char* TUTORIAL_SHELF = "操作指南：\n1. 从货架拖拽物品到推车：每次增加1个。\n2. 从推车拖拽物品回货架：归还全部同类物品。";
-            constexpr const char* TUTORIAL_WAREHOUSE_ENTRY = "操作指南：\n拖拽脏布草袋到右侧的【脏布草回收桶】进行回收。";
+            constexpr const char* TUTORIAL_SHELF = "操作指南：\n1. 从货架可以拖拽物品到右下角的推车存货中：每次增加1个。\n2. 从推车也可拖拽物品回货架：归还全部同类物品。";
+            constexpr const char* TUTORIAL_WAREHOUSE_ENTRY = "操作指南：\n可以拖拽脏布草袋到【脏布草桶】进行回收。";
             constexpr const char* TUTORIAL_GENERAL = "操作指南：\n点击场景中的按钮、箭头，或寻找隐藏的可点击区域与场景进行交互。";
         }
 
@@ -177,8 +177,8 @@ namespace Config {
             constexpr const char* LBL_SUCCESS_GREEN = "font-size: 18px; color: #34C759; font-weight: bold;";
 
             // 箭头按钮样式配置
-            constexpr const char* ARROW_TEXT_COLOR = "rgba(255, 255, 255, 0.1)"; // 文本颜色
-            const int ARROW_TEXT_SIZE = 1;                     // 箭头文本字号
+            constexpr const char* ARROW_TEXT_COLOR = "rgba(255, 255, 255, 0.1)";
+            const int ARROW_TEXT_SIZE = 1;
 
             // 新手教程蒙版样式
             constexpr const char* TUTORIAL_OVERLAY_BG = "background-color: rgba(0, 0, 0, 0.7); border-radius: 12px;";
@@ -219,8 +219,8 @@ namespace Config {
             const QSize CENTER_PANEL_SIZE(896, 720);
             const int SIDEBAR_WIDTH = 220;
             const int TASK_LIST_HEIGHT = 150; // 已废弃/动态调整
-            const QSize RETURN_BTN_SIZE(145, 45);
-            const QSize TUTORIAL_BTN_SIZE(145, 45); // 新增
+            const QSize RETURN_BTN_SIZE(150, 50);
+            const QSize TUTORIAL_BTN_SIZE(150, 50); // 新增
 
             // 图标尺寸
             const QSize ICON_CART(140, 140);
@@ -244,7 +244,7 @@ namespace Config {
             const QPoint PT_ENTRANCE_ENTER_4(626, 631);
 
             // 下班回家按钮
-            const QRect RECT_BTN_ENTRANCE_HOME(98, 648, 45, 45);
+            const QRect RECT_BTN_ENTRANCE_HOME(98, 648, 50, 50);
             const int ANGLE_BTN_ENTRANCE_HOME = 130;
 
             static const QPolygon POLY_ENTRANCE_ENTER() {
@@ -257,7 +257,7 @@ namespace Config {
             const QRect RECT_LBL_HALLWAY_STATUS(425, 256, 200, 50);
 
             // 返回入口
-            const QRect RECT_BTN_HALLWAY_EXIT(512, 686, 45, 45);
+            const QRect RECT_BTN_HALLWAY_EXIT(512, 686, 50, 50);
             const int ANGLE_BTN_HALLWAY_EXIT = 115;
 
             // 签到/下班
@@ -272,30 +272,30 @@ namespace Config {
             }
 
             // 场景切换箭头
-            const QRect RECT_BTN_HALLWAY_OFFICE(353, 649, 45, 45);
+            const QRect RECT_BTN_HALLWAY_OFFICE(353, 649, 50, 50);
             const int ANGLE_BTN_HALLWAY_OFFICE = 200;
 
-            const QRect RECT_BTN_HALLWAY_WAREHOUSE(663, 474, 45, 45);
+            const QRect RECT_BTN_HALLWAY_WAREHOUSE(663, 474, 50, 50);
             const int ANGLE_BTN_HALLWAY_WAREHOUSE = 270;
 
-            const QRect RECT_BTN_HALLWAY_ELEVATOR(537, 495, 45, 45);
+            const QRect RECT_BTN_HALLWAY_ELEVATOR(537, 495, 50, 50);
             const int ANGLE_BTN_HALLWAY_ELEVATOR = 225;
 
             // --- 3. 办公室 ---
             const QRect RECT_BTN_OFFICE_ACTION(490, 352, 150, 40);
             const QRect RECT_LBL_OFFICE_MSG(425, 256, 300, 50);
-            const QRect RECT_BTN_OFFICE_BACK(297, 665, 45, 45);
+            const QRect RECT_BTN_OFFICE_BACK(297, 665, 50, 50);
             const int ANGLE_BTN_OFFICE_BACK = 120;
 
             // --- 4. 仓库入口 ---
             const QRect RECT_BTN_WAREHOUSE_TAKE(161, 346, 150, 40);
-            const QRect RECT_BTN_WAREHOUSE_BACK(419, 674, 45, 45);
+            const QRect RECT_BTN_WAREHOUSE_BACK(419, 674, 50, 50);
             const int ANGLE_BTN_WAREHOUSE_BACK = 120;
             // 脏布草回收桶 (新增)
-            const QRect RECT_WAREHOUSE_BIN(750, 600, 120, 120);
+            const QRect RECT_WAREHOUSE_BIN(562, 515, 150, 150);
 
             // --- 5. 仓库货架 ---
-            const QRect RECT_BTN_SHELF_BACK(91, 680, 45, 45);
+            const QRect RECT_BTN_SHELF_BACK(91, 680, 50, 50);
             const int ANGLE_BTN_SHELF_BACK = 180;
 
             // 货架物品区域
@@ -308,24 +308,24 @@ namespace Config {
 
             // --- 6. 电梯厅 ---
             const QRect RECT_BTN_ELEVATOR_ENTER(656, 368, 150, 40);
-            const QRect RECT_BTN_ELEVATOR_BACK(139, 650, 45, 45);
+            const QRect RECT_BTN_ELEVATOR_BACK(139, 650, 50, 50);
             const int ANGLE_BTN_ELEVATOR_BACK = 140;
 
             // --- 7. 电梯内 ---
             const QRect RECT_BTN_ELEVATOR_EXIT(447, 340, 150, 40);
 
             // 侧边栏按钮布局
-            const QSize SIZE_ELEVATOR_BTN_SIDEBAR(45, 45);
+            const QSize SIZE_ELEVATOR_BTN_SIDEBAR(50, 50);
             const int GRID_SPACING_ELEVATOR = 10;
 
             // --- 8. 楼层走廊 ---
-            const QRect RECT_BTN_CORRIDOR_LINEN(457, 488, 45, 45);
+            const QRect RECT_BTN_CORRIDOR_LINEN(457, 488, 50, 50);
             const int ANGLE_BTN_CORRIDOR_LINEN = 275;
-            const QRect RECT_BTN_CORRIDOR_ELEVATOR(439, 647, 45, 45);
+            const QRect RECT_BTN_CORRIDOR_ELEVATOR(439, 647, 50, 50);
             const int ANGLE_BTN_CORRIDOR_ELEVATOR = 95;
 
             // --- 9. 布草间 ---
-            const QRect RECT_BTN_LINEN_BACK(308, 682, 45, 45);
+            const QRect RECT_BTN_LINEN_BACK(308, 682, 50, 50);
             const int ANGLE_BTN_LINEN_BACK = 110;
 
             // 紧急任务 脏布草 位置
@@ -347,9 +347,9 @@ namespace Config {
             const QPoint TXT_SHEET(295, 183);
             const QPoint TXT_DUVET(295, 248);
             const QPoint TXT_S_DUVET(295, 310);
-            const QPoint TXT_PILLOW(295, 375);
-            const QPoint TXT_GN_TOWEL(295, 440);
-            const QPoint TXT_TOWEL(295, 500);
+            const QPoint TXT_PILLOW(295, 370);
+            const QPoint TXT_GN_TOWEL(295, 435);
+            const QPoint TXT_TOWEL(295, 490);
         }
     }
 }
