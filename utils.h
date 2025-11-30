@@ -107,9 +107,12 @@ public:
 
 signals:
     void clicked();
+    void hovered(bool status, QString text);
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
+    void enterEvent(QEnterEvent *event) override;
+    void leaveEvent(QEvent *event) override;
     void paintEvent(QPaintEvent *event) override; // For debug drawing if needed
 
 private:
@@ -130,9 +133,17 @@ public:
     // Set whether the item can be dragged (taken) from this shelf
     void setDraggable(bool enabled);
 
+    // Set explicit source type for drag
+    void setSourceType(const QString &type) { m_sourceType = type; }
+
+signals:
+    void hovered(bool status, QString text);
+
 protected:
     // Drag Source Logic (Taking item)
     void mousePressEvent(QMouseEvent *event) override;
+    void enterEvent(QEnterEvent *event) override;
+    void leaveEvent(QEvent *event) override;
 
     // Drop Target Logic (Putting item back)
     void dragEnterEvent(QDragEnterEvent *event) override;
@@ -140,6 +151,7 @@ protected:
 
 private:
     QString m_itemName;
+    QString m_sourceType;
     bool m_isDraggable;
 };
 
@@ -157,8 +169,13 @@ public:
     void setColor(const QColor &color);
     void setArrowText(const QString &text);
 
+signals:
+    void hovered(bool status, QString text);
+
 protected:
     void paintEvent(QPaintEvent *event) override;
+    void enterEvent(QEnterEvent *event) override;
+    void leaveEvent(QEvent *event) override;
 
 private:
     int m_angle;

@@ -95,11 +95,13 @@ private:
     // Logic Timers & Flags
     QTimer *latenessTimer;
     bool isLate = false;
+    bool isTimerTriggered = false; // Has the 10s timer been triggered?
     bool isEmergencyActive = false; // Is there an active emergency task?
 
     // UI Elements
     QWidget *rpgCenterPanel;
     QLabel *locationLabel;
+    QLabel *hoverHintLabel; // New Label for Hover Hints
     QLabel *cartStatusLabel;
     QListWidget *taskListWidget;
 
@@ -143,7 +145,7 @@ private:
     int getNormalRandom(int min, int max);
 
     // Interaction Handlers
-    void handleInventoryDrop(QString itemName); // From Scene to Cart (Take)
+    void handleInventoryDrop(QString itemName, const QMimeData *mimeData = nullptr); // From Scene to Cart (Take)
     void handleSceneDrop(QString itemName, bool isWarehouse); // From Cart to Scene (Put)
 
     void handleLoadCart();
