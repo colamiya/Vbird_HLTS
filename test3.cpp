@@ -1,4 +1,5 @@
 #include "test3.h"
+#include "tutorial_overlay.h"
 #include <QBoxLayout>
 #include <QPainter>
 #include <QMouseEvent>
@@ -1237,10 +1238,18 @@ void Test3::showTutorial() {
     if (tutorialBtn) tutorialBtn->setEnabled(false);
 
     // 使用自定义 Widget 覆盖在 Test3 (this) 上，以覆盖整个程序
-    QWidget *overlay = new QWidget(this);
+    TutorialOverlay *overlay = new TutorialOverlay(this);
     overlay->setGeometry(this->rect()); // 全屏覆盖
     overlay->setStyleSheet("background-color: rgba(0, 0, 0, 0.5);");
-    overlay->setAttribute(Qt::WA_DeleteOnClose);
+    // 监听 destroyed 信号以恢复按钮状态
+    connect(overlay, &QObject::destroyed, [this]() {
+        if (tutorialBtn) tutorialBtn->setEnabled(true);
+    });
+
+    // 使用布局使内容框垂直居中
+    QVBoxLayout *layout = new QVBoxLayout(overlay);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setAlignment(Qt::AlignCenter);
 
     // 使用布局使内容框垂直居中
     QVBoxLayout *layout = new QVBoxLayout(overlay);
@@ -1253,18 +1262,6 @@ void Test3::showTutorial() {
     contentBox->setStyleSheet("background-color: rgba(0, 0, 0, 0.85); border-radius: 12px; border: 2px solid white;");
 
     layout->addWidget(contentBox);
-
-    QPushButton *closeBtn = new QPushButton("X", contentBox);
-    closeBtn->setGeometry(Config::Test3::Geometry::RECT_BTN_TUTORIAL_CLOSE);
-    closeBtn->setStyleSheet("color: white; font-size: 30px; border: none; font-weight: bold; background: transparent;");
-    closeBtn->setCursor(Qt::PointingHandCursor);
-    connect(closeBtn, &QPushButton::clicked, [overlay, this]() {
-        overlay->close();
-        if (tutorialBtn) tutorialBtn->setEnabled(true);
-    });
-
-    // 点击背景也能关闭
-    // 简单的做法是覆盖一个大的透明按钮在背景层，但这里只要有按钮就行
 
     // 确定文本内容
     QString tutorialText = Config::Test3::Texts::TUTORIAL_GENERAL;
