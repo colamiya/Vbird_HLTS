@@ -235,6 +235,7 @@ namespace Config {
             const QRect RECT_TUTORIAL_OVERLAY(0, 0, 1336, 720); // 覆盖整个程序 (Test3)
             const QRect RECT_TUTORIAL_IMAGE(118, 50, 1100, 450); // 蒙版内的图片位置 (扩大)
             const QRect RECT_TUTORIAL_TEXT(118, 520, 1100, 150); // 蒙版内的文字位置
+            const QRect RECT_BTN_TUTORIAL_CLOSE(1240, 15, 40, 40); // 教程关闭按钮 (x, y, w, h)
 
             // --- 1. 入口场景 ---
             const QPoint PT_ENTRANCE_ENTER_1(625, 307);
