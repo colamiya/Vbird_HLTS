@@ -14,12 +14,12 @@
 #include <QPushButton>
 #include <functional>
 
-// --- Helper Functions ---
+// --- 辅助函数 (Helper Functions) ---
 
 /**
- * @brief Sets the geometry of a widget based on its center point.
- * @param widget The widget to position.
- * @param rect A QRect where x, y are the CENTER coordinates, and width, height are dimensions.
+ * @brief 根据中心点设置控件几何形状
+ * @param widget 要定位的控件
+ * @param rect QRect，其中 x, y 为中心坐标，width, height 为尺寸
  */
 inline void setGeometryCentered(QWidget *widget, const QRect &rect) {
     if (!widget) return;
@@ -31,12 +31,12 @@ inline void setGeometryCentered(QWidget *widget, const QRect &rect) {
 }
 
 /**
- * @brief Sets the geometry of a widget based on its center point.
- * @param widget The widget to position.
- * @param centerX Center X coordinate.
- * @param centerY Center Y coordinate.
- * @param w Width.
- * @param h Height.
+ * @brief 根据中心点设置控件几何形状
+ * @param widget 要定位的控件
+ * @param centerX 中心 X 坐标
+ * @param centerY 中心 Y 坐标
+ * @param w 宽度
+ * @param h 高度
  */
 inline void setGeometryCentered(QWidget *widget, int centerX, int centerY, int w, int h) {
     if (!widget) return;
@@ -44,8 +44,8 @@ inline void setGeometryCentered(QWidget *widget, int centerX, int centerY, int w
 }
 
 
-// A label that initiates a drag operation (Source)
-// Used in Warehouse to drag items FROM the shelf TO the cart
+// 拖拽源标签 (Drag Source Label)
+// 用于仓库中从货架拖拽物品到推车
 class DragSourceLabel : public QLabel {
     Q_OBJECT
 public:
@@ -58,8 +58,8 @@ private:
     QString m_itemName;
 };
 
-// A label that accepts drops (Target)
-// Used in Linen Room to drag items FROM the cart TO the shelf
+// 放置目标标签 (Drop Label)
+// 用于布草间从推车拖拽物品到货架
 class DropLabel : public QLabel {
     Q_OBJECT
 public:
@@ -72,38 +72,37 @@ protected:
     void dropEvent(QDropEvent *event) override;
 };
 
-// A ListWidget that allows dragging items OUT (Source) and dropping items IN (Target)
-// Used for the Cart Inventory
+// 可拖拽列表控件 (Draggable List Widget)
+// 用于推车库存，支持拖出 (Source) 和拖入 (Target)
 class DraggableListWidget : public QListWidget {
     Q_OBJECT
 public:
     DraggableListWidget(QWidget *parent = nullptr);
 
-    // Signal when something is dropped INTO the list
+    // 当物品被拖入时触发的回调
     std::function<void(QString)> onItemDroppedIn;
 
 protected:
-    // Handle Dragging OUT
+    // 处理拖拽开始 (拖出)
     void startDrag(Qt::DropActions supportedActions) override;
 
-    // Handle Dropping IN (From Warehouse)
+    // 处理拖入 (来自仓库)
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dragMoveEvent(QDragMoveEvent *event) override;
     void dropEvent(QDropEvent *event) override;
 };
 
 /**
- * @brief Transparent Clickable Area defined by a Polygon
- * Used for irregular buttons like "Enter Hotel".
+ * @brief 由多边形定义的透明可点击区域
+ * 用于不规则按钮，如“进入酒店”
  */
 class ClickableArea : public QWidget {
     Q_OBJECT
 public:
     ClickableArea(QWidget *parent = nullptr);
 
-    // Set the hit area polygon (in local coordinates if possible, or assume widget covers area)
-    // To make it simple: The widget will be large (covering the bounding rect),
-    // and this polygon defines the click region relative to the widget's TopLeft.
+    // 设置点击区域多边形 (建议使用局部坐标，或者控件覆盖整个区域)
+    // 简单做法: 控件覆盖整个边界矩形，此多边形定义相对于控件左上角的点击区域
     void setPolygon(const QPolygon &poly);
 
 signals:
@@ -114,39 +113,39 @@ protected:
     void mousePressEvent(QMouseEvent *event) override;
     void enterEvent(QEnterEvent *event) override;
     void leaveEvent(QEvent *event) override;
-    void paintEvent(QPaintEvent *event) override; // For debug drawing if needed
+    void paintEvent(QPaintEvent *event) override; // 用于调试绘制
 
 private:
     QPolygon m_poly;
 };
 
 /**
- * @brief Helper: Combined Widget for Warehouse Shelf (Source + Target)
- * Allows Dragging FROM it (Source) AND Dropping ONTO it (Target)
+ * @brief 辅助类: 仓库货架组合控件 (Source + Target)
+ * 允许从中拖拽 (Source) 并且允许放置到上面 (Target)
  */
 class ShelfArea : public QLabel {
     Q_OBJECT
 public:
     ShelfArea(const QString &itemName, QWidget *parent = nullptr);
 
-    std::function<void(QString)> onDropCallback; // When something is put back here
+    std::function<void(QString)> onDropCallback; // 当物品被放回此处时回调
 
-    // Set whether the item can be dragged (taken) from this shelf
+    // 设置是否可以从该货架拖拽 (拿取)
     void setDraggable(bool enabled);
 
-    // Set explicit source type for drag
+    // 设置显式拖拽源类型
     void setSourceType(const QString &type) { m_sourceType = type; }
 
 signals:
     void hovered(bool status, QString text);
 
 protected:
-    // Drag Source Logic (Taking item)
+    // 拖拽源逻辑 (拿取物品)
     void mousePressEvent(QMouseEvent *event) override;
     void enterEvent(QEnterEvent *event) override;
     void leaveEvent(QEvent *event) override;
 
-    // Drop Target Logic (Putting item back)
+    // 放置目标逻辑 (放回物品)
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dropEvent(QDropEvent *event) override;
 
@@ -157,21 +156,21 @@ private:
 };
 
 /**
- * @brief Custom Arrow Button
- * Draws an arrow shape pointing in a direction + Text at the tail.
+ * @brief 自定义箭头按钮
+ * 绘制指向特定方向的箭头 + 尾部文本
  */
 class ArrowButton : public QPushButton {
     Q_OBJECT
 public:
     ArrowButton(QWidget *parent = nullptr);
 
-    // Set properties
-    void setAngle(int degrees); // 0=Right, 90=Down, 180=Left, 270=Up
+    // 设置属性
+    void setAngle(int degrees); // 0=右, 90=下, 180=左, 270=上
     void setColor(const QColor &color);
     void setArrowText(const QString &text);
     void setArrowTextSize(int size);
 
-    // Override hitButton to restrict clicks to the arrow shape
+    // 重写 hitButton 以限制点击区域仅为箭头形状
     bool hitButton(const QPoint &pos) const override;
 
 signals:
@@ -188,7 +187,7 @@ private:
     QString m_text;
     int m_textSize;
 
-    // Stores the clickable arrow shape from the last paint event
+    // 存储上一次绘制的点击区域路径
     QPainterPath m_hitPath;
 };
 

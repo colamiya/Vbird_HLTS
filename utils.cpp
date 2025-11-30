@@ -4,12 +4,12 @@
 #include <QPainterPath>
 #include <QtMath> // Required for qDegreesToRadians, qCos, qSin
 
-// --- DragSourceLabel ---
+// --- 拖拽源标签 (DragSourceLabel) ---
 DragSourceLabel::DragSourceLabel(const QString &itemName, QWidget *parent)
     : QLabel(parent), m_itemName(itemName) {
-    // Transparent style for overlay
+    // 透明样式作为叠加层
     setStyleSheet("background-color: rgba(255, 255, 255, 0.1); border: 1px dashed rgba(255,255,255,0.5);");
-    setCursor(Qt::PointingHandCursor); // Changed to PointingHand
+    setCursor(Qt::PointingHandCursor); // 改为手型光标
     setToolTip("拖拽 " + itemName);
 }
 
@@ -26,11 +26,11 @@ void DragSourceLabel::mousePressEvent(QMouseEvent *event) {
         painter.drawText(pixmap.rect(), Qt::AlignCenter, m_itemName);
         drag->setPixmap(pixmap);
 
-        drag->exec(Qt::CopyAction); // Copy because the source (shelf) has infinite supply
+        drag->exec(Qt::CopyAction); // 使用 CopyAction 因为源 (货架) 是无限供应的
     }
 }
 
-// --- DropLabel ---
+// --- 放置目标标签 (DropLabel) ---
 DropLabel::DropLabel(const QString &text, QWidget *parent) : QLabel(text, parent) {
     setAcceptDrops(true);
     setAlignment(Qt::AlignCenter);
@@ -60,21 +60,21 @@ void DropLabel::dropEvent(QDropEvent *event) {
     }
 }
 
-// --- DraggableListWidget ---
+// --- 可拖拽列表控件 (DraggableListWidget) ---
 DraggableListWidget::DraggableListWidget(QWidget *parent) : QListWidget(parent) {
     setDragEnabled(true);
-    setAcceptDrops(true); // Now also accepts drops (from Warehouse)
+    setAcceptDrops(true); // 现在也接受拖入 (来自仓库)
     setDropIndicatorShown(true);
     setDragDropMode(QAbstractItemView::DragDrop);
-    setDefaultDropAction(Qt::CopyAction); // Default to copy
-    setCursor(Qt::PointingHandCursor); // Set cursor
+    setDefaultDropAction(Qt::CopyAction); // 默认为复制
+    setCursor(Qt::PointingHandCursor); // 设置光标
 }
 
 void DraggableListWidget::startDrag(Qt::DropActions supportedActions) {
     QListWidgetItem *item = currentItem();
     if (item) {
         QMimeData *mimeData = new QMimeData;
-        mimeData->setText(item->data(Qt::UserRole).toString()); // Item type
+        mimeData->setText(item->data(Qt::UserRole).toString()); // 物品类型
 
         QDrag *drag = new QDrag(this);
         drag->setMimeData(mimeData);
@@ -110,19 +110,19 @@ void DraggableListWidget::dragMoveEvent(QDragMoveEvent *event) {
 
 void DraggableListWidget::dropEvent(QDropEvent *event) {
     if (event->source() != this && event->mimeData()->hasText()) {
-        // Drop from external source (Warehouse)
+        // 从外部源 (仓库) 拖入
         QString text = event->mimeData()->text();
         if (onItemDroppedIn) {
             onItemDroppedIn(text);
         }
         event->acceptProposedAction();
     } else {
-        // Internal reordering or invalid
+        // 内部排序或无效
         QListWidget::dropEvent(event);
     }
 }
 
-// --- ClickableArea ---
+// --- 可点击区域 (ClickableArea) ---
 ClickableArea::ClickableArea(QWidget *parent) : QWidget(parent) {
     setCursor(Qt::PointingHandCursor);
     setAttribute(Qt::WA_TranslucentBackground);
@@ -130,22 +130,22 @@ ClickableArea::ClickableArea(QWidget *parent) : QWidget(parent) {
 
 void ClickableArea::setPolygon(const QPolygon &poly) {
     m_poly = poly;
-    qDebug() << "ClickableArea::setPolygon points:" << poly.count(); // Debug Log
-    // Apply Mask to restrict mouse events strictly to the polygon
+    qDebug() << "ClickableArea::setPolygon points:" << poly.count(); // 调试日志
+    // 应用遮罩以限制鼠标事件仅在多边形内
     setMask(m_poly);
 }
 
 void ClickableArea::mousePressEvent(QMouseEvent *event) {
-    // With setMask, we only get events inside the polygon.
-    // So we can unconditionally accept and emit.
+    // 设置遮罩后，我们只接收多边形内的事件
+    // 因此我们可以无条件接受并发出信号
     emit clicked();
 
-    // Allow event to propagate for Dev Mode tracking in parent filter
+    // 允许事件传播以便在父级过滤器中进行 Dev Mode 跟踪
     event->ignore();
 }
 
 void ClickableArea::enterEvent(QEnterEvent *event) {
-    qDebug() << "ClickableArea::enterEvent:" << toolTip(); // Debug Log
+    qDebug() << "ClickableArea::enterEvent:" << toolTip(); // 调试日志
     emit hovered(true, toolTip());
     QWidget::enterEvent(event);
 }
@@ -156,16 +156,16 @@ void ClickableArea::leaveEvent(QEvent *event) {
 }
 
 void ClickableArea::paintEvent(QPaintEvent *) {
-    // Invisible by default.
+    // 默认不可见
 }
 
-// --- ShelfArea ---
+// --- 货架区域 (ShelfArea) ---
 ShelfArea::ShelfArea(const QString &itemName, QWidget *parent)
     : QLabel(parent), m_itemName(itemName), m_isDraggable(true) {
-    setAcceptDrops(true); // Target
-    // Style
+    setAcceptDrops(true); // 目标
+    // 样式
     setStyleSheet("background-color: rgba(255, 255, 255, 0.1); border: 1px dashed rgba(255,255,255,0.5);");
-    setCursor(Qt::PointingHandCursor); // Default draggable
+    setCursor(Qt::PointingHandCursor); // 默认可拖拽
     setToolTip(itemName);
 }
 
@@ -179,7 +179,7 @@ void ShelfArea::setDraggable(bool enabled) {
 }
 
 void ShelfArea::mousePressEvent(QMouseEvent *event) {
-    // Only allow drag if explicitly draggable
+    // 仅当显式可拖拽时允许拖动
     if (!m_isDraggable) return;
 
     if (event->button() == Qt::LeftButton) {
@@ -218,7 +218,7 @@ void ShelfArea::dragEnterEvent(QDragEnterEvent *event) {
 }
 
 void ShelfArea::dropEvent(QDropEvent *event) {
-    // Prevent self-drop (dragging from shelf and dropping back on shelf) from triggering logic
+    // 防止自我放置 (从货架拖拽并放回货架) 触发逻辑
     if (event->source() == this) {
         event->ignore();
         return;
@@ -233,12 +233,12 @@ void ShelfArea::dropEvent(QDropEvent *event) {
     }
 }
 
-// --- ArrowButton ---
+// --- 箭头按钮 (ArrowButton) ---
 ArrowButton::ArrowButton(QWidget *parent)
     : QPushButton(parent), m_angle(0), m_color(Qt::blue), m_textSize(14)
 {
     setCursor(Qt::PointingHandCursor);
-    // Remove default button styling so we can paint freely
+    // 移除默认按钮样式以便自由绘制
     setFlat(true);
     setStyleSheet("background: transparent; border: none;");
 }
@@ -264,11 +264,11 @@ void ArrowButton::setArrowTextSize(int size) {
 }
 
 bool ArrowButton::hitButton(const QPoint &pos) const {
-    // If we have a path from the last paint event, use it.
-    // However, m_hitPath is updated in paintEvent which happens asynchronously.
-    // For a static UI, this is usually fine.
-    // If m_hitPath is empty (not painted yet), default to standard rect check (true)
-    // to avoid unclickable buttons on first frame if paint hasn't run.
+    // 如果有上一次绘制的路径，使用它
+    // m_hitPath 在 paintEvent 中更新，异步发生
+    // 对于静态UI这通常没问题
+    // 如果 m_hitPath 为空 (尚未绘制)，默认为标准矩形检查 (true)
+    // 以避免首帧未绘制时按钮不可点击
     if (m_hitPath.isEmpty()) return QPushButton::hitButton(pos);
 
     return m_hitPath.contains(pos);
@@ -285,7 +285,7 @@ void ArrowButton::leaveEvent(QEvent *event) {
 }
 
 void ArrowButton::paintEvent(QPaintEvent *) {
-    // Debug Log (Throttled to first run per instance to avoid spam)
+    // 调试日志 (每个实例仅限首次运行以避免刷屏)
     if (m_angle == 0 && m_text.isEmpty()) {
         qDebug() << "ArrowButton painting with default/empty state (potential issue)";
     }
@@ -297,61 +297,56 @@ void ArrowButton::paintEvent(QPaintEvent *) {
     }
 
     QPainter p(this);
-    if (!p.isActive()) return; // Safety check
+    if (!p.isActive()) return; // 安全检查
 
     p.setRenderHint(QPainter::Antialiasing);
 
-    // Calculate Arrow Geometry
+    // 计算箭头几何形状
     int w = width();
     int h = height();
-    if (w <= 0 || h <= 0) return; // Skip invalid geometry
+    if (w <= 0 || h <= 0) return; // 跳过无效几何
 
     int cx = w / 2;
     int cy = h / 2;
 
-    // Save state
+    // 保存状态
     p.save();
 
-    // Translate to center and rotate
+    // 平移到中心并旋转
     p.translate(cx, cy);
     p.rotate(m_angle);
 
-    // Define Arrow Shape (Pointing Right at 0 degrees)
-    // Adjust size based on widget size. Let's assume a standard arrow size.
-    // We want the arrow to fit within the widget but leave space for text?
-    // Actually, text is drawn separately. The Arrow Shape is what we want to be clickable.
-    // Let's define the arrow size relative to the widget but keeping it reasonable.
-    // If widget is huge (200x80) to fit text, arrow shouldn't stretch to fill all of it.
-    // Let's use a fixed "Icon Size" concept or cap it?
-    // For now, let's stick to the previous logic but maybe cap the size if it's too big?
-    // Or, use the minimum dimension to define arrow scale.
+    // 定义箭头形状 (0度时向右)
+    // 根据控件尺寸调整大小
+    // 如果控件很大 (200x80) 以容纳文本，箭头不应拉伸填满
+    // 使用最小维度来定义箭头比例
     int arrowLen = qMin(w, h) * 0.8;
-    // But if w=200, h=80 (rectangular), qMin is 80. arrowLen = 64.
-    // This is a reasonable size for the arrow icon.
+    // 如果 w=200, h=80 (矩形)，qMin 为 80，arrowLen 为 64
+    // 这是一个合理的箭头图标大小
 
     int headLen = arrowLen * 0.4;
     int shaftThick = arrowLen * 0.3;
 
     QPainterPath path;
-    // Tip
+    // 尖端
     path.moveTo(arrowLen / 2, 0);
-    // Top Wing
+    // 上翼
     path.lineTo(arrowLen / 2 - headLen, -arrowLen / 2 * 0.5);
-    // Shaft Top
+    // 轴上部
     path.lineTo(arrowLen / 2 - headLen, -shaftThick / 2);
-    // Shaft Tail Top
+    // 轴尾上部
     path.lineTo(-arrowLen / 2, -shaftThick / 2);
-    // Shaft Tail Bottom
+    // 轴尾下部
     path.lineTo(-arrowLen / 2, shaftThick / 2);
-    // Shaft Bottom
+    // 轴下部
     path.lineTo(arrowLen / 2 - headLen, shaftThick / 2);
-    // Bottom Wing
+    // 下翼
     path.lineTo(arrowLen / 2 - headLen, arrowLen / 2 * 0.5);
-    // Close to Tip
+    // 闭合
     path.closeSubpath();
 
-    // Use Red Pen (Stroke) and Transparent Brush
-    QPen pen(Qt::red); // Default Red Border
+    // 使用红笔 (描边) 和透明画刷
+    QPen pen(Qt::red); // 默认红框
     pen.setWidth(3);
     pen.setJoinStyle(Qt::RoundJoin);
     p.setPen(pen);
@@ -359,10 +354,10 @@ void ArrowButton::paintEvent(QPaintEvent *) {
 
     p.drawPath(path);
 
-    // Store Hit Path
-    // The path is currently in rotated coordinates (0,0 at center).
-    // We need to map it back to widget coordinates for hitButton.
-    // Transform: Translate(cx, cy) * Rotate(angle)
+    // 存储点击区域路径
+    // 路径当前在旋转坐标系中 (中心为0,0)
+    // 需要将其映射回控件坐标以用于 hitButton
+    // 变换: Translate(cx, cy) * Rotate(angle)
     QTransform transform;
     transform.translate(cx, cy);
     transform.rotate(m_angle);
@@ -370,32 +365,29 @@ void ArrowButton::paintEvent(QPaintEvent *) {
 
     p.restore();
 
-    // Draw Text - At the "Tail"
-    // To ensure text is upright, we calculate the tail position in unrotated coords
+    // 绘制文本 - 在“尾部”
+    // 为确保文本直立，计算非旋转坐标中的尾部位置
 
-    // Convert polar to cartesian to find tail center
-    // Tail is at -arrowLen/2 relative to center, rotated by angle
+    // 将极坐标转换为笛卡尔坐标以找到尾部中心
+    // 尾部位于相对于中心的 -arrowLen/2 处，旋转 angle
     double radians = qDegreesToRadians((double)m_angle);
-    // Tail offset (backwards from direction)
-    double tailDist = arrowLen / 2.0 + 10.0; // Extra padding
+    // 尾部偏移 (反向)
+    double tailDist = arrowLen / 2.0 + 10.0; // 额外间距
     double tx = cx - tailDist * qCos(radians);
     double ty = cy - tailDist * qSin(radians);
 
-    // Define text alignment based on angle
+    // 定义对齐方式
     int flags = Qt::AlignCenter;
-    // Refined logic for text placement relative to tail
-    // If Angle is 0 (Right) -> Tail is Left -> Text should be Right Aligned (left of tail)? No, text at Left.
-    // Ideally, center the text rect at (tx, ty) but apply alignment.
 
-    // Let's create a bounding rect around (tx, ty)
+    // 创建围绕 (tx, ty) 的边界矩形
     int txtW = 200;
     int txtH = 50;
     QRect txtRect(tx - txtW/2, ty - txtH/2, txtW, txtH);
 
-    p.setPen(m_color); // Use user configured color (defaults to black/blue?)
+    p.setPen(m_color); // 使用用户配置的颜色
     QFont f = font();
     f.setBold(true);
-    f.setPointSize(m_textSize); // Use Configured Size
+    f.setPointSize(m_textSize); // 使用配置尺寸
     p.setFont(f);
 
     p.drawText(txtRect, flags, m_text);
