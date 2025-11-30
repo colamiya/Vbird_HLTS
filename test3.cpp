@@ -1261,7 +1261,7 @@ void Test3::showTaskSheet(int taskIndex) {
         painter.drawText(rect, Qt::AlignCenter, text);
     };
 
-    drawCenteredText(Config::Test3::Geometry::TXT_FLOOR, QString::number(t.targetFloor));
+    drawCenteredText(Config::Test3::Geometry::TXT_FLOOR, QString::number(tPtr->targetFloor));
 
     QMap<QString, QPoint> itemCoords;
     itemCoords["大床单"] = Config::Test3::Geometry::TXT_SHEET;
