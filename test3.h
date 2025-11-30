@@ -162,6 +162,9 @@ private:
     void handleInventoryDrop(QString itemName, const QMimeData *mimeData = nullptr); // 拿取 (货架->车)
     void handleSceneDrop(QString itemName, bool isWarehouse); // 放置 (车->货架)
 
+    // 新手教程
+    void showTutorial();
+
     // 生成占位图
     QPixmap generatePlaceholder(QString text, QColor color, QSize size);
 };
