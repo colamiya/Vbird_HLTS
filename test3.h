@@ -114,6 +114,7 @@ private:
 
     // UI 元素
     QWidget *rpgCenterPanel;
+    QPushButton *tutorialBtn; // 新手教程按钮
     QLabel *locationLabel;
     QLabel *hoverHintLabel;
     QLabel *cartStatusLabel;

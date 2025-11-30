@@ -93,7 +93,7 @@ namespace Config {
             constexpr const char* LBL_CART_DIRTY = "脏布草";
             constexpr const char* LBL_CART_HAS_ITEMS = "有布草";
             constexpr const char* LBL_CART_EMPTY = "空车";
-            constexpr const char* BTN_TUTORIAL = "新手教程"; // 新增: 新手教程按钮
+            constexpr const char* BTN_TUTORIAL = "小技巧"; // 新增: 新手教程按钮 -> 小技巧
 
             // 返回主菜单按钮
             constexpr const char* BTN_TEXT_BACK_TO_MENU = "返回主界面";
@@ -232,9 +232,9 @@ namespace Config {
             const QRect RECT_HOVER_HINT(220, 35, 400, 50);
 
             // 新手教程蒙版位置与尺寸
-            const QRect RECT_TUTORIAL_OVERLAY(100, 100, 696, 520); // 居中于 Center Panel (896x720)
-            const QRect RECT_TUTORIAL_IMAGE(150, 50, 400, 250); // 蒙版内的图片位置
-            const QRect RECT_TUTORIAL_TEXT(50, 320, 600, 150); // 蒙版内的文字位置
+            const QRect RECT_TUTORIAL_OVERLAY(0, 0, 1336, 720); // 覆盖整个程序 (Test3)
+            const QRect RECT_TUTORIAL_IMAGE(118, 50, 1100, 450); // 蒙版内的图片位置 (扩大)
+            const QRect RECT_TUTORIAL_TEXT(118, 520, 1100, 150); // 蒙版内的文字位置
 
             // --- 1. 入口场景 ---
             const QPoint PT_ENTRANCE_ENTER_1(625, 307);

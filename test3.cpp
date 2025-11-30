@@ -45,7 +45,7 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     });
 
     // 新手教程按钮
-    QPushButton *tutorialBtn = new QPushButton(Config::Test3::Texts::BTN_TUTORIAL);
+    tutorialBtn = new QPushButton(Config::Test3::Texts::BTN_TUTORIAL);
     tutorialBtn->setFixedSize(Config::Test3::Geometry::TUTORIAL_BTN_SIZE);
     tutorialBtn->setStyleSheet(Config::Test3::Styles::BTN_TUTORIAL);
     tutorialBtn->setCursor(Qt::PointingHandCursor);
@@ -1234,9 +1234,11 @@ void Test3::showTaskSheet(int taskIndex) {
 void Test3::showTutorial() {
     emit logMessage("Showing Tutorial for scene: " + QString::number((int)gameState.currentScene));
 
-    // 使用自定义 Widget 覆盖在 rpgCenterPanel 上
-    QWidget *overlay = new QWidget(rpgCenterPanel);
-    overlay->setGeometry(rpgCenterPanel->rect()); // 全屏覆盖
+    if (tutorialBtn) tutorialBtn->setEnabled(false);
+
+    // 使用自定义 Widget 覆盖在 Test3 (this) 上，以覆盖整个程序
+    QWidget *overlay = new QWidget(this);
+    overlay->setGeometry(this->rect()); // 全屏覆盖
     overlay->setStyleSheet("background-color: rgba(0, 0, 0, 0.5);");
     overlay->setAttribute(Qt::WA_DeleteOnClose);
 
@@ -1245,12 +1247,13 @@ void Test3::showTutorial() {
     contentBox->setGeometry(Config::Test3::Geometry::RECT_TUTORIAL_OVERLAY);
     contentBox->setStyleSheet("background-color: rgba(0, 0, 0, 0.85); border-radius: 12px; border: 2px solid white;");
 
-    QPushButton *closeBtn = new QPushButton("×", contentBox);
+    QPushButton *closeBtn = new QPushButton("X", contentBox);
     closeBtn->setGeometry(contentBox->width() - 50, 10, 40, 40);
     closeBtn->setStyleSheet("color: white; font-size: 30px; border: none; font-weight: bold; background: transparent;");
     closeBtn->setCursor(Qt::PointingHandCursor);
-    connect(closeBtn, &QPushButton::clicked, [overlay]() {
+    connect(closeBtn, &QPushButton::clicked, [overlay, this]() {
         overlay->close();
+        if (tutorialBtn) tutorialBtn->setEnabled(true);
     });
 
     // 点击背景也能关闭
