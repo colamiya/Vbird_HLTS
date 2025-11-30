@@ -13,6 +13,7 @@ set(CMAKE_AUTOUIC ON)
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
 set(PROJECT_SOURCES
+    logger.h
     main.cpp
     mainwindow.cpp
     mainwindow.h
