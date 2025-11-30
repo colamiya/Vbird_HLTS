@@ -234,7 +234,9 @@ void ShelfArea::dropEvent(QDropEvent *event) {
 }
 
 // --- ArrowButton ---
-ArrowButton::ArrowButton(QWidget *parent) : QPushButton(parent), m_angle(0), m_color(Qt::blue) {
+ArrowButton::ArrowButton(QWidget *parent)
+    : QPushButton(parent), m_angle(0), m_color(Qt::blue), m_textSize(14)
+{
     setCursor(Qt::PointingHandCursor);
     // Remove default button styling so we can paint freely
     setFlat(true);
@@ -254,6 +256,22 @@ void ArrowButton::setColor(const QColor &color) {
 void ArrowButton::setArrowText(const QString &text) {
     m_text = text;
     update();
+}
+
+void ArrowButton::setArrowTextSize(int size) {
+    m_textSize = size;
+    update();
+}
+
+bool ArrowButton::hitButton(const QPoint &pos) const {
+    // If we have a path from the last paint event, use it.
+    // However, m_hitPath is updated in paintEvent which happens asynchronously.
+    // For a static UI, this is usually fine.
+    // If m_hitPath is empty (not painted yet), default to standard rect check (true)
+    // to avoid unclickable buttons on first frame if paint hasn't run.
+    if (m_hitPath.isEmpty()) return QPushButton::hitButton(pos);
+
+    return m_hitPath.contains(pos);
 }
 
 void ArrowButton::enterEvent(QEnterEvent *event) {
@@ -300,8 +318,17 @@ void ArrowButton::paintEvent(QPaintEvent *) {
 
     // Define Arrow Shape (Pointing Right at 0 degrees)
     // Adjust size based on widget size. Let's assume a standard arrow size.
-    // Length: ~60% of width, Height: ~40% of height
+    // We want the arrow to fit within the widget but leave space for text?
+    // Actually, text is drawn separately. The Arrow Shape is what we want to be clickable.
+    // Let's define the arrow size relative to the widget but keeping it reasonable.
+    // If widget is huge (200x80) to fit text, arrow shouldn't stretch to fill all of it.
+    // Let's use a fixed "Icon Size" concept or cap it?
+    // For now, let's stick to the previous logic but maybe cap the size if it's too big?
+    // Or, use the minimum dimension to define arrow scale.
     int arrowLen = qMin(w, h) * 0.8;
+    // But if w=200, h=80 (rectangular), qMin is 80. arrowLen = 64.
+    // This is a reasonable size for the arrow icon.
+
     int headLen = arrowLen * 0.4;
     int shaftThick = arrowLen * 0.3;
 
@@ -332,6 +359,15 @@ void ArrowButton::paintEvent(QPaintEvent *) {
 
     p.drawPath(path);
 
+    // Store Hit Path
+    // The path is currently in rotated coordinates (0,0 at center).
+    // We need to map it back to widget coordinates for hitButton.
+    // Transform: Translate(cx, cy) * Rotate(angle)
+    QTransform transform;
+    transform.translate(cx, cy);
+    transform.rotate(m_angle);
+    m_hitPath = transform.map(path);
+
     p.restore();
 
     // Draw Text - At the "Tail"
@@ -359,7 +395,7 @@ void ArrowButton::paintEvent(QPaintEvent *) {
     p.setPen(m_color); // Use user configured color (defaults to black/blue?)
     QFont f = font();
     f.setBold(true);
-    f.setPointSize(14); // Make it visible
+    f.setPointSize(m_textSize); // Use Configured Size
     p.setFont(f);
 
     p.drawText(txtRect, flags, m_text);

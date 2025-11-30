@@ -6,6 +6,7 @@
 #include <QDrag>
 #include <QMimeData>
 #include <QPainter>
+#include <QPainterPath>
 #include <QMouseEvent>
 #include <QDragEnterEvent>
 #include <QDropEvent>
@@ -168,6 +169,10 @@ public:
     void setAngle(int degrees); // 0=Right, 90=Down, 180=Left, 270=Up
     void setColor(const QColor &color);
     void setArrowText(const QString &text);
+    void setArrowTextSize(int size);
+
+    // Override hitButton to restrict clicks to the arrow shape
+    bool hitButton(const QPoint &pos) const override;
 
 signals:
     void hovered(bool status, QString text);
@@ -181,6 +186,10 @@ private:
     int m_angle;
     QColor m_color;
     QString m_text;
+    int m_textSize;
+
+    // Stores the clickable arrow shape from the last paint event
+    QPainterPath m_hitPath;
 };
 
 #endif // UTILS_H

@@ -8,6 +8,7 @@
 #include <QPoint>
 #include <QPolygon>
 #include <QVector>
+#include <QFont>
 
 /**
  * @brief 测试3 (RPG 实训) 配置
@@ -22,9 +23,8 @@ namespace Config {
 
         // --- 资源路径 (Images) ---
         namespace Images {
-            // 场景背景图
+            // 场景背景图 (Scene Backgrounds)
             constexpr const char* SCENE_ENTRANCE = ":/source/Test3/入口.jpg";
-            // 走廊状态图
             constexpr const char* SCENE_HALLWAY_NORMAL = ":/source/Test3/走廊-状态2（正常打卡）.jpg";
             constexpr const char* SCENE_HALLWAY_LATE = ":/source/Test3/走廊-状态2（迟到打卡）.jpg";
             constexpr const char* SCENE_HALLWAY_CLOCKED_OUT = ":/source/Test3/走廊-状态3（下班打卡）.jpg";
@@ -37,14 +37,14 @@ namespace Config {
             constexpr const char* SCENE_FLOOR_CORRIDOR = ":/source/Test3/楼层走廊-前.png";
             constexpr const char* SCENE_LINEN_ROOM_EMPTY = ":/source/Test3/布草间-空.jpg";
 
-            // UI 图标
+            // UI 图标 (UI Icons)
             constexpr const char* UI_CART_DIRTY = ":/source/Test3/推车-脏布草.png";
             constexpr const char* UI_CART_CLEAN = ":/source/Test3/推车-布草.png";
             constexpr const char* UI_CART_EMPTY = ":/source/Test3/推车-空.png";
             constexpr const char* UI_DIRTY_LINEN = ":/source/Test3/脏布草.png";
             constexpr const char* UI_TASK_SHEET = ":/source/Test3/申领表.png";
 
-            // 物品对应的图标路径映射 (Key: 物品名, Value: 路径)
+            // 物品对应的图标路径映射 (Item Icons Map)
             static const QMap<QString, QString>& ITEMS() {
                 static const QMap<QString, QString> map = {
                     {"大床单", ":/source/Test3/大床单.png"},
@@ -70,7 +70,7 @@ namespace Config {
 
         // --- 界面文本 (Texts) ---
         namespace Texts {
-            // 侧边栏文本
+            // 侧边栏文本 (Sidebar)
             constexpr const char* LBL_LOCATION_PREFIX = "当前位置:\n";
             constexpr const char* LBL_TASK_TITLE = "当前任务:";
             constexpr const char* BTN_VIEW_TASK_SHEET = "查看申领表";
@@ -80,13 +80,12 @@ namespace Config {
             constexpr const char* LBL_CART_HAS_ITEMS = "有布草";
             constexpr const char* LBL_CART_EMPTY = "空车";
 
-            // 返回主菜单按钮
+            // 返回主菜单按钮 (Return Menu)
             constexpr const char* BTN_TEXT_BACK_TO_MENU = "返回主界面";
 
-            // 场景交互文本
-            // 注意：部分按钮现在使用箭头样式，文本将显示在箭头尾部
-            constexpr const char* BTN_ENTER_HOTEL = "进入酒店"; // 不规则区域，无文本显示(或作为Tooltip)
-            constexpr const char* BTN_GO_HOME = "下班回家";   // 不规则区域
+            // 场景交互文本 (Scene Interactions)
+            constexpr const char* BTN_ENTER_HOTEL = "进入酒店"; // 不规则区域 tooltip
+            // Deleted BTN_GO_HOME as requested
             constexpr const char* TEXT_BTN_ENTRANCE_HOME = "下班回家"; // 箭头按钮文本
 
             constexpr const char* BTN_RETURN_ENTRANCE = "返回入口";
@@ -107,21 +106,21 @@ namespace Config {
             constexpr const char* BTN_GO_ELEVATOR_HALL = "电梯厅";
             constexpr const char* BTN_RETURN_CORRIDOR = "回走廊";
 
-            // 状态/提示文本
+            // 状态/提示文本 (Status/Hints)
             constexpr const char* LBL_CLOCKED_OFF = "已打卡下班";
             constexpr const char* LBL_WORK_REPORTED = "工作已汇报。";
             constexpr const char* BTN_TASK_IN_PROGRESS = "任务进行中...";
             constexpr const char* LBL_DIRTY_LINEN_DRAG = "脏布草";
 
-            // 紧急任务弹窗
+            // 紧急任务弹窗 (Emergency Popup)
             constexpr const char* POPUP_EMERGENCY_MANAGER = "经理：%1楼现在需要马上补充一些布草，你先去%1楼送一下。";
 
-            // 汇报工作与错误反馈
+            // 汇报工作与错误反馈 (Report & Errors)
             constexpr const char* REPORT_SUCCESS = "经理：工作做得很好，流程很规范。";
             constexpr const char* REPORT_ERR_LATE = "经理：你今天迟到了。";
             constexpr const char* REPORT_ERR_PRIORITY = "经理：你怎么不先完成紧急任务？";
             constexpr const char* REPORT_ERR_MISSING_TASK = "经理：还有任务没做完。";
-            // 即使未汇报或未打卡，这些通常是下班后的总结，但如果点击汇报时有其他问题，可以组合显示
+
             constexpr const char* ERR_LOG_LATE_CLOCK = "上班迟到";
             constexpr const char* ERR_LOG_MISSED_PRIORITY = "未优先完成紧急任务";
             constexpr const char* ERR_LOG_NO_REPORT = "下班前未汇报工作";
@@ -130,34 +129,37 @@ namespace Config {
 
         // --- 样式与颜色 (Styles) ---
         namespace Styles {
-            // 侧边栏样式
+            // 侧边栏样式 (Sidebar)
             constexpr const char* SIDEBAR_LEFT = "background-color: #f2f2f7; color: #333333; border-right: 1px solid #d1d1d6;";
             constexpr const char* SIDEBAR_RIGHT = "background-color: #f2f2f7; color: #333333; border-left: 1px solid #d1d1d6;";
             constexpr const char* LBL_TITLE = "font-weight: bold; color: #333333; margin-top: 10px; font-size: 16px;";
 
-            // 任务列表样式
+            // 任务列表样式 (Task List)
             constexpr const char* LIST_WIDGET = "color: #333333; background: white; font-size: 13px; border: 1px solid #d1d1d6; border-radius: 6px;";
 
-            // 按钮特殊颜色
+            // 按钮特殊颜色 (Button Colors)
             constexpr const char* BTN_ORANGE = "background-color: #FF9500; color: white;";
             constexpr const char* BTN_RETURN_MENU = "background-color: #FF3B30; color: white; font-weight: bold; border-radius: 6px;";
+            // 查看申领表按钮样式
+            constexpr const char* BTN_VIEW_TASK_SHEET = "font-size: 12px; padding: 5px;"; // Base style to be combined with color
 
-            // 货架区域样式
+            // 货架区域样式 (Shelf Area)
             constexpr const char* SHELF_AREA = "background-color: #fff; border: 2px dashed #8e8e93; border-radius: 8px;";
 
-            // 提示标签颜色
+            // 提示标签样式 (Hover Hint)
+            constexpr const char* LBL_HOVER_HINT = "color: #E74C3C; font-weight: bold; font-size: 24px; background: rgba(255,255,255,0.8); border-radius: 5px; padding: 5px;";
+
+            // 提示标签颜色 (Success)
             constexpr const char* LBL_SUCCESS_GREEN = "font-size: 18px; color: #34C759; font-weight: bold;";
 
-            // 箭头按钮样式配置
-            // 颜色：箭头颜色
-            constexpr const char* ARROW_COLOR = "#007AFF";
-            constexpr const char* ARROW_TEXT_COLOR = "#333333";
-            const int ARROW_FONT_SIZE = 14;
+            // 箭头按钮样式配置 (Arrow Button)
+            constexpr const char* ARROW_COLOR = "#007AFF";      // 箭头颜色
+            constexpr const char* ARROW_TEXT_COLOR = "#333333"; // 文本颜色
+            const int ARROW_FONT_SIZE = 14;                     // 箭头文本字体大小
+            const int ARROW_TEXT_SIZE = 14;                     // 箭头文本字号 (Duplicate/Rename for clarity)
 
             // --- 独立按钮样式配置 ---
             // 格式: 背景色, 前景色, 边框, 圆角, 字体粗细
-
-            // 不规则按钮不需要样式表，因为是透明的
 
             // 员工通道
             constexpr const char* STYLE_BTN_HALLWAY_EXIT = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";
@@ -175,8 +177,13 @@ namespace Config {
 
         // --- 字体配置 (Fonts) ---
         namespace Fonts {
-            const int SIZE_LINEN_COUNT = 18; // Smaller font size
+            const int SIZE_LINEN_COUNT = 18; // Smaller font size for shelf count
             constexpr const char* COL_LINEN_COUNT = "#FF3B30"; // Red color for visibility
+
+            // Task Sheet Dialog
+            constexpr const char* SHEET_FONT_FAMILY = "Arial";
+            const int SHEET_FONT_SIZE = 16;
+            const int SHEET_FONT_WEIGHT = QFont::Bold;
         }
 
         // --- 坐标与尺寸 (Geometry) ---
@@ -194,6 +201,9 @@ namespace Config {
             const QSize ICON_SHELF_ITEM(90, 90);
             const QSize ICON_DIRTY_DRAG(100, 100);
 
+            // 悬浮提示位置 (Hover Hint)
+            const QRect RECT_HOVER_HINT(448, 45, 500, 50); // Centered horizontally (896/2=448)
+
             // --- 1. 入口场景 (Entrance) - 不规则区域 ---
             // 定义4个点的坐标 (相对于 896x720 区域)
             // Enter Hotel Area
@@ -203,7 +213,8 @@ namespace Config {
             const QPoint PT_ENTRANCE_ENTER_4(626, 631);
 
             // Go Home Button (Arrow)
-            const QRect RECT_BTN_ENTRANCE_HOME(261, 655, 100, 50); // Default position
+            // Increased size for text visibility
+            const QRect RECT_BTN_ENTRANCE_HOME(261, 655, 200, 80);
             const int ANGLE_BTN_ENTRANCE_HOME = 110;
 
             // Helper to get Polygons
@@ -217,8 +228,10 @@ namespace Config {
             const QRect RECT_LBL_HALLWAY_STATUS(425, 256, 200, 50);   // 状态标签
 
             // 箭头按钮配置: 中心点(Rect), 箭头角度(0=右, 90=下, 180=左, 270=上), 箭头长度
+            // Increased sizes significantly to allow text display without clipping
+
             // 返回入口
-            const QRect RECT_BTN_HALLWAY_EXIT(512, 686, 150, 50);
+            const QRect RECT_BTN_HALLWAY_EXIT(512, 686, 200, 80);
             const int ANGLE_BTN_HALLWAY_EXIT = 110;
 
             // 签到/下班 (也是不规则区域)
@@ -233,28 +246,29 @@ namespace Config {
             }
 
             // 场景切换箭头
-            const QRect RECT_BTN_HALLWAY_OFFICE(271, 307, 50, 50);   // 去办公室
-            const int ANGLE_BTN_HALLWAY_OFFICE = 270; // 向上偏左? or just Up
+            // Increased sizes from 50x50 to 150x100 or similar
+            const QRect RECT_BTN_HALLWAY_OFFICE(271, 307, 150, 100);   // 去办公室
+            const int ANGLE_BTN_HALLWAY_OFFICE = 270;
 
-            const QRect RECT_BTN_HALLWAY_WAREHOUSE(663, 474, 50, 50);// 去仓库
-            const int ANGLE_BTN_HALLWAY_WAREHOUSE = 270; // 右
+            const QRect RECT_BTN_HALLWAY_WAREHOUSE(663, 474, 150, 100);// 去仓库
+            const int ANGLE_BTN_HALLWAY_WAREHOUSE = 270;
 
-            const QRect RECT_BTN_HALLWAY_ELEVATOR(537, 495, 50, 50); // 去电梯
+            const QRect RECT_BTN_HALLWAY_ELEVATOR(537, 495, 150, 100); // 去电梯
             const int ANGLE_BTN_HALLWAY_ELEVATOR = 225;
 
             // --- 3. 办公室 (Office) ---
             const QRect RECT_BTN_OFFICE_ACTION(490, 352, 150, 40);    // 汇报/领任务 (普通按钮)
             const QRect RECT_LBL_OFFICE_MSG(425, 256, 300, 50);       // 消息提示
-            const QRect RECT_BTN_OFFICE_BACK(297, 665, 50, 50);      // 返回通道 (箭头)
+            const QRect RECT_BTN_OFFICE_BACK(297, 665, 150, 100);      // 返回通道 (箭头)
             const int ANGLE_BTN_OFFICE_BACK = 110;
 
             // --- 4. 仓库入口 (Warehouse Entry) ---
             const QRect RECT_BTN_WAREHOUSE_TAKE(541, 357, 150, 40);   // 拿取布草
-            const QRect RECT_BTN_WAREHOUSE_BACK(419, 674, 50, 50);   // 返回通道 (箭头)
+            const QRect RECT_BTN_WAREHOUSE_BACK(419, 674, 150, 100);   // 返回通道 (箭头)
             const int ANGLE_BTN_WAREHOUSE_BACK = 110;
 
             // --- 5. 仓库货架 (Warehouse Shelf) ---
-            const QRect RECT_BTN_SHELF_BACK(201, 688, 50, 50);       // 返回仓库入口 (箭头)
+            const QRect RECT_BTN_SHELF_BACK(201, 688, 150, 100);       // 返回仓库入口 (箭头)
             const int ANGLE_BTN_SHELF_BACK = 110;
 
             // 货架物品区域 (中心坐标) - 保持不变
@@ -267,7 +281,7 @@ namespace Config {
 
             // --- 6. 电梯厅 (Elevator Hall) ---
             const QRect RECT_BTN_ELEVATOR_ENTER(656, 368, 150, 40);  // 进入电梯
-            const QRect RECT_BTN_ELEVATOR_BACK(186, 655, 50, 50);    // 返回 (箭头)
+            const QRect RECT_BTN_ELEVATOR_BACK(186, 655, 150, 100);    // 返回 (箭头)
             const int ANGLE_BTN_ELEVATOR_BACK = 120;
 
             // --- 7. 电梯内 (Elevator Inside) ---
@@ -278,13 +292,13 @@ namespace Config {
             const int GRID_SPACING_ELEVATOR = 10;
 
             // --- 8. 楼层走廊 (Floor Corridor) ---
-            const QRect RECT_BTN_CORRIDOR_LINEN(457, 488, 50, 50);    // 去布草间 (箭头)
+            const QRect RECT_BTN_CORRIDOR_LINEN(457, 488, 150, 100);    // 去布草间 (箭头)
             const int ANGLE_BTN_CORRIDOR_LINEN = 280;
-            const QRect RECT_BTN_CORRIDOR_ELEVATOR(439, 647, 50, 50); // 去电梯厅 (箭头)
+            const QRect RECT_BTN_CORRIDOR_ELEVATOR(439, 647, 150, 100); // 去电梯厅 (箭头)
             const int ANGLE_BTN_CORRIDOR_ELEVATOR = 100;
 
             // --- 9. 布草间 (Linen Room) ---
-            const QRect RECT_BTN_LINEN_BACK(308, 682, 50, 50);         // 返回走廊 (箭头)
+            const QRect RECT_BTN_LINEN_BACK(308, 682, 150, 100);         // 返回走廊 (箭头)
             const int ANGLE_BTN_LINEN_BACK = 110;
 
             // 紧急任务 脏布草 (Event B) 位置配置
@@ -298,8 +312,9 @@ namespace Config {
             const QRect AREA_LINEN_GN_TOWEL(350, 360, 120, 120); //晚安巾
             const QRect AREA_LINEN_TOWEL(600, 185, 120, 120);    //毛巾
 
-            // 申领表弹窗
+            // 申领表弹窗 (Task Sheet Dialog)
             const QSize SHEET_DIALOG(600, 560);
+            const QSize SHEET_TEXT_BOX(100, 50); // Text box size for items
             const QPoint TXT_FLOOR(190, 50);
 
             const QPoint TXT_SHEET(295, 185);
