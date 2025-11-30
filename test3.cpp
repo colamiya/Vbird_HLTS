@@ -43,6 +43,7 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     rpgCenterPanel = new QWidget();
     rpgCenterPanel->setFixedSize(Config::Test3::Geometry::CENTER_PANEL_SIZE);
     rpgCenterPanel->setStyleSheet("background-color: #ecf0f1;");
+    // We install event filter later recursively, but also on the panel itself
     rpgCenterPanel->installEventFilter(this);
     rpgLayout->addWidget(rpgCenterPanel);
 
@@ -124,28 +125,15 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
         return btn;
     };
 
-    // Layout: 2 columns
-    // G at bottom left, 2 at bottom right
-    // Rows fill from bottom
-    // Row 4: G, 2
-    // Row 3: 3, 4
-    // Row 2: 5, 6
-    // Row 1: 7, 8
-    // Row 0: 9, 10
-
     // Explicit placement
     btnGrid->addWidget(createEleBtn(9), 0, 0);
     btnGrid->addWidget(createEleBtn(10), 0, 1);
-
     btnGrid->addWidget(createEleBtn(7), 1, 0);
     btnGrid->addWidget(createEleBtn(8), 1, 1);
-
     btnGrid->addWidget(createEleBtn(5), 2, 0);
     btnGrid->addWidget(createEleBtn(6), 2, 1);
-
     btnGrid->addWidget(createEleBtn(3), 3, 0);
     btnGrid->addWidget(createEleBtn(4), 3, 1);
-
     btnGrid->addWidget(createEleBtn(0), 4, 0); // G (Logic 0)
     btnGrid->addWidget(createEleBtn(2), 4, 1);
 
@@ -159,6 +147,18 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
 
     // Add RPG container to main layout
     mainGrid->addWidget(rpgContainer, 0, 0);
+
+    // Timers
+    latenessTimer = new QTimer(this);
+    latenessTimer->setSingleShot(true);
+    latenessTimer->setInterval(Config::Test3::Logic::TIME_LATE_THRESHOLD_SEC * 1000);
+    connect(latenessTimer, &QTimer::timeout, [this]() {
+        isLate = true;
+        // If we are currently in Hallway, update the background immediately
+        if (gameState.currentScene == GameScene::StaffHallway && !gameState.hasClockedIn) {
+            renderStaffHallway();
+        }
+    });
 
     // Init State
     reset();
@@ -175,6 +175,12 @@ void Test3::reset() {
     gameState.inventory.dirtyItemsCount = 0;
     gameState.dirtyBagState.clear();
 
+    // Reset Logic Flags
+    isLate = false;
+    isEmergencyActive = false;
+    latenessTimer->stop();
+    errorLog = ErrorLog();
+
     taskListWidget->clear();
     inventoryListWidget->clear();
 
@@ -182,15 +188,30 @@ void Test3::reset() {
     renderScene();
 }
 
+void Test3::installDevFilter(QWidget *widget) {
+    if (!isDeveloperMode) return;
+    widget->installEventFilter(this);
+    // Recursively install on children
+    const QObjectList &children = widget->children();
+    for (QObject *child : children) {
+        if (child->isWidgetType()) {
+            installDevFilter(static_cast<QWidget*>(child));
+        }
+    }
+}
+
 bool Test3::eventFilter(QObject *watched, QEvent *event) {
-    if (watched == rpgCenterPanel && event->type() == QEvent::MouseButtonPress && isDeveloperMode) {
+    if (event->type() == QEvent::MouseButtonPress && isDeveloperMode) {
         QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
-        QPoint pos = mouseEvent->pos();
-        QString coordText = QString("DevMode Scene Click: (%1, %2)").arg(pos.x()).arg(pos.y());
+        // Map to Center Panel Coordinates
+        QPoint globalPos = static_cast<QWidget*>(watched)->mapToGlobal(mouseEvent->pos());
+        QPoint localPos = rpgCenterPanel->mapFromGlobal(globalPos);
+
+        // Log coord
+        QString coordText = QString("DevMode Click: (%1, %2)").arg(localPos.x()).arg(localPos.y());
         qDebug() << coordText;
         emit logMessage(coordText);
-        QMessageBox::information(this, "坐标", coordText);
-        return true;
+        // Note: Do NOT return true, allow event to propagate to the button
     }
     return QWidget::eventFilter(watched, event);
 }
@@ -198,6 +219,15 @@ bool Test3::eventFilter(QObject *watched, QEvent *event) {
 // --- Logic ---
 
 void Test3::goToScene(GameScene scene) {
+    // Logic for Lateness Timer
+    // If leaving Entrance AND not clocked in -> Start Timer
+    if (gameState.currentScene == GameScene::Entrance && scene != GameScene::Entrance) {
+        if (!gameState.hasClockedIn && !latenessTimer->isActive() && !isLate) {
+            latenessTimer->start();
+            emit logMessage("计时开始: 迟到倒计时");
+        }
+    }
+
     gameState.currentScene = scene;
     emit logMessage("移动到场景: " + QString::number((int)scene));
     renderScene();
@@ -320,6 +350,9 @@ void Test3::renderScene() {
         case GameScene::LinenRoom: renderLinenRoom(); break;
     }
     updateRPGStatusLabels();
+
+    // Install Event Filter on ALL new children for Dev Mode
+    installDevFilter(rpgCenterPanel);
 }
 
 void Test3::renderEntrance() {
@@ -331,93 +364,95 @@ void Test3::renderEntrance() {
                         Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
     bg->show();
 
-    if (gameState.hasReported && !gameState.hasClockedIn) {
-        // Go Home State
-        QPushButton *btn = new QPushButton(Config::Test3::Texts::BTN_GO_HOME, rpgCenterPanel);
-        setGeometryCentered(btn, Config::Test3::Geometry::RECT_BTN_ENTRANCE_HOME);
-        btn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_ENTRANCE_HOME);
-        btn->setCursor(Qt::PointingHandCursor);
-        connect(btn, &QPushButton::clicked, this, &Test3::handleGoHome);
-        btn->show();
-    } else {
-        // Enter Hotel State
-        QPushButton *btn = new QPushButton(Config::Test3::Texts::BTN_ENTER_HOTEL, rpgCenterPanel);
-        setGeometryCentered(btn, Config::Test3::Geometry::RECT_BTN_ENTRANCE_ENTER);
-        btn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_ENTRANCE_ENTER);
-        btn->setCursor(Qt::PointingHandCursor);
-        connect(btn, &QPushButton::clicked, [this]() {
-            goToScene(GameScene::StaffHallway);
-        });
-        btn->show();
-    }
+    // Go Home Area
+    ClickableArea *btnHome = new ClickableArea(rpgCenterPanel);
+    btnHome->setPolygon(Config::Test3::Geometry::POLY_ENTRANCE_HOME());
+    btnHome->setToolTip(Config::Test3::Texts::BTN_GO_HOME);
+    connect(btnHome, &ClickableArea::clicked, this, &Test3::handleGoHome);
+    btnHome->setGeometry(rpgCenterPanel->rect());
+    btnHome->show();
+
+    // Enter Hotel Area
+    ClickableArea *btnEnter = new ClickableArea(rpgCenterPanel);
+    btnEnter->setPolygon(Config::Test3::Geometry::POLY_ENTRANCE_ENTER());
+    btnEnter->setToolTip(Config::Test3::Texts::BTN_ENTER_HOTEL);
+    connect(btnEnter, &ClickableArea::clicked, [this]() {
+        goToScene(GameScene::StaffHallway);
+    });
+    btnEnter->setGeometry(rpgCenterPanel->rect());
+    btnEnter->show();
 }
 
 void Test3::renderStaffHallway() {
     QLabel *bg = new QLabel(rpgCenterPanel);
-    QPixmap pix(Config::Test3::Images::SCENE_HALLWAY);
+    // Background Logic: Normal vs Late vs ClockedOut
+    QString bgPath = Config::Test3::Images::SCENE_HALLWAY_NORMAL;
+
+    // Check if any task is completed
+    bool anyTaskDone = false;
+    for(const auto &t : gameState.tasks) if(t.isCompleted) anyTaskDone = true;
+
+    if (anyTaskDone) {
+        bgPath = Config::Test3::Images::SCENE_HALLWAY_CLOCKED_OUT;
+    } else if (isLate && !gameState.hasClockedIn) {
+        bgPath = Config::Test3::Images::SCENE_HALLWAY_LATE;
+    }
+
+    QPixmap pix(bgPath);
     if (pix.isNull()) pix = generatePlaceholder("员工通道", Qt::lightGray, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     setGeometryCentered(bg, Config::Test3::Geometry::CENTER_PANEL_SIZE.width()/2, Config::Test3::Geometry::CENTER_PANEL_SIZE.height()/2,
                         Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
     bg->show();
 
-    if (!gameState.hasClockedIn) {
-        if (gameState.hasReported) {
-            // Already reported, now leaving
-            QLabel *lbl = new QLabel(Config::Test3::Texts::LBL_CLOCKED_OFF, rpgCenterPanel);
-            setGeometryCentered(lbl, Config::Test3::Geometry::RECT_LBL_HALLWAY_STATUS);
-            lbl->setStyleSheet(Config::Test3::Styles::LBL_SUCCESS_GREEN);
-            lbl->show();
+    // Return to Entrance (Arrow)
+    ArrowButton *exitBtn = new ArrowButton(rpgCenterPanel);
+    setGeometryCentered(exitBtn, Config::Test3::Geometry::RECT_BTN_HALLWAY_EXIT);
+    exitBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_HALLWAY_EXIT);
+    exitBtn->setArrowText(Config::Test3::Texts::BTN_RETURN_ENTRANCE);
+    exitBtn->setColor(QColor(Config::Test3::Styles::ARROW_COLOR));
+    connect(exitBtn, &QPushButton::clicked, [this]() {
+        goToScene(GameScene::Entrance);
+    });
+    exitBtn->show();
 
-            QPushButton *exitBtn = new QPushButton(Config::Test3::Texts::BTN_RETURN_ENTRANCE, rpgCenterPanel);
-            setGeometryCentered(exitBtn, Config::Test3::Geometry::RECT_BTN_HALLWAY_EXIT);
-            exitBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_HALLWAY_EXIT);
-            exitBtn->setCursor(Qt::PointingHandCursor);
-            connect(exitBtn, &QPushButton::clicked, [this]() {
-                goToScene(GameScene::Entrance);
-            });
-            exitBtn->show();
-        } else {
-             // Clock In Action
-             QPushButton *clockInBtn = new QPushButton(Config::Test3::Texts::BTN_CLOCK_IN, rpgCenterPanel);
-             setGeometryCentered(clockInBtn, Config::Test3::Geometry::RECT_BTN_HALLWAY_CLOCK);
-             clockInBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_HALLWAY_CLOCK);
-             clockInBtn->setCursor(Qt::PointingHandCursor);
-             connect(clockInBtn, &QPushButton::clicked, this, &Test3::handleClockIn);
-             clockInBtn->show();
-        }
-    } else {
-        if (gameState.hasReported) {
-             // Clock Out Action
-             QPushButton *clockOutBtn = new QPushButton(Config::Test3::Texts::BTN_CLOCK_OUT, rpgCenterPanel);
-             setGeometryCentered(clockOutBtn, Config::Test3::Geometry::RECT_BTN_HALLWAY_CLOCK);
-             clockOutBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_HALLWAY_CLOCK_OFF);
-             clockOutBtn->setCursor(Qt::PointingHandCursor);
-             connect(clockOutBtn, &QPushButton::clicked, this, &Test3::handleClockOut);
-             clockOutBtn->show();
-        }
+    // Clock In/Out (Irregular Area)
+    ClickableArea *btnClock = new ClickableArea(rpgCenterPanel);
+    btnClock->setPolygon(Config::Test3::Geometry::POLY_HALLWAY_CLOCK());
+    QString clockText = gameState.hasClockedIn ? Config::Test3::Texts::BTN_CLOCK_OUT : Config::Test3::Texts::BTN_CLOCK_IN;
+    btnClock->setToolTip(clockText);
+    connect(btnClock, &ClickableArea::clicked, [this]() {
+        if (gameState.hasClockedIn) handleClockOut();
+        else handleClockIn();
+    });
+    btnClock->setGeometry(rpgCenterPanel->rect());
+    btnClock->show();
 
-        QPushButton *officeBtn = new QPushButton(Config::Test3::Texts::BTN_GO_OFFICE, rpgCenterPanel);
-        setGeometryCentered(officeBtn, Config::Test3::Geometry::RECT_BTN_HALLWAY_OFFICE);
-        officeBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_HALLWAY_OFFICE);
-        officeBtn->setCursor(Qt::PointingHandCursor);
-        connect(officeBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::Office); });
-        officeBtn->show();
+    // Navigation Arrows
+    auto createArrow = [&](const QRect &rect, int angle, QString text, auto func) {
+        ArrowButton *btn = new ArrowButton(rpgCenterPanel);
+        setGeometryCentered(btn, rect);
+        btn->setAngle(angle);
+        btn->setArrowText(text);
+        btn->setColor(QColor(Config::Test3::Styles::ARROW_COLOR));
+        connect(btn, &QPushButton::clicked, func);
+        btn->show();
+    };
 
-        QPushButton *warehouseBtn = new QPushButton(Config::Test3::Texts::BTN_GO_WAREHOUSE, rpgCenterPanel);
-        setGeometryCentered(warehouseBtn, Config::Test3::Geometry::RECT_BTN_HALLWAY_WAREHOUSE);
-        warehouseBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_HALLWAY_WAREHOUSE);
-        warehouseBtn->setCursor(Qt::PointingHandCursor);
-        connect(warehouseBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::Warehouse); });
-        warehouseBtn->show();
+    createArrow(Config::Test3::Geometry::RECT_BTN_HALLWAY_OFFICE,
+                Config::Test3::Geometry::ANGLE_BTN_HALLWAY_OFFICE,
+                Config::Test3::Texts::BTN_GO_OFFICE,
+                [this]() { goToScene(GameScene::Office); });
 
-        QPushButton *elevatorBtn = new QPushButton(Config::Test3::Texts::BTN_GO_ELEVATOR, rpgCenterPanel);
-        setGeometryCentered(elevatorBtn, Config::Test3::Geometry::RECT_BTN_HALLWAY_ELEVATOR);
-        elevatorBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_HALLWAY_ELEVATOR);
-        elevatorBtn->setCursor(Qt::PointingHandCursor);
-        connect(elevatorBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::ElevatorHall); });
-        elevatorBtn->show();
-    }
+    createArrow(Config::Test3::Geometry::RECT_BTN_HALLWAY_WAREHOUSE,
+                Config::Test3::Geometry::ANGLE_BTN_HALLWAY_WAREHOUSE,
+                Config::Test3::Texts::BTN_GO_WAREHOUSE,
+                [this]() { goToScene(GameScene::Warehouse); });
+
+    createArrow(Config::Test3::Geometry::RECT_BTN_HALLWAY_ELEVATOR,
+                Config::Test3::Geometry::ANGLE_BTN_HALLWAY_ELEVATOR,
+                Config::Test3::Texts::BTN_GO_ELEVATOR,
+                [this]() { goToScene(GameScene::ElevatorHall); });
 }
 
 void Test3::renderOffice() {
@@ -429,45 +464,46 @@ void Test3::renderOffice() {
                         Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
     bg->show();
 
+    // Action Button (Report / Get Task) - Kept as regular button
+    // Check state
     bool allTasksDone = !gameState.tasks.isEmpty();
-    for(const auto &t : gameState.tasks) {
-        if (!t.isCompleted) allTasksDone = false;
-    }
+    for(const auto &t : gameState.tasks) if (!t.isCompleted) allTasksDone = false;
     if (gameState.tasks.isEmpty()) allTasksDone = false;
 
-    if (allTasksDone && !gameState.hasReported) {
-        QPushButton *reportBtn = new QPushButton(Config::Test3::Texts::BTN_REPORT_WORK, rpgCenterPanel);
-        setGeometryCentered(reportBtn, Config::Test3::Geometry::RECT_BTN_OFFICE_ACTION);
-        reportBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_OFFICE_ACTION);
-        reportBtn->setCursor(Qt::PointingHandCursor);
-        connect(reportBtn, &QPushButton::clicked, this, &Test3::handleReportWork);
-        reportBtn->show();
-    } else if (gameState.hasReported) {
+    // Report is available if we have tasks and they are done, OR if we want to report errors
+    // Simplified: Always show Report button if tasks are done, OR allow it?
+    // User requirement: "Can report work... if missed emergency task... text corresponds."
+    // So if tasks are generated, we can report.
+
+    QPushButton *actionBtn = new QPushButton(rpgCenterPanel);
+    setGeometryCentered(actionBtn, Config::Test3::Geometry::RECT_BTN_OFFICE_ACTION);
+    actionBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_OFFICE_ACTION);
+    actionBtn->setCursor(Qt::PointingHandCursor);
+
+    if (gameState.hasReceivedTask) {
+        actionBtn->setText(Config::Test3::Texts::BTN_REPORT_WORK);
+        connect(actionBtn, &QPushButton::clicked, this, &Test3::handleReportWork);
+    } else {
+        actionBtn->setText(Config::Test3::Texts::BTN_GET_TASK);
+        connect(actionBtn, &QPushButton::clicked, this, &Test3::handleGetTask);
+    }
+    actionBtn->show();
+
+    // Back Arrow
+    ArrowButton *backBtn = new ArrowButton(rpgCenterPanel);
+    setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_OFFICE_BACK);
+    backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_OFFICE_BACK);
+    backBtn->setArrowText(Config::Test3::Texts::BTN_RETURN_HALLWAY);
+    backBtn->setColor(QColor(Config::Test3::Styles::ARROW_COLOR));
+    connect(backBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::StaffHallway); });
+    backBtn->show();
+
+    if (gameState.hasReported) {
          QLabel *lbl = new QLabel(Config::Test3::Texts::LBL_WORK_REPORTED, rpgCenterPanel);
          setGeometryCentered(lbl, Config::Test3::Geometry::RECT_LBL_OFFICE_MSG);
          lbl->setStyleSheet(Config::Test3::Styles::LBL_SUCCESS_GREEN);
          lbl->show();
-    } else {
-        QPushButton *getTaskBtn = new QPushButton(Config::Test3::Texts::BTN_GET_TASK, rpgCenterPanel);
-        setGeometryCentered(getTaskBtn, Config::Test3::Geometry::RECT_BTN_OFFICE_ACTION);
-        getTaskBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_OFFICE_ACTION);
-        getTaskBtn->setCursor(Qt::PointingHandCursor);
-        if (gameState.hasReceivedTask) {
-            getTaskBtn->setEnabled(false);
-            getTaskBtn->setText(Config::Test3::Texts::BTN_TASK_IN_PROGRESS);
-            getTaskBtn->setCursor(Qt::ForbiddenCursor);
-        } else {
-            connect(getTaskBtn, &QPushButton::clicked, this, &Test3::handleGetTask);
-        }
-        getTaskBtn->show();
     }
-
-    QPushButton *backBtn = new QPushButton(Config::Test3::Texts::BTN_RETURN_HALLWAY, rpgCenterPanel);
-    setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_OFFICE_BACK);
-    backBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_OFFICE_BACK);
-    backBtn->setCursor(Qt::PointingHandCursor);
-    connect(backBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::StaffHallway); });
-    backBtn->show();
 }
 
 void Test3::renderWarehouse() {
@@ -490,10 +526,11 @@ void Test3::renderWarehouse() {
     });
     takeBtn->show();
 
-    QPushButton *backBtn = new QPushButton(Config::Test3::Texts::BTN_RETURN_HALLWAY, rpgCenterPanel);
+    ArrowButton *backBtn = new ArrowButton(rpgCenterPanel);
     setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_WAREHOUSE_BACK);
-    backBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_WAREHOUSE_BACK);
-    backBtn->setCursor(Qt::PointingHandCursor);
+    backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_WAREHOUSE_BACK);
+    backBtn->setArrowText(Config::Test3::Texts::BTN_RETURN_HALLWAY);
+    backBtn->setColor(QColor(Config::Test3::Styles::ARROW_COLOR));
     connect(backBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::StaffHallway); });
     backBtn->show();
 }
@@ -527,7 +564,6 @@ void Test3::renderWarehouseShelf() {
 
         // Put back logic: If dropped here, remove from cart
         area->onDropCallback = [this, name](QString item) {
-             // Validation: Check if item matches shelf
              if (item != name) {
                  QMessageBox::critical(this, "错误", QString("存放失败：不能将 %1 放入 %2 的位置！").arg(item, name));
                  return;
@@ -544,10 +580,11 @@ void Test3::renderWarehouseShelf() {
     createShelfArea("晚安巾", Config::Test3::Geometry::AREA_GN_TOWEL);
     createShelfArea("毛巾", Config::Test3::Geometry::AREA_TOWEL);
 
-    QPushButton *backBtn = new QPushButton(Config::Test3::Texts::BTN_RETURN_WAREHOUSE_ENTRY, rpgCenterPanel);
+    ArrowButton *backBtn = new ArrowButton(rpgCenterPanel);
     setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_SHELF_BACK);
-    backBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_SHELF_BACK);
-    backBtn->setCursor(Qt::PointingHandCursor);
+    backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_SHELF_BACK);
+    backBtn->setArrowText(Config::Test3::Texts::BTN_RETURN_WAREHOUSE_ENTRY);
+    backBtn->setColor(QColor(Config::Test3::Styles::ARROW_COLOR));
     connect(backBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::Warehouse); });
     backBtn->show();
 }
@@ -568,10 +605,11 @@ void Test3::renderElevatorHall() {
     connect(callElevator, &QPushButton::clicked, [this]() { goToScene(GameScene::ElevatorInside); });
     callElevator->show();
 
-    QPushButton *backBtn = new QPushButton(Config::Test3::Texts::BTN_RETURN_BACK, rpgCenterPanel);
+    ArrowButton *backBtn = new ArrowButton(rpgCenterPanel);
     setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_ELEVATOR_BACK);
-    backBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_ELEVATOR_BACK);
-    backBtn->setCursor(Qt::PointingHandCursor);
+    backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_ELEVATOR_BACK);
+    backBtn->setArrowText(Config::Test3::Texts::BTN_RETURN_BACK);
+    backBtn->setColor(QColor(Config::Test3::Styles::ARROW_COLOR));
     connect(backBtn, &QPushButton::clicked, [this]() {
         if (gameState.currentFloor == 0) goToScene(GameScene::StaffHallway);
         else goToScene(GameScene::FloorCorridor);
@@ -587,8 +625,6 @@ void Test3::renderElevatorInside() {
     setGeometryCentered(bg, Config::Test3::Geometry::CENTER_PANEL_SIZE.width()/2, Config::Test3::Geometry::CENTER_PANEL_SIZE.height()/2,
                         Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
     bg->show();
-
-    // Floor buttons are now in the sidebar (handled by toggle logic in renderScene)
 
     // Add "Exit Elevator" button
     QPushButton *exitBtn = new QPushButton(Config::Test3::Texts::BTN_EXIT_ELEVATOR, rpgCenterPanel);
@@ -610,17 +646,19 @@ void Test3::renderFloorCorridor() {
                         Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
     bg->show();
 
-    QPushButton *linenRoomBtn = new QPushButton(Config::Test3::Texts::BTN_GO_LINEN_ROOM, rpgCenterPanel);
+    ArrowButton *linenRoomBtn = new ArrowButton(rpgCenterPanel);
     setGeometryCentered(linenRoomBtn, Config::Test3::Geometry::RECT_BTN_CORRIDOR_LINEN);
-    linenRoomBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_CORRIDOR_LINEN);
-    linenRoomBtn->setCursor(Qt::PointingHandCursor);
+    linenRoomBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_CORRIDOR_LINEN);
+    linenRoomBtn->setArrowText(Config::Test3::Texts::BTN_GO_LINEN_ROOM);
+    linenRoomBtn->setColor(QColor(Config::Test3::Styles::ARROW_COLOR));
     connect(linenRoomBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::LinenRoom); });
     linenRoomBtn->show();
 
-    QPushButton *elevatorBtn = new QPushButton(Config::Test3::Texts::BTN_GO_ELEVATOR_HALL, rpgCenterPanel);
+    ArrowButton *elevatorBtn = new ArrowButton(rpgCenterPanel);
     setGeometryCentered(elevatorBtn, Config::Test3::Geometry::RECT_BTN_CORRIDOR_ELEVATOR);
-    elevatorBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_CORRIDOR_ELEVATOR);
-    elevatorBtn->setCursor(Qt::PointingHandCursor);
+    elevatorBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_CORRIDOR_ELEVATOR);
+    elevatorBtn->setArrowText(Config::Test3::Texts::BTN_GO_ELEVATOR_HALL);
+    elevatorBtn->setColor(QColor(Config::Test3::Styles::ARROW_COLOR));
     connect(elevatorBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::ElevatorHall); });
     elevatorBtn->show();
 }
@@ -657,9 +695,7 @@ void Test3::renderLinenRoom() {
 
         // Initialize state based on placedCount
         if (placedCount > 0) {
-            // Can be taken back
             area->setDraggable(true);
-
             QString iconPath = Config::Test3::Images::ITEMS().value(name);
             if (QFile::exists(iconPath)) {
                 QPixmap pix(iconPath);
@@ -668,10 +704,7 @@ void Test3::renderLinenRoom() {
                      area->setAlignment(Qt::AlignCenter);
                 }
             }
-
-            // Create Label for Count
             QLabel *countLbl = new QLabel(QString("x%1").arg(placedCount), area);
-            // Modified: Transparent background, smaller font
             countLbl->setStyleSheet(QString("color: %1; font-weight: bold; font-size: %2px; background: transparent; padding: 2px;")
                                     .arg(Config::Test3::Fonts::COL_LINEN_COUNT)
                                     .arg(Config::Test3::Fonts::SIZE_LINEN_COUNT));
@@ -679,19 +712,16 @@ void Test3::renderLinenRoom() {
             countLbl->move((area->width() - countLbl->width())/2, (area->height() - countLbl->height())/2);
             countLbl->show();
         } else {
-            // Cannot be taken
             area->setDraggable(false);
             area->clear(); // Ensure empty
         }
 
         area->onDropCallback = [this, name, area](QString item) {
-             // Validation: Check if item matches shelf
              if (item != name) {
                  QMessageBox::critical(this, "错误", QString("放置失败：不能将 %1 放置在 %2 的位置！").arg(item, name));
                  return;
              }
 
-             // Check if this item is actually needed by the task
              bool needed = false;
              for (const auto &t : gameState.tasks) {
                  if (t.targetFloor == gameState.currentFloor && !t.isCompleted) {
@@ -724,16 +754,15 @@ void Test3::renderLinenRoom() {
         DragSourceLabel *dirty = new DragSourceLabel("脏布草", rpgCenterPanel);
         QPixmap dirtyPix(Config::Test3::Images::UI_DIRTY_LINEN);
         if (!dirtyPix.isNull()) dirty->setPixmap(dirtyPix.scaled(Config::Test3::Geometry::ICON_DIRTY_DRAG));
-        // Removed setText to prevent overwriting Pixmap
-        // dirty->setText(Config::Test3::Texts::LBL_DIRTY_LINEN_DRAG);
-        setGeometryCentered(dirty, Config::Test3::Geometry::RECT_EVENT_DIRTY_LINEN); // Use new config
+        setGeometryCentered(dirty, Config::Test3::Geometry::RECT_EVENT_DIRTY_LINEN);
         dirty->show();
     }
 
-    QPushButton *backBtn = new QPushButton(Config::Test3::Texts::BTN_RETURN_CORRIDOR, rpgCenterPanel);
+    ArrowButton *backBtn = new ArrowButton(rpgCenterPanel);
     setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_LINEN_BACK);
-    backBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_LINEN_BACK);
-    backBtn->setCursor(Qt::PointingHandCursor);
+    backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_LINEN_BACK);
+    backBtn->setArrowText(Config::Test3::Texts::BTN_RETURN_CORRIDOR);
+    backBtn->setColor(QColor(Config::Test3::Styles::ARROW_COLOR));
     connect(backBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::FloorCorridor); });
     backBtn->show();
 }
@@ -741,9 +770,6 @@ void Test3::renderLinenRoom() {
 // --- Action Handlers ---
 
 void Test3::handleInventoryDrop(QString itemName) {
-    // Dropped INTO Inventory (Cart)
-    // Source was Warehouse or Dirty Linen
-
     if (itemName == "脏布草") {
         int cleanCount = 0;
         for (auto c : gameState.inventory.cleanItems) cleanCount += c;
@@ -769,29 +795,22 @@ void Test3::handleInventoryDrop(QString itemName) {
         gameState.inventory.cleanItems[itemName]++;
         emit logMessage("装车: " + itemName);
     }
-
     refreshInventoryList();
 }
 
 void Test3::handleSceneDrop(QString itemName, bool isWarehouse) {
-    // Dropped ONTO Scene (Shelf)
-    // Source was Cart
-
     if (gameState.inventory.cleanItems[itemName] <= 0) return;
 
     if (isWarehouse) {
-        // Warehouse: Putting back (Returning to stock)
         gameState.inventory.cleanItems[itemName]--;
         emit logMessage("放回仓库: " + itemName);
         refreshInventoryList();
         return;
     }
 
-    // Linen Room: Delivery
     bool taskFound = false;
     bool needed = false;
 
-    // Check against all tasks for current floor
     for (int i = 0; i < gameState.tasks.size(); ++i) {
         Task &t = gameState.tasks[i];
         if (t.targetFloor == gameState.currentFloor && !t.isCompleted) {
@@ -801,7 +820,7 @@ void Test3::handleSceneDrop(QString itemName, bool isWarehouse) {
 
                 gameState.inventory.cleanItems[itemName]--;
                 t.requiredItems[itemName]--;
-                t.placedItems[itemName]++; // Track placed items for visual persistence
+                t.placedItems[itemName]++;
                 emit logMessage("放置 " + itemName + " 到货架");
 
                 bool allDone = true;
@@ -809,6 +828,20 @@ void Test3::handleSceneDrop(QString itemName, bool isWarehouse) {
                 if (allDone) {
                     t.isCompleted = true;
                     emit logMessage("任务完成: " + QString::number(gameState.currentFloor) + "楼");
+
+                    // Check Priority Error
+                    if (isEmergencyActive) {
+                        // Find the emergency task
+                        bool emergencyDone = false;
+                        for(const auto &et : gameState.tasks) if(et.isEmergency && et.isCompleted) emergencyDone = true;
+
+                        if (!t.isEmergency && !emergencyDone) {
+                             errorLog.missedEmergencyPriority = true;
+                             emit logMessage("错误: 未优先完成紧急任务");
+                        } else if (t.isEmergency) {
+                             isEmergencyActive = false; // Cleared
+                        }
+                    }
 
                     bool allAllDone = true;
                     for(const auto &checkT : gameState.tasks) if(!checkT.isCompleted) allAllDone = false;
@@ -821,44 +854,47 @@ void Test3::handleSceneDrop(QString itemName, bool isWarehouse) {
         }
     }
 
-    // If needed is true, we already updated state.
-    // Logic: If !needed, we do NOTHING to the state.
-    // The previous implementation had warning popups but the critical part is ensuring renderScene updates correctly.
-    // Since we call renderScene() at the end (via refreshInventoryList->renderScene check or manually),
-    // and renderScene() relies on placedItems, rejection = no change in placedItems = no ghost image.
-
     if (!taskFound) {
          QMessageBox::warning(this, "提示", "本层没有任务。");
     } else if (!needed) {
          QMessageBox::warning(this, "提示", "本层不需要此物品。");
     }
 
-    refreshInventoryList(); // Updates cart
+    refreshInventoryList();
     refreshTaskList();
-    renderScene(); // Refresh scene to update shelf visuals (crucial for showing placed items)
+    renderScene();
 }
 
 void Test3::checkEmergencyTask() {
-    // Deprecated in favor of handleGetTask events
 }
 
 int Test3::getNormalRandom(int min, int max) {
-    // Approximate normal distribution
     double u1 = QRandomGenerator::global()->generateDouble();
-    while (u1 <= 0.0) u1 = QRandomGenerator::global()->generateDouble(); // Guard against log(0)
+    while (u1 <= 0.0) u1 = QRandomGenerator::global()->generateDouble();
 
     double u2 = QRandomGenerator::global()->generateDouble();
     double randStd = std::sqrt(-2.0 * std::log(u1)) * std::cos(2.0 * M_PI * u2);
-    int val = std::round(5.0 + 2.0 * randStd); // Mean 5, StdDev 2
+    int val = std::round(5.0 + 2.0 * randStd);
     if (val < min) val = min;
     if (val > max) val = max;
     return val;
 }
 
 void Test3::handleClockIn() {
-    QMessageBox::information(this, "通知", "上班打卡成功!");
+    if (latenessTimer->isActive()) {
+        latenessTimer->stop();
+    }
+
+    if (isLate) {
+         errorLog.lateClockIn = true;
+         QMessageBox::warning(this, "通知", "打卡成功，但你迟到了！");
+         emit logMessage("上班打卡 (迟到)");
+    } else {
+         QMessageBox::information(this, "通知", "上班打卡成功!");
+         emit logMessage("上班打卡 (正常)");
+    }
+
     gameState.hasClockedIn = true;
-    emit logMessage("已上班打卡");
     renderScene();
 }
 
@@ -879,57 +915,56 @@ void Test3::handleGetTask() {
         t.isCompleted = false;
 
         QStringList allTypes = {"大床单", "大被套", "小被套", "枕巾", "晚安巾", "毛巾"};
-        // Randomize
         for (int i = 0; i < allTypes.size(); ++i) {
             int j = QRandomGenerator::global()->bounded(allTypes.size());
             allTypes.swapItemsAt(i, j);
         }
-        int typesCount = QRandomGenerator::global()->bounded(4, 7); // 4-6 types
+
+        // Configurable limits
+        int typesCount = QRandomGenerator::global()->bounded(4, Config::Test3::Logic::MAX_TASK_ITEM_TYPES + 1);
         for (int i = 0; i < typesCount; ++i) {
-            int count = getNormalRandom(1, 10);
+            int count = getNormalRandom(1, Config::Test3::Logic::MAX_TASK_ITEM_COUNT);
             t.requiredItems.insert(allTypes[i], count);
         }
         return t;
     };
 
-    // Task 1
-    int floor1 = (QRandomGenerator::global()->bounded(2) == 0) ? 6 : 7;
-    gameState.tasks.append(generateTask(floor1, false));
+    // Fixed Tasks: Floor 6 and 7
+    gameState.tasks.append(generateTask(Config::Test3::Logic::TASK_FIXED_FLOOR_1, false));
+    gameState.tasks.append(generateTask(Config::Test3::Logic::TASK_FIXED_FLOOR_2, false));
 
-    // Emergency Events Logic
+    // Emergency Events Trigger
     if (isEmergencyEnabled) {
         // Decide which event will happen (50/50 split)
         bool isEventB = QRandomGenerator::global()->bounded(2) == 0;
 
         if (isEventB) {
-            // Event B: Dirty Linen (Triggers IMMEDIATELY)
-            gameState.dirtyBagState[floor1] = true;
-            emit logMessage("突发事件B: 脏布草回收 (立即触发)");
-            // If currently in Linen Room (unlikely but possible), re-render
-            if (gameState.currentScene == GameScene::LinenRoom && gameState.currentFloor == floor1) {
-                renderScene();
-            }
+            // Event B: Dirty Linen
+            int targetFloor = (QRandomGenerator::global()->bounded(2) == 0) ? 6 : 7;
+            gameState.dirtyBagState[targetFloor] = true;
+            emit logMessage("突发事件B: 脏布草回收");
         } else {
-            // Event A: Extra Task (Delayed 20-40s)
+            // Event A: New Task
             int delay = QRandomGenerator::global()->bounded(20000, 40001); // 20-40s
-            QTimer::singleShot(delay, this, [this, floor1, generateTask]() {
-                // Check if all tasks are already completed
+            QTimer::singleShot(delay, this, [this, generateTask]() {
                 bool allDone = true;
                 for(const auto &t : gameState.tasks) if(!t.isCompleted) allDone = false;
+                if (allDone) return; // Skip if game effectively over
 
-                if (allDone) {
-                    emit logMessage("任务已完成，跳过突发事件A");
-                    return;
-                }
+                // Generate random floor 2-10 excluding 6,7
+                int floorA;
+                do {
+                    floorA = QRandomGenerator::global()->bounded(2, 11);
+                } while (floorA == 6 || floorA == 7);
 
-                // Execute Event A
-                int floor2 = QRandomGenerator::global()->bounded(2, 11);
-                while (floor2 == floor1) floor2 = QRandomGenerator::global()->bounded(2, 11);
+                Task t = generateTask(floorA, true);
+                gameState.tasks.append(t);
+                isEmergencyActive = true;
 
-                gameState.tasks.append(generateTask(floor2, true));
-
-                QMessageBox::warning(this, "突发事件", QString("突发事件A：新增 %1 楼任务！").arg(floor2));
-                emit logMessage(QString("突发事件A: %1楼").arg(floor2));
+                // Requirement 6: Custom Text
+                QString msg = QString(Config::Test3::Texts::POPUP_EMERGENCY_MANAGER).arg(floorA);
+                QMessageBox::warning(this, "突发事件", msg);
+                emit logMessage(QString("突发事件A: %1楼").arg(floorA));
                 refreshTaskList();
             });
         }
@@ -938,24 +973,47 @@ void Test3::handleGetTask() {
     gameState.hasReceivedTask = true;
     refreshTaskList();
     emit logMessage("领取任务完成");
-    showTaskSheet(0);
+    // Requirement: "Don't show task sheet popup automatically"
+    // showTaskSheet(0);
     renderScene();
 }
 
 void Test3::handleReportWork() {
-    QMessageBox::information(this, "汇报", "工作汇报完成！");
+    // Generate Report based on Error Log
+    QString msg = Config::Test3::Texts::REPORT_SUCCESS;
+    QStringList errors;
+
+    // Check missing tasks
+    bool incomplete = false;
+    for(const auto &t : gameState.tasks) if(!t.isCompleted) incomplete = true;
+    if (incomplete) errors << Config::Test3::Texts::REPORT_ERR_MISSING_TASK;
+
+    if (errorLog.lateClockIn) errors << Config::Test3::Texts::REPORT_ERR_LATE;
+    if (errorLog.missedEmergencyPriority) errors << Config::Test3::Texts::REPORT_ERR_PRIORITY;
+
+    if (!errors.isEmpty()) {
+        msg = errors.join("\n");
+    }
+
+    QMessageBox::information(this, "汇报结果", msg);
     gameState.hasReported = true;
-    emit logMessage("已汇报工作");
+    emit logMessage("已汇报工作: " + msg);
     renderScene();
 }
 
 void Test3::handleGoHome() {
+    // Check final errors
+    if (!gameState.hasReported) errorLog.noReportBeforeHome = true;
+    if (gameState.hasClockedIn) errorLog.noClockOutBeforeHome = true; // Still clocked in
+
+    if (errorLog.noReportBeforeHome) emit logMessage("错误: 下班前未汇报");
+    if (errorLog.noClockOutBeforeHome) emit logMessage("错误: 下班前未打卡");
+
     emit levelCompleted();
 }
 
 void Test3::handleElevatorButton(int floor) {
     emit logMessage(QString("电梯前往 %1 楼").arg(floor));
-    //可设置乘坐电梯的时间
     QTimer::singleShot(1000, this, [this, floor]() {
         gameState.currentFloor = floor;
         emit logMessage(QString("抵达 %1 楼").arg(floor));
@@ -976,9 +1034,8 @@ void Test3::showTaskSheet(int taskIndex) {
     dlg->setWindowTitle(QString("物资申领表 (任务 %1)").arg(taskIndex + 1));
     dlg->setFixedSize(Config::Test3::Geometry::SHEET_DIALOG);
 
-    if (isDeveloperMode) {
-        dlg->installEventFilter(this);
-    }
+    // Install filter on dialog for dev coordinates
+    installDevFilter(dlg);
 
     QLabel *bg = new QLabel(dlg);
     QPixmap pix(Config::Test3::Images::UI_TASK_SHEET);
@@ -993,12 +1050,9 @@ void Test3::showTaskSheet(int taskIndex) {
     painter.setPen(QColor(0, 0, 0));
     painter.setFont(QFont("Arial", 16, QFont::Bold));
 
-    // 辅助函数：以坐标点为中心绘制文本
-    // Helper: Draw text centered around the coordinate point
     auto drawCenteredText = [&](QPoint center, QString text) {
-        int w = 100; // 宽度足以容纳数字 (Width sufficient for numbers)
+        int w = 100;
         int h = 50;
-        // 计算居中矩形 (Calculate centered rectangle)
         QRect rect(center.x() - w/2, center.y() - h/2, w, h);
         painter.drawText(rect, Qt::AlignCenter, text);
     };
@@ -1020,13 +1074,6 @@ void Test3::showTaskSheet(int taskIndex) {
 
     bg->setPixmap(pix);
     bg->setGeometry(0,0,Config::Test3::Geometry::SHEET_DIALOG.width(), Config::Test3::Geometry::SHEET_DIALOG.height());
-
-    if (isDeveloperMode) {
-        ClickableArea *overlay = new ClickableArea(dlg);
-        overlay->setGeometry(0, 0, Config::Test3::Geometry::SHEET_DIALOG.width(), Config::Test3::Geometry::SHEET_DIALOG.height());
-        overlay->setStyleSheet("background: transparent;");
-        // No explicit connection needed, mousePressEvent handles it
-    }
 
     dlg->exec();
 }

@@ -1,6 +1,7 @@
 #include "utils.h"
 #include <QDebug>
 #include <QMessageBox>
+#include <QPainterPath>
 
 // --- DragSourceLabel ---
 DragSourceLabel::DragSourceLabel(const QString &itemName, QWidget *parent)
@@ -123,13 +124,26 @@ void DraggableListWidget::dropEvent(QDropEvent *event) {
 // --- ClickableArea ---
 ClickableArea::ClickableArea(QWidget *parent) : QWidget(parent) {
     setCursor(Qt::PointingHandCursor);
+    setAttribute(Qt::WA_TranslucentBackground);
+}
+
+void ClickableArea::setPolygon(const QPolygon &poly) {
+    m_poly = poly;
+    // Apply Mask to restrict mouse events strictly to the polygon
+    setMask(m_poly);
 }
 
 void ClickableArea::mousePressEvent(QMouseEvent *event) {
-    QPoint pos = event->pos();
-    QString coordText = QString("TaskSheet Click: (%1, %2)").arg(pos.x()).arg(pos.y());
-    qDebug() << coordText;
-    QMessageBox::information(this, "坐标", coordText);
+    // With setMask, we only get events inside the polygon.
+    // So we can unconditionally accept and emit.
+    emit clicked();
+
+    // Allow event to propagate for Dev Mode tracking in parent filter
+    event->ignore();
+}
+
+void ClickableArea::paintEvent(QPaintEvent *) {
+    // Invisible by default.
 }
 
 // --- ShelfArea ---
@@ -191,4 +205,98 @@ void ShelfArea::dropEvent(QDropEvent *event) {
             event->acceptProposedAction();
         }
     }
+}
+
+// --- ArrowButton ---
+ArrowButton::ArrowButton(QWidget *parent) : QPushButton(parent), m_angle(0), m_color(Qt::blue) {
+    setCursor(Qt::PointingHandCursor);
+    // Remove default button styling so we can paint freely
+    setFlat(true);
+    setStyleSheet("background: transparent; border: none;");
+}
+
+void ArrowButton::setAngle(int degrees) {
+    m_angle = degrees;
+    update();
+}
+
+void ArrowButton::setColor(const QColor &color) {
+    m_color = color;
+    update();
+}
+
+void ArrowButton::setArrowText(const QString &text) {
+    m_text = text;
+    update();
+}
+
+void ArrowButton::paintEvent(QPaintEvent *) {
+    QPainter p(this);
+    p.setRenderHint(QPainter::Antialiasing);
+
+    // Calculate Arrow Geometry
+    int w = width();
+    int h = height();
+    int cx = w / 2;
+    int cy = h / 2;
+
+    // Save state
+    p.save();
+
+    // Translate to center and rotate
+    p.translate(cx, cy);
+    p.rotate(m_angle);
+
+    // Define Arrow Shape (Pointing Right at 0 degrees)
+    // Adjust size based on widget size. Let's assume a standard arrow size.
+    // Length: ~60% of width, Height: ~40% of height
+    int arrowLen = qMin(w, h) * 0.8;
+    int headLen = arrowLen * 0.4;
+    int shaftThick = arrowLen * 0.3;
+
+    QPainterPath path;
+    // Tip
+    path.moveTo(arrowLen / 2, 0);
+    // Top Wing
+    path.lineTo(arrowLen / 2 - headLen, -arrowLen / 2 * 0.5);
+    // Shaft Top
+    path.lineTo(arrowLen / 2 - headLen, -shaftThick / 2);
+    // Shaft Tail Top
+    path.lineTo(-arrowLen / 2, -shaftThick / 2);
+    // Shaft Tail Bottom
+    path.lineTo(-arrowLen / 2, shaftThick / 2);
+    // Shaft Bottom
+    path.lineTo(arrowLen / 2 - headLen, shaftThick / 2);
+    // Bottom Wing
+    path.lineTo(arrowLen / 2 - headLen, arrowLen / 2 * 0.5);
+    // Close to Tip
+    path.closeSubpath();
+
+    p.setBrush(m_color);
+    p.setPen(Qt::NoPen);
+    p.drawPath(path);
+
+    p.restore();
+
+    // Draw Text
+    p.setPen(Qt::black); // Text Color
+    QFont f = font();
+    f.setBold(true);
+    p.setFont(f);
+
+    QRect textRect = rect();
+    int textOffset = arrowLen / 2;
+
+    // Adjust text rect to be "behind" the center based on angle
+    if (m_angle == 0) { // Right -> Tail Left
+         textRect.adjust(0, 0, -textOffset, 0);
+    } else if (m_angle == 180) { // Left -> Tail Right
+         textRect.adjust(textOffset, 0, 0, 0);
+    } else if (m_angle == 90) { // Down -> Tail Up
+         textRect.adjust(0, 0, 0, -textOffset);
+    } else if (m_angle == 270) { // Up -> Tail Down
+         textRect.adjust(0, textOffset, 0, 0);
+    }
+
+    p.drawText(textRect, Qt::AlignCenter, m_text);
 }
