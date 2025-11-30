@@ -50,10 +50,11 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     // Hover Hint Label
     hoverHintLabel = new QLabel(rpgCenterPanel);
     hoverHintLabel->setAlignment(Qt::AlignCenter);
-    hoverHintLabel->setStyleSheet("color: #E74C3C; font-weight: bold; font-size: 24px; background: rgba(255,255,255,0.8); border-radius: 5px; padding: 5px;");
+    // Use new config style
+    hoverHintLabel->setStyleSheet(Config::Test3::Styles::LBL_HOVER_HINT);
     hoverHintLabel->hide();
-    // Position it at the top center of the panel
-    hoverHintLabel->setGeometry(200, 20, 500, 50); // Approximately centered horizontally
+    // Use new config geometry
+    hoverHintLabel->setGeometry(Config::Test3::Geometry::RECT_HOVER_HINT);
 
     // --- Right Panel ---
     QWidget *rightPanel = new QWidget();
@@ -86,7 +87,8 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     rightLayout->addWidget(taskListWidget);
 
     QPushButton *viewTaskSheetBtn = new QPushButton(Config::Test3::Texts::BTN_VIEW_TASK_SHEET);
-    viewTaskSheetBtn->setStyleSheet(QString("font-size: 12px; padding: 5px; %1").arg(Config::Test3::Styles::BTN_ORANGE));
+    // Combine base style with color
+    viewTaskSheetBtn->setStyleSheet(QString("%1 %2").arg(Config::Test3::Styles::BTN_VIEW_TASK_SHEET, Config::Test3::Styles::BTN_ORANGE));
     viewTaskSheetBtn->setCursor(Qt::PointingHandCursor);
     connect(viewTaskSheetBtn, &QPushButton::clicked, [this](){
         // Get selected index
@@ -105,28 +107,6 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     inventoryListWidget->setIconSize(Config::Test3::Geometry::ICON_INVENTORY); // Large icons
     inventoryListWidget->setStyleSheet("color: black; background: white;");
     inventoryListWidget->onItemDroppedIn = [this](QString itemName) {
-        // Need to pass data, but the callback only gives string currently in utils.h?
-        // Wait, utils.h DraggableListWidget::dropEvent calls onItemDroppedIn(text).
-        // I need to update utils logic or capture the event logic?
-        // Actually, since I can't easily change the signature in utils (it's a std::function),
-        // I should have updated utils.h to pass QMimeData* or use a member variable.
-        // Let's rely on the drag source type check in handleInventoryDrop by checking the QMimeData manually?
-        // No, DraggableListWidget::dropEvent only passes the text string.
-        // Correction: I should update DraggableListWidget logic?
-        // Ah, in Test3 I can access the drag event? No.
-        // I will assume handleInventoryDrop handles logic, but I need the source info.
-        // Wait, I updated ShelfArea to put source info in MimeData.
-        // But DraggableListWidget::dropEvent (in utils.cpp) reads the text and calls the callback.
-        // It does NOT pass the MimeData.
-        // I should have updated the callback signature in Step 1.
-        // But since I didn't, I will use a workaround or update utils.h now?
-        // It's better to update utils.h to pass the MIME data or a Map.
-        // However, I can't go back to Step 1 easily without breaking flow?
-        // Wait, I can just modify utils.h/cpp now if needed.
-        // Or simpler: handleInventoryDrop checks if the current scene is LinenRoom?
-        // If current scene is LinenRoom, and we dropped an item, it MUST be from the shelf (since we can't drag from elsewhere easily).
-        // Exceptions: dragging from inventory to inventory (reorder) - but dropEvent handles `source() != this`.
-        // So any drop into inventory from "outside" while in Linen Room must be from the shelf.
         handleInventoryDrop(itemName);
     };
     rightLayout->addWidget(inventoryListWidget);
@@ -423,6 +403,7 @@ void Test3::renderEntrance() {
     setGeometryCentered(btnHome, Config::Test3::Geometry::RECT_BTN_ENTRANCE_HOME);
     btnHome->setAngle(Config::Test3::Geometry::ANGLE_BTN_ENTRANCE_HOME);
     btnHome->setArrowText(Config::Test3::Texts::TEXT_BTN_ENTRANCE_HOME);
+    btnHome->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE); // New Config
     btnHome->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
     connect(btnHome, &QPushButton::clicked, this, &Test3::handleGoHome);
     connect(btnHome, &ArrowButton::hovered, [this](bool status, QString text) {
@@ -457,7 +438,8 @@ void Test3::renderStaffHallway() {
 
     if (anyTaskDone) {
         bgPath = Config::Test3::Images::SCENE_HALLWAY_CLOCKED_OUT;
-    } else if (isLate && !gameState.hasClockedIn) {
+    } else if (isLate) {
+        // BUGFIX: Prioritize Late background if late, regardless of clock in (unless tasks done)
         bgPath = Config::Test3::Images::SCENE_HALLWAY_LATE;
     }
 
@@ -473,6 +455,7 @@ void Test3::renderStaffHallway() {
     setGeometryCentered(exitBtn, Config::Test3::Geometry::RECT_BTN_HALLWAY_EXIT);
     exitBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_HALLWAY_EXIT);
     exitBtn->setArrowText(Config::Test3::Texts::BTN_RETURN_ENTRANCE);
+    exitBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
     exitBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
     connect(exitBtn, &QPushButton::clicked, [this]() {
         goToScene(GameScene::Entrance);
@@ -505,6 +488,7 @@ void Test3::renderStaffHallway() {
         setGeometryCentered(btn, rect);
         btn->setAngle(angle);
         btn->setArrowText(text);
+        btn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
         btn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
         connect(btn, &QPushButton::clicked, func);
         connect(btn, &ArrowButton::hovered, [this](bool status, QString t) {
@@ -569,6 +553,7 @@ void Test3::renderOffice() {
     setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_OFFICE_BACK);
     backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_OFFICE_BACK);
     backBtn->setArrowText(Config::Test3::Texts::BTN_RETURN_HALLWAY);
+    backBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
     backBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
     connect(backBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::StaffHallway); });
     connect(backBtn, &ArrowButton::hovered, [this](bool status, QString text) {
@@ -609,6 +594,7 @@ void Test3::renderWarehouse() {
     setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_WAREHOUSE_BACK);
     backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_WAREHOUSE_BACK);
     backBtn->setArrowText(Config::Test3::Texts::BTN_RETURN_HALLWAY);
+    backBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
     backBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
     connect(backBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::StaffHallway); });
     connect(backBtn, &ArrowButton::hovered, [this](bool status, QString text) {
@@ -673,6 +659,7 @@ void Test3::renderWarehouseShelf() {
     setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_SHELF_BACK);
     backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_SHELF_BACK);
     backBtn->setArrowText(Config::Test3::Texts::BTN_RETURN_WAREHOUSE_ENTRY);
+    backBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
     backBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
     connect(backBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::Warehouse); });
     connect(backBtn, &ArrowButton::hovered, [this](bool status, QString text) {
@@ -702,6 +689,7 @@ void Test3::renderElevatorHall() {
     setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_ELEVATOR_BACK);
     backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_ELEVATOR_BACK);
     backBtn->setArrowText(Config::Test3::Texts::BTN_RETURN_BACK);
+    backBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
     backBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
     connect(backBtn, &QPushButton::clicked, [this]() {
         if (gameState.currentFloor == 0) goToScene(GameScene::StaffHallway);
@@ -747,6 +735,7 @@ void Test3::renderFloorCorridor() {
     setGeometryCentered(linenRoomBtn, Config::Test3::Geometry::RECT_BTN_CORRIDOR_LINEN);
     linenRoomBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_CORRIDOR_LINEN);
     linenRoomBtn->setArrowText(Config::Test3::Texts::BTN_GO_LINEN_ROOM);
+    linenRoomBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
     linenRoomBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
     connect(linenRoomBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::LinenRoom); });
     connect(linenRoomBtn, &ArrowButton::hovered, [this](bool status, QString text) {
@@ -759,6 +748,7 @@ void Test3::renderFloorCorridor() {
     setGeometryCentered(elevatorBtn, Config::Test3::Geometry::RECT_BTN_CORRIDOR_ELEVATOR);
     elevatorBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_CORRIDOR_ELEVATOR);
     elevatorBtn->setArrowText(Config::Test3::Texts::BTN_GO_ELEVATOR_HALL);
+    elevatorBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
     elevatorBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
     connect(elevatorBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::ElevatorHall); });
     connect(elevatorBtn, &ArrowButton::hovered, [this](bool status, QString text) {
@@ -873,6 +863,7 @@ void Test3::renderLinenRoom() {
     setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_LINEN_BACK);
     backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_LINEN_BACK);
     backBtn->setArrowText(Config::Test3::Texts::BTN_RETURN_CORRIDOR);
+    backBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
     backBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
     connect(backBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::FloorCorridor); });
     connect(backBtn, &ArrowButton::hovered, [this](bool status, QString text) {
@@ -1201,11 +1192,13 @@ void Test3::showTaskSheet(int taskIndex) {
 
     QPainter painter(&pix);
     painter.setPen(QColor(0, 0, 0));
-    painter.setFont(QFont("Arial", 16, QFont::Bold));
+    painter.setFont(QFont(Config::Test3::Fonts::SHEET_FONT_FAMILY,
+                          Config::Test3::Fonts::SHEET_FONT_SIZE,
+                          Config::Test3::Fonts::SHEET_FONT_WEIGHT)); // Use new config
 
     auto drawCenteredText = [&](QPoint center, QString text) {
-        int w = 100;
-        int h = 50;
+        int w = Config::Test3::Geometry::SHEET_TEXT_BOX.width();
+        int h = Config::Test3::Geometry::SHEET_TEXT_BOX.height();
         QRect rect(center.x() - w/2, center.y() - h/2, w, h);
         painter.drawText(rect, Qt::AlignCenter, text);
     };
