@@ -1251,11 +1251,6 @@ void Test3::showTutorial() {
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setAlignment(Qt::AlignCenter);
 
-    // 使用布局使内容框垂直居中
-    QVBoxLayout *layout = new QVBoxLayout(overlay);
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setAlignment(Qt::AlignCenter);
-
     // 内容框
     QWidget *contentBox = new QWidget(overlay);
     contentBox->setFixedSize(Config::Test3::Geometry::RECT_TUTORIAL_OVERLAY.size());
