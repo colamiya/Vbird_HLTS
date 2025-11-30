@@ -142,9 +142,6 @@ void Test2::loadQuestion() {
 
         // Use config path template
         QString path = QString(Config::Test2::PATH_FMT_JPG).arg(imgName);
-        if (!QFile::exists(path)) {
-            path = QString(Config::Test2::PATH_FMT_PNG).arg(imgName);
-        }
 
         QPixmap pix(path);
         if (pix.isNull()) {

@@ -22,7 +22,7 @@ namespace Config {
         namespace Images {
             // 场景背景图
             constexpr const char* SCENE_ENTRANCE = ":/source/Test3/入口.jpg";
-            constexpr const char* SCENE_HALLWAY = ":/source/Test3/员工通道走廊.jpg";
+            constexpr const char* SCENE_HALLWAY = ":/source/Test3/走廊-状态2（正常打卡）.jpg";
             constexpr const char* SCENE_OFFICE = ":/source/Test3/办公室.png";
             constexpr const char* SCENE_WAREHOUSE_ENTRY = ":/source/Test3/仓库1.jpg";
             constexpr const char* SCENE_WAREHOUSE_SHELF = ":/source/Test3/取布草的货架.jpg";
@@ -35,7 +35,7 @@ namespace Config {
             constexpr const char* UI_CART_DIRTY = ":/source/Test3/推车-脏布草.png";
             constexpr const char* UI_CART_CLEAN = ":/source/Test3/推车-布草.png";
             constexpr const char* UI_CART_EMPTY = ":/source/Test3/推车-空.png";
-            constexpr const char* UI_DIRTY_LINEN = ":/source/Test3/脏布草.jpg";
+            constexpr const char* UI_DIRTY_LINEN = ":/source/Test3/脏布草.png";
             constexpr const char* UI_TASK_SHEET = ":/source/Test3/申领表.png";
 
             // 物品对应的图标路径映射 (Key: 物品名, Value: 路径)
@@ -48,7 +48,7 @@ namespace Config {
                     {"枕巾", ":/source/Test3/枕巾.png"},
                     {"晚安巾", ":/source/Test3/晚安巾.png"},
                     {"毛巾", ":/source/Test3/毛巾.png"},
-                    {"脏布草", ":/source/Test3/脏布草.jpg"}
+                    {"脏布草", ":/source/Test3/脏布草.png"}
                 };
                 return map;
             }
@@ -61,7 +61,7 @@ namespace Config {
             constexpr const char* LBL_TASK_TITLE = "当前任务:";
             constexpr const char* BTN_VIEW_TASK_SHEET = "查看申领表";
             constexpr const char* LBL_INVENTORY_TITLE = "推车存货 (拖拽使用):";
-            constexpr const char* LBL_ELEVATOR_PANEL_TITLE = "电梯楼层选择:"; // New title for elevator panel
+            constexpr const char* LBL_ELEVATOR_PANEL_TITLE = "电梯楼层选择:";
             constexpr const char* LBL_CART_DIRTY = "脏布草";
             constexpr const char* LBL_CART_HAS_ITEMS = "有布草";
             constexpr const char* LBL_CART_EMPTY = "空车";
@@ -80,15 +80,15 @@ namespace Config {
             constexpr const char* BTN_GO_WAREHOUSE = "去仓库";
             constexpr const char* BTN_GO_ELEVATOR = "去电梯";
             constexpr const char* BTN_REPORT_WORK = "汇报工作";
-            constexpr const char* LBL_WORK_REPORTED = "工作已汇报，请去走廊打卡下班。";
+            constexpr const char* LBL_WORK_REPORTED = "工作已汇报。";
             constexpr const char* BTN_GET_TASK = "领取任务";
             constexpr const char* BTN_TASK_IN_PROGRESS = "任务进行中...";
             constexpr const char* BTN_RETURN_HALLWAY = "返回通道";
             constexpr const char* BTN_TAKE_LINEN = "拿取布草";
-            constexpr const char* BTN_RETURN_WAREHOUSE_ENTRY = "返回入口"; // 货架视图返回
+            constexpr const char* BTN_RETURN_WAREHOUSE_ENTRY = "退回";
             constexpr const char* BTN_ENTER_ELEVATOR = "乘坐电梯";
             constexpr const char* BTN_RETURN_BACK = "进入走廊";
-            constexpr const char* BTN_EXIT_ELEVATOR = "出电梯"; // New button text
+            constexpr const char* BTN_EXIT_ELEVATOR = "出电梯";
             constexpr const char* BTN_GO_LINEN_ROOM = "布草间";
             constexpr const char* BTN_GO_ELEVATOR_HALL = "电梯厅";
             constexpr const char* BTN_RETURN_CORRIDOR = "返回走廊";
@@ -113,8 +113,8 @@ namespace Config {
             //constexpr const char* BTN_BLUE = "font-size: 16px; background-color: #007AFF; color: white; font-weight: 600;"; // 拿取布草
             constexpr const char* BTN_RETURN_MENU = "background-color: #FF3B30; color: white; font-weight: bold; border-radius: 6px;"; // 返回主菜单
 
-            // 货架区域样式 (半透明灰色背景)
-            constexpr const char* SHELF_AREA = "background-color: rgba(255, 255, 255, 0.6); border: 2px dashed #8e8e93; border-radius: 8px;";
+            // 货架区域样式
+            constexpr const char* SHELF_AREA = "background-color: #fff; border: 2px dashed #8e8e93; border-radius: 8px;";
 
             // 提示标签颜色
             constexpr const char* LBL_SUCCESS_GREEN = "font-size: 18px; color: #34C759; font-weight: bold;";
@@ -142,7 +142,7 @@ namespace Config {
             constexpr const char* STYLE_BTN_ELEVATOR_BACK = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";
             constexpr const char* STYLE_BTN_ELEVATOR_EXIT = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";
 
-            // 电梯内部楼层按钮样式 (Sidebar) - 金属质感高对比度 (Dark Grey background, White Text)
+            // 电梯内部楼层按钮样式 (Sidebar)
             constexpr const char* STYLE_BTN_ELEVATOR_FLOOR = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 4px; padding: 10px; font-weight: 600;";
 
             constexpr const char* STYLE_BTN_CORRIDOR_LINEN = "background-color: rgba(255, 255, 255, 0.9); color: #007AFF; border: 1px solid #007AFF; border-radius: 8px; padding: 10px; font-weight: 600;";
@@ -198,14 +198,14 @@ namespace Config {
             const QRect RECT_BTN_WAREHOUSE_BACK(259, 659, 150, 40);   // 返回通道
 
             // 5. 仓库货架 (Warehouse Shelf)
-            const QRect RECT_BTN_SHELF_BACK(100, 600, 150, 40);       // 返回仓库入口
+            const QRect RECT_BTN_SHELF_BACK(102, 666, 150, 40);       // 返回仓库入口
             // 货架物品区域 (中心坐标)
-            const QRect AREA_SHEET(348, 561, 100, 100);      //大床单
-            const QRect AREA_DUVET(754, 136, 100, 100);      //大被套
-            const QRect AREA_S_DUVET(262, 141, 100, 100);    //小被套
-            const QRect AREA_PILLOW(216, 428, 100, 100);     //枕巾
-            const QRect AREA_GN_TOWEL(517, 578, 100, 100);   //晚安巾
-            const QRect AREA_TOWEL(757, 572, 100, 100);      //毛巾
+            const QRect AREA_SHEET(348, 568, 120, 120);      //大床单
+            const QRect AREA_DUVET(754, 130, 120, 120);       //大被套
+            const QRect AREA_S_DUVET(262, 130, 120, 120);     //小被套
+            const QRect AREA_PILLOW(216, 420, 120, 120);      //枕巾
+            const QRect AREA_GN_TOWEL(517, 568, 120, 120);    //晚安巾
+            const QRect AREA_TOWEL(757, 568, 120, 120);       //毛巾
 
             // 6. 电梯厅 (Elevator Hall)
             const QRect RECT_BTN_ELEVATOR_ENTER(656, 368, 150, 40);  // 进入电梯
@@ -225,19 +225,18 @@ namespace Config {
             const QRect RECT_BTN_CORRIDOR_ELEVATOR(439, 647, 150, 40); // 去电梯厅
 
             // 9. 布草间 (Linen Room)
-            //const QRect RECT_LBL_DIRTY_SOURCE(700, 400, 150, 150);      // 脏布草堆位置
             const QRect RECT_BTN_LINEN_BACK(240, 667, 150, 40);         // 返回走廊
 
             // 紧急任务 脏布草 (Event B) 位置配置
-            const QRect RECT_EVENT_DIRTY_LINEN(621, 628, 100, 100); // 突发事件B 脏布草位置
+            const QRect RECT_EVENT_DIRTY_LINEN(621, 628, 120, 120); // 突发事件B 脏布草位置
 
             // 货架物品区域 - 楼层布草间专用
-            const QRect AREA_LINEN_SHEET(604, 350, 100, 100);    //大床单
-            const QRect AREA_LINEN_DUVET(346, 530, 100, 100);    //大被套
-            const QRect AREA_LINEN_S_DUVET(128, 179, 100, 100);  //小被套
-            const QRect AREA_LINEN_PILLOW(351, 200, 100, 100);   //枕巾
-            const QRect AREA_LINEN_GN_TOWEL(337, 343, 100, 100); //晚安巾
-            const QRect AREA_LINEN_TOWEL(608, 180, 100, 100);    //毛巾
+            const QRect AREA_LINEN_SHEET(600, 365, 120, 120);    //大床单
+            const QRect AREA_LINEN_DUVET(350, 540, 120, 120);    //大被套
+            const QRect AREA_LINEN_S_DUVET(600, 550, 120, 120);  //小被套
+            const QRect AREA_LINEN_PILLOW(350, 185, 120, 120);   //枕巾
+            const QRect AREA_LINEN_GN_TOWEL(350, 360, 120, 120); //晚安巾
+            const QRect AREA_LINEN_TOWEL(600, 185, 120, 120);    //毛巾
 
             // 申领表弹窗
             const QSize SHEET_DIALOG(600, 560);
