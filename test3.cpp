@@ -563,7 +563,7 @@ void Test3::renderOffice() {
     setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_OFFICE_BACK);
     backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_OFFICE_BACK);
     backBtn->setArrowText("");
-    btn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
+    backBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
     backBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
     connect(backBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::StaffHallway); });
     connect(backBtn, &ArrowButton::hovered, [this](bool status, QString text) {
