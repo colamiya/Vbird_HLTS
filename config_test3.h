@@ -91,20 +91,20 @@ namespace Config {
             constexpr const char* BTN_RETURN_ENTRANCE = "返回入口";
             constexpr const char* BTN_CLOCK_IN = "打卡签到";
             constexpr const char* BTN_CLOCK_OUT = "打卡下班";
-            constexpr const char* BTN_GO_OFFICE = "去办公室";
-            constexpr const char* BTN_GO_WAREHOUSE = "去仓库";
-            constexpr const char* BTN_GO_ELEVATOR = "去电梯";
+            constexpr const char* BTN_GO_OFFICE = "办公室";
+            constexpr const char* BTN_GO_WAREHOUSE = "仓库";
+            constexpr const char* BTN_GO_ELEVATOR = "电梯厅";
             constexpr const char* BTN_REPORT_WORK = "汇报工作";
             constexpr const char* BTN_GET_TASK = "领取任务";
-            constexpr const char* BTN_RETURN_HALLWAY = "返回通道";
+            constexpr const char* BTN_RETURN_HALLWAY = "回通道";
             constexpr const char* BTN_TAKE_LINEN = "拿取布草";
-            constexpr const char* BTN_RETURN_WAREHOUSE_ENTRY = "退回";
+            constexpr const char* BTN_RETURN_WAREHOUSE_ENTRY = "返回";
             constexpr const char* BTN_ENTER_ELEVATOR = "乘坐电梯";
-            constexpr const char* BTN_RETURN_BACK = "进入走廊";
+            constexpr const char* BTN_RETURN_BACK = "回走廊";
             constexpr const char* BTN_EXIT_ELEVATOR = "出电梯";
             constexpr const char* BTN_GO_LINEN_ROOM = "布草间";
             constexpr const char* BTN_GO_ELEVATOR_HALL = "电梯厅";
-            constexpr const char* BTN_RETURN_CORRIDOR = "返回走廊";
+            constexpr const char* BTN_RETURN_CORRIDOR = "回走廊";
 
             // 状态/提示文本
             constexpr const char* LBL_CLOCKED_OFF = "已打卡下班";
@@ -196,15 +196,15 @@ namespace Config {
             // --- 1. 入口场景 (Entrance) - 不规则区域 ---
             // 定义4个点的坐标 (相对于 896x720 区域)
             // Enter Hotel Area
-            const QPoint PT_ENTRANCE_ENTER_1(600, 450);
-            const QPoint PT_ENTRANCE_ENTER_2(760, 450);
-            const QPoint PT_ENTRANCE_ENTER_3(760, 500);
-            const QPoint PT_ENTRANCE_ENTER_4(600, 500);
+            const QPoint PT_ENTRANCE_ENTER_1(625, 307);
+            const QPoint PT_ENTRANCE_ENTER_2(723, 285);
+            const QPoint PT_ENTRANCE_ENTER_3(725, 658);
+            const QPoint PT_ENTRANCE_ENTER_4(626, 631);
             // Go Home Area
-            const QPoint PT_ENTRANCE_HOME_1(50, 610);
-            const QPoint PT_ENTRANCE_HOME_2(210, 610);
-            const QPoint PT_ENTRANCE_HOME_3(210, 660);
-            const QPoint PT_ENTRANCE_HOME_4(50, 660);
+            const QPoint PT_ENTRANCE_HOME_1(0, 591);
+            const QPoint PT_ENTRANCE_HOME_2(270, 561);
+            const QPoint PT_ENTRANCE_HOME_3(522, 718);
+            const QPoint PT_ENTRANCE_HOME_4(0, 718);
 
             // Helper to get Polygons
             static const QPolygon POLY_ENTRANCE_ENTER() {
@@ -223,14 +223,14 @@ namespace Config {
 
             // 箭头按钮配置: 中心点(Rect), 箭头角度(0=右, 90=下, 180=左, 270=上), 箭头长度
             // 返回入口
-            const QRect RECT_BTN_HALLWAY_EXIT(350, 600, 150, 50);
-            const int ANGLE_BTN_HALLWAY_EXIT = 180;
+            const QRect RECT_BTN_HALLWAY_EXIT(512, 686, 150, 50);
+            const int ANGLE_BTN_HALLWAY_EXIT = 110;
 
             // 签到/下班 (也是不规则区域)
-            const QPoint PT_HALLWAY_CLOCK_1(100, 420);
-            const QPoint PT_HALLWAY_CLOCK_2(250, 420);
-            const QPoint PT_HALLWAY_CLOCK_3(250, 470);
-            const QPoint PT_HALLWAY_CLOCK_4(100, 470);
+            const QPoint PT_HALLWAY_CLOCK_1(157, 280);
+            const QPoint PT_HALLWAY_CLOCK_2(202, 286);
+            const QPoint PT_HALLWAY_CLOCK_3(201, 392);
+            const QPoint PT_HALLWAY_CLOCK_4(155, 392);
              static const QPolygon POLY_HALLWAY_CLOCK() {
                 QVector<QPoint> v;
                 v << PT_HALLWAY_CLOCK_1 << PT_HALLWAY_CLOCK_2 << PT_HALLWAY_CLOCK_3 << PT_HALLWAY_CLOCK_4;
@@ -238,59 +238,59 @@ namespace Config {
             }
 
             // 场景切换箭头
-            const QRect RECT_BTN_HALLWAY_OFFICE(271, 307, 120, 50);   // 去办公室
+            const QRect RECT_BTN_HALLWAY_OFFICE(271, 307, 50, 50);   // 去办公室
             const int ANGLE_BTN_HALLWAY_OFFICE = 270; // 向上偏左? or just Up
 
-            const QRect RECT_BTN_HALLWAY_WAREHOUSE(659, 348, 120, 50);// 去仓库
-            const int ANGLE_BTN_HALLWAY_WAREHOUSE = 0; // 右
+            const QRect RECT_BTN_HALLWAY_WAREHOUSE(663, 474, 50, 50);// 去仓库
+            const int ANGLE_BTN_HALLWAY_WAREHOUSE = 270; // 右
 
-            const QRect RECT_BTN_HALLWAY_ELEVATOR(516, 389, 120, 50); // 去电梯
-            const int ANGLE_BTN_HALLWAY_ELEVATOR = 0;
+            const QRect RECT_BTN_HALLWAY_ELEVATOR(537, 495, 50, 50); // 去电梯
+            const int ANGLE_BTN_HALLWAY_ELEVATOR = 225;
 
             // --- 3. 办公室 (Office) ---
             const QRect RECT_BTN_OFFICE_ACTION(490, 352, 150, 40);    // 汇报/领任务 (普通按钮)
             const QRect RECT_LBL_OFFICE_MSG(425, 256, 300, 50);       // 消息提示
-            const QRect RECT_BTN_OFFICE_BACK(214, 654, 120, 50);      // 返回通道 (箭头)
-            const int ANGLE_BTN_OFFICE_BACK = 180;
+            const QRect RECT_BTN_OFFICE_BACK(297, 665, 50, 50);      // 返回通道 (箭头)
+            const int ANGLE_BTN_OFFICE_BACK = 110;
 
             // --- 4. 仓库入口 (Warehouse Entry) ---
             const QRect RECT_BTN_WAREHOUSE_TAKE(541, 357, 150, 40);   // 拿取布草
-            const QRect RECT_BTN_WAREHOUSE_BACK(259, 659, 120, 50);   // 返回通道 (箭头)
-            const int ANGLE_BTN_WAREHOUSE_BACK = 180;
+            const QRect RECT_BTN_WAREHOUSE_BACK(419, 674, 50, 50);   // 返回通道 (箭头)
+            const int ANGLE_BTN_WAREHOUSE_BACK = 110;
 
             // --- 5. 仓库货架 (Warehouse Shelf) ---
-            const QRect RECT_BTN_SHELF_BACK(102, 666, 120, 50);       // 返回仓库入口 (箭头)
-            const int ANGLE_BTN_SHELF_BACK = 180;
+            const QRect RECT_BTN_SHELF_BACK(201, 688, 50, 50);       // 返回仓库入口 (箭头)
+            const int ANGLE_BTN_SHELF_BACK = 110;
 
             // 货架物品区域 (中心坐标) - 保持不变
             const QRect AREA_SHEET(348, 568, 120, 120);      //大床单
             const QRect AREA_DUVET(754, 130, 120, 120);       //大被套
             const QRect AREA_S_DUVET(262, 130, 120, 120);     //小被套
-            const QRect AREA_PILLOW(216, 420, 120, 120);      //枕巾
+            const QRect AREA_PILLOW(216, 410, 120, 120);      //枕巾
             const QRect AREA_GN_TOWEL(517, 568, 120, 120);    //晚安巾
             const QRect AREA_TOWEL(757, 568, 120, 120);       //毛巾
 
             // --- 6. 电梯厅 (Elevator Hall) ---
             const QRect RECT_BTN_ELEVATOR_ENTER(656, 368, 150, 40);  // 进入电梯
-            const QRect RECT_BTN_ELEVATOR_BACK(186, 655, 120, 50);    // 返回 (箭头)
-            const int ANGLE_BTN_ELEVATOR_BACK = 180;
+            const QRect RECT_BTN_ELEVATOR_BACK(186, 655, 50, 50);    // 返回 (箭头)
+            const int ANGLE_BTN_ELEVATOR_BACK = 120;
 
             // --- 7. 电梯内 (Elevator Inside) ---
-            const QRect RECT_BTN_ELEVATOR_EXIT(448, 650, 150, 40); // 出电梯按钮
+            const QRect RECT_BTN_ELEVATOR_EXIT(447, 340, 150, 40); // 出电梯按钮
 
             // 侧边栏按钮布局
             const QSize SIZE_ELEVATOR_BTN_SIDEBAR(50, 50); // 侧边栏按钮大小
             const int GRID_SPACING_ELEVATOR = 10;
 
             // --- 8. 楼层走廊 (Floor Corridor) ---
-            const QRect RECT_BTN_CORRIDOR_LINEN(463, 339, 120, 50);    // 去布草间 (箭头)
-            const int ANGLE_BTN_CORRIDOR_LINEN = 0;
-            const QRect RECT_BTN_CORRIDOR_ELEVATOR(439, 647, 120, 50); // 去电梯厅 (箭头)
-            const int ANGLE_BTN_CORRIDOR_ELEVATOR = 180;
+            const QRect RECT_BTN_CORRIDOR_LINEN(457, 488, 50, 50);    // 去布草间 (箭头)
+            const int ANGLE_BTN_CORRIDOR_LINEN = 280;
+            const QRect RECT_BTN_CORRIDOR_ELEVATOR(439, 647, 50, 50); // 去电梯厅 (箭头)
+            const int ANGLE_BTN_CORRIDOR_ELEVATOR = 100;
 
             // --- 9. 布草间 (Linen Room) ---
-            const QRect RECT_BTN_LINEN_BACK(240, 667, 120, 50);         // 返回走廊 (箭头)
-            const int ANGLE_BTN_LINEN_BACK = 180;
+            const QRect RECT_BTN_LINEN_BACK(308, 682, 50, 50);         // 返回走廊 (箭头)
+            const int ANGLE_BTN_LINEN_BACK = 110;
 
             // 紧急任务 脏布草 (Event B) 位置配置
             const QRect RECT_EVENT_DIRTY_LINEN(621, 628, 120, 120); // 突发事件B 脏布草位置
