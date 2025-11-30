@@ -264,14 +264,8 @@ void ArrowButton::setArrowTextSize(int size) {
 }
 
 bool ArrowButton::hitButton(const QPoint &pos) const {
-    // 如果有上一次绘制的路径，使用它
-    // m_hitPath 在 paintEvent 中更新，异步发生
-    // 对于静态UI这通常没问题
-    // 如果 m_hitPath 为空 (尚未绘制)，默认为标准矩形检查 (true)
-    // 以避免首帧未绘制时按钮不可点击
-    if (m_hitPath.isEmpty()) return QPushButton::hitButton(pos);
-
-    return m_hitPath.contains(pos);
+    // 用户修改：点击区域为整个控件，而非仅箭头形状
+    return QPushButton::hitButton(pos);
 }
 
 void ArrowButton::enterEvent(QEnterEvent *event) {

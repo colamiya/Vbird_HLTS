@@ -29,18 +29,45 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     leftPanel->setStyleSheet(Config::Test3::Styles::SIDEBAR_LEFT);
     QVBoxLayout *leftLayout = new QVBoxLayout(leftPanel);
 
+    // 返回主菜单按钮 (移动到左侧)
+    QPushButton *returnBtn = new QPushButton(Config::Test3::Texts::BTN_TEXT_BACK_TO_MENU);
+    returnBtn->setFixedSize(Config::Test3::Geometry::RETURN_BTN_SIZE);
+    returnBtn->setStyleSheet(Config::Test3::Styles::BTN_RETURN_MENU);
+    returnBtn->setCursor(Qt::PointingHandCursor);
+    connect(returnBtn, &QPushButton::clicked, [this]() {
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this, "确认退出", "确定要退出当前实训并返回主菜单吗？\n当前进度将不会保留。",
+                                      QMessageBox::Yes|QMessageBox::No);
+        if (reply == QMessageBox::Yes) {
+             reset();
+             emit levelCancelled();
+        }
+    });
+
     locationLabel = new QLabel(QString(Config::Test3::Texts::LBL_LOCATION_PREFIX) + "入口");
     locationLabel->setStyleSheet(Config::Test3::Styles::LBL_TITLE);
 
-    // 推车状态图标 (上移)
+    // 推车状态图标
     cartStatusLabel = new QLabel();
     cartStatusLabel->setFixedSize(Config::Test3::Geometry::ICON_CART);
     cartStatusLabel->setScaledContents(true);
 
-    leftLayout->addWidget(locationLabel);
-    leftLayout->addSpacing(20); // 顶部间距
-    leftLayout->addWidget(cartStatusLabel, 0, Qt::AlignTop | Qt::AlignHCenter); // 改为 AlignTop
-    leftLayout->addStretch();
+    // 布局调整：上20% (位置)，中70% (推车)，下10% (返回)
+    QVBoxLayout *topLayout = new QVBoxLayout();
+    topLayout->addWidget(locationLabel);
+    topLayout->addStretch();
+
+    QVBoxLayout *midLayout = new QVBoxLayout();
+    midLayout->addStretch();
+    midLayout->addWidget(cartStatusLabel, 0, Qt::AlignHCenter | Qt::AlignBottom);
+
+    QVBoxLayout *botLayout = new QVBoxLayout();
+    botLayout->addWidget(returnBtn, 0, Qt::AlignCenter);
+
+    leftLayout->addLayout(topLayout, 2); // 20%
+    leftLayout->addLayout(midLayout, 7); // 70%
+    leftLayout->addLayout(botLayout, 1); // 10%
+
     rpgLayout->addWidget(leftPanel);
 
     // --- 中间面板 ---
@@ -106,26 +133,7 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     };
     rightLayout->addWidget(inventoryListWidget, 6); // Stretch factor 6 (60%)
 
-    // 5. 返回主菜单按钮 (移动到最下方)
-    QPushButton *returnBtn = new QPushButton(Config::Test3::Texts::BTN_TEXT_BACK_TO_MENU);
-    returnBtn->setFixedSize(Config::Test3::Geometry::RETURN_BTN_SIZE);
-    returnBtn->setStyleSheet(Config::Test3::Styles::BTN_RETURN_MENU);
-    returnBtn->setCursor(Qt::PointingHandCursor);
-    connect(returnBtn, &QPushButton::clicked, [this]() {
-        QMessageBox::StandardButton reply;
-        reply = QMessageBox::question(this, "确认退出", "确定要退出当前实训并返回主菜单吗？\n当前进度将不会保留。",
-                                      QMessageBox::Yes|QMessageBox::No);
-        if (reply == QMessageBox::Yes) {
-             reset();
-             emit levelCancelled();
-        }
-    });
-    // 居中显示
-    QHBoxLayout *btnLayout = new QHBoxLayout();
-    btnLayout->addStretch();
-    btnLayout->addWidget(returnBtn);
-    btnLayout->addStretch();
-    rightLayout->addLayout(btnLayout);
+    // 5. 返回主菜单按钮 (已移至左侧)
 
     // --- 电梯面板容器 (Sidebar) ---
     elevatorPanelContainer = new QWidget();
@@ -597,7 +605,8 @@ void Test3::renderWarehouse() {
         dirtyBin->setAlignment(Qt::AlignCenter);
     }
     // 允许拖入
-    dirtyBin->setStyleSheet("background: transparent; border: none;");
+    // 用户修改：脏布草桶也要和货架格子一样，有白色背景
+    dirtyBin->setStyleSheet(Config::Test3::Styles::SHELF_AREA);
     dirtyBin->setToolTip(Config::Test3::Texts::LBL_DIRTY_BIN_TIP);
     dirtyBin->onDropCallback = [this](QString item) {
         if (item == "DirtyLinen" || item == "脏布草") {
