@@ -1242,13 +1242,20 @@ void Test3::showTutorial() {
     overlay->setStyleSheet("background-color: rgba(0, 0, 0, 0.5);");
     overlay->setAttribute(Qt::WA_DeleteOnClose);
 
+    // 使用布局使内容框垂直居中
+    QVBoxLayout *layout = new QVBoxLayout(overlay);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setAlignment(Qt::AlignCenter);
+
     // 内容框
     QWidget *contentBox = new QWidget(overlay);
-    contentBox->setGeometry(Config::Test3::Geometry::RECT_TUTORIAL_OVERLAY);
+    contentBox->setFixedSize(Config::Test3::Geometry::RECT_TUTORIAL_OVERLAY.size());
     contentBox->setStyleSheet("background-color: rgba(0, 0, 0, 0.85); border-radius: 12px; border: 2px solid white;");
 
+    layout->addWidget(contentBox);
+
     QPushButton *closeBtn = new QPushButton("X", contentBox);
-    closeBtn->setGeometry(contentBox->width() - 50, 10, 40, 40);
+    closeBtn->setGeometry(Config::Test3::Geometry::RECT_BTN_TUTORIAL_CLOSE);
     closeBtn->setStyleSheet("color: white; font-size: 30px; border: none; font-weight: bold; background: transparent;");
     closeBtn->setCursor(Qt::PointingHandCursor);
     connect(closeBtn, &QPushButton::clicked, [overlay, this]() {
