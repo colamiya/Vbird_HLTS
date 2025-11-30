@@ -130,6 +130,7 @@ ClickableArea::ClickableArea(QWidget *parent) : QWidget(parent) {
 
 void ClickableArea::setPolygon(const QPolygon &poly) {
     m_poly = poly;
+    qDebug() << "ClickableArea::setPolygon points:" << poly.count(); // Debug Log
     // Apply Mask to restrict mouse events strictly to the polygon
     setMask(m_poly);
 }
@@ -144,6 +145,7 @@ void ClickableArea::mousePressEvent(QMouseEvent *event) {
 }
 
 void ClickableArea::enterEvent(QEnterEvent *event) {
+    qDebug() << "ClickableArea::enterEvent:" << toolTip(); // Debug Log
     emit hovered(true, toolTip());
     QWidget::enterEvent(event);
 }
@@ -265,6 +267,17 @@ void ArrowButton::leaveEvent(QEvent *event) {
 }
 
 void ArrowButton::paintEvent(QPaintEvent *) {
+    // Debug Log (Throttled to first run per instance to avoid spam)
+    if (m_angle == 0 && m_text.isEmpty()) {
+        qDebug() << "ArrowButton painting with default/empty state (potential issue)";
+    }
+
+    static bool loggedOnce = false;
+    if (!loggedOnce) {
+        qDebug() << "ArrowButton::paintEvent executing (Angle:" << m_angle << "Text:" << m_text << ")";
+        loggedOnce = true;
+    }
+
     QPainter p(this);
     if (!p.isActive()) return; // Safety check
 
