@@ -9,6 +9,8 @@
 #include <QMouseEvent>
 #include <QDragEnterEvent>
 #include <QDropEvent>
+#include <QPolygon>
+#include <QPushButton>
 #include <functional>
 
 // --- Helper Functions ---
@@ -89,17 +91,35 @@ protected:
     void dropEvent(QDropEvent *event) override;
 };
 
-// Helper to make transparent clickable areas for task sheet dev mode
+/**
+ * @brief Transparent Clickable Area defined by a Polygon
+ * Used for irregular buttons like "Enter Hotel".
+ */
 class ClickableArea : public QWidget {
     Q_OBJECT
 public:
     ClickableArea(QWidget *parent = nullptr);
+
+    // Set the hit area polygon (in local coordinates if possible, or assume widget covers area)
+    // To make it simple: The widget will be large (covering the bounding rect),
+    // and this polygon defines the click region relative to the widget's TopLeft.
+    void setPolygon(const QPolygon &poly);
+
+signals:
+    void clicked();
+
 protected:
     void mousePressEvent(QMouseEvent *event) override;
+    void paintEvent(QPaintEvent *event) override; // For debug drawing if needed
+
+private:
+    QPolygon m_poly;
 };
 
-// Helper: Combined Widget for Warehouse Shelf (Source + Target)
-// Allows Dragging FROM it (Source) AND Dropping ONTO it (Target)
+/**
+ * @brief Helper: Combined Widget for Warehouse Shelf (Source + Target)
+ * Allows Dragging FROM it (Source) AND Dropping ONTO it (Target)
+ */
 class ShelfArea : public QLabel {
     Q_OBJECT
 public:
@@ -121,6 +141,29 @@ protected:
 private:
     QString m_itemName;
     bool m_isDraggable;
+};
+
+/**
+ * @brief Custom Arrow Button
+ * Draws an arrow shape pointing in a direction + Text at the tail.
+ */
+class ArrowButton : public QPushButton {
+    Q_OBJECT
+public:
+    ArrowButton(QWidget *parent = nullptr);
+
+    // Set properties
+    void setAngle(int degrees); // 0=Right, 90=Down, 180=Left, 270=Up
+    void setColor(const QColor &color);
+    void setArrowText(const QString &text);
+
+protected:
+    void paintEvent(QPaintEvent *event) override;
+
+private:
+    int m_angle;
+    QColor m_color;
+    QString m_text;
 };
 
 #endif // UTILS_H

@@ -56,6 +56,18 @@ struct GameState {
     QMap<int, bool> dirtyBagState;
 };
 
+// Error Tracking for Final Report
+struct ErrorLog {
+    bool lateClockIn = false;
+    bool missedEmergencyPriority = false;
+    bool noReportBeforeHome = false;
+    bool noClockOutBeforeHome = false;
+    // Helper to check if any error
+    bool hasErrors() const {
+        return lateClockIn || missedEmergencyPriority || noReportBeforeHome || noClockOutBeforeHome;
+    }
+};
+
 class Test3 : public QWidget {
     Q_OBJECT
 public:
@@ -78,6 +90,12 @@ private:
     bool isDeveloperMode;
     bool isEmergencyEnabled = false;
     GameState gameState;
+    ErrorLog errorLog;
+
+    // Logic Timers & Flags
+    QTimer *latenessTimer;
+    bool isLate = false;
+    bool isEmergencyActive = false; // Is there an active emergency task?
 
     // UI Elements
     QWidget *rpgCenterPanel;
@@ -97,12 +115,15 @@ private:
     void refreshInventoryList();
     void refreshTaskList();
 
+    // Helper to install event filter on all children recursively for dev mode
+    void installDevFilter(QWidget *widget);
+
     // Scenes
     void renderEntrance();
     void renderStaffHallway();
     void renderOffice();
     void renderWarehouse();
-    void renderWarehouseShelf(); // New
+    void renderWarehouseShelf();
     void renderElevatorHall();
     void renderElevatorInside();
     void renderFloorCorridor();
@@ -116,7 +137,7 @@ private:
     void handleGoHome();
     void handleElevatorButton(int floor);
     void showTaskSheet(int taskIndex = -1); // -1 means currently selected or last
-    void checkEmergencyTask(); // Now possibly part of GetTask or Event A
+    void checkEmergencyTask(); // Deprecated but kept for compatibility
 
     // Normal Dist helper
     int getNormalRandom(int min, int max);
