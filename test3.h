@@ -85,6 +85,7 @@ signals:
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
+    void showEvent(QShowEvent *event) override; // Log when widget is shown
 
 private:
     bool isDeveloperMode;
@@ -94,6 +95,7 @@ private:
 
     // Logic Timers & Flags
     QTimer *latenessTimer;
+    QTimer *heartbeatTimer; // Debug timer
     bool isLate = false;
     bool isTimerTriggered = false; // Has the 10s timer been triggered?
     bool isEmergencyActive = false; // Is there an active emergency task?

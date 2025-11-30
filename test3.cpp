@@ -192,11 +192,28 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
         }
     });
 
+    // Debug Heartbeat
+    heartbeatTimer = new QTimer(this);
+    heartbeatTimer->setInterval(1000);
+    connect(heartbeatTimer, &QTimer::timeout, [this]() {
+        static int count = 0;
+        emit logMessage(QString("Test3 Heartbeat: %1s (Main Thread Active)").arg(++count));
+    });
+
     // Init State
     reset();
 }
 
+void Test3::showEvent(QShowEvent *event) {
+    emit logMessage("Test3 Widget Shown (showEvent triggered)");
+    if (heartbeatTimer && !heartbeatTimer->isActive()) {
+        heartbeatTimer->start();
+    }
+    QWidget::showEvent(event);
+}
+
 void Test3::reset() {
+    emit logMessage("Test3::reset() called");
     gameState.currentScene = GameScene::Entrance;
     gameState.currentFloor = 0;
     gameState.hasClockedIn = false;
@@ -252,6 +269,7 @@ bool Test3::eventFilter(QObject *watched, QEvent *event) {
 // --- Logic ---
 
 void Test3::goToScene(GameScene scene) {
+    emit logMessage(QString("goToScene: %1").arg((int)scene));
     // Logic for Lateness Timer
     // Condition: Switching scene FROM StaffHallway TO somewhere else (e.g. Office, Elevator, Warehouse)
     // AND Not Clocked In yet.
@@ -355,6 +373,7 @@ void Test3::refreshTaskList() {
 // --- Scene Rendering ---
 
 void Test3::renderScene() {
+    emit logMessage(QString("renderScene: %1").arg((int)gameState.currentScene));
     // Clear Center Panel
     QList<QObject*> children = rpgCenterPanel->children();
     for (QObject *child : children) {
@@ -1213,6 +1232,7 @@ void Test3::showTaskSheet(int taskIndex) {
 }
 
 QPixmap Test3::generatePlaceholder(QString text, QColor color, QSize size) {
+    emit logMessage("Generating Placeholder for: " + text); // Debug log
     QPixmap pixmap(size);
     pixmap.fill(color);
     QPainter painter(&pixmap);
