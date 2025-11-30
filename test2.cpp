@@ -1,6 +1,7 @@
 #include "test2.h"
 #include "config.h"
-#include <QMessageBox> // Add missing include
+#include <QMessageBox>
+#include "logger.h"
 
 Test2::Test2(QWidget *parent) : QWidget(parent) {
     // Return Button (Top Right)
@@ -180,10 +181,11 @@ void Test2::handleOptionSelect(int index) {
 }
 
 void Test2::handleNextOrSubmit() {
-    if (questions[currentQuestionIndex].userSelection == -1) {
-        QMessageBox::warning(this, "提示", Config::Test2::MSG_WARNING_SELECT);
-        return;
-    }
+    // 移除必选提示
+    // if (questions[currentQuestionIndex].userSelection == -1) {
+    //    QMessageBox::warning(this, "提示", Config::Test2::MSG_WARNING_SELECT);
+    //    return;
+    // }
 
     if (currentQuestionIndex < questions.size() - 1) {
         currentQuestionIndex++;
@@ -201,20 +203,10 @@ void Test2::showQuizSummary() {
         if (q.userSelection == q.correctIndex) quizScore++;
     }
 
-    // Determine color
-    QString scoreColor = Config::Test2::COL_SCORE_LOW;
-    double ratio = (double)quizScore / questions.size();
-    if (ratio == 1.0) scoreColor = Config::Test2::COL_SCORE_HIGH;
-    else if (ratio >= 0.6) scoreColor = Config::Test2::COL_SCORE_MID;
-
-    QString summaryText;
-
-    // Top Row: Score
-    QString finalScoreStr = QString("最终得分: %1 / %2").arg(quizScore).arg(questions.size());
-    summaryText += QString("<h1 style='text-align:center; color:%1;'>%2</h1>").arg(scoreColor, finalScoreStr);
-
-    summaryText += Config::Test2::HTML_TABLE_STYLE;
-    summaryText += "<table><tr><th>题目</th><th>您的选择</th><th>正确答案</th><th>结果</th></tr>";
+    // 填充 Logger 数据
+    Logger::Test2BriefData data;
+    data.score = quizScore;
+    data.total = questions.size();
 
     char optionChars[] = {'A', 'B', 'C', 'D'};
 
@@ -222,46 +214,21 @@ void Test2::showQuizSummary() {
         const Question &q = questions[i];
         bool isCorrect = (q.userSelection == q.correctIndex);
 
-        QString resultStr = isCorrect ? QString("<font color='%1'>正确</font>").arg(Config::Test2::HTML_CORRECT_COLOR)
-                                      : QString("<font color='%1'>错误</font>").arg(Config::Test2::HTML_WRONG_COLOR);
+        Logger::Test2BriefData::QuestionResult r;
+        r.id = i + 1;
+        r.selection = (q.userSelection != -1) ? QString(optionChars[q.userSelection]) : "未作答";
+        r.correct = isCorrect;
+        data.results.append(r);
 
-        QString userStr = (q.userSelection != -1) ? QString("%1%2").arg(Config::Test2::TEXT_OPTION_PREFIX).arg(optionChars[q.userSelection]) : "未作答";
-        QString correctStr = QString("%1%2").arg(Config::Test2::TEXT_OPTION_PREFIX).arg(optionChars[q.correctIndex]);
-
-        // Simplified Question Text (Question 1, Question 2...)
-        QString qTitle = QString("题目 %1").arg(i + 1);
-
-        summaryText += QString("<tr><td>%1</td><td>%2</td><td>%3</td><td>%4</td></tr>")
-                       .arg(qTitle)
-                       .arg(userStr)
-                       .arg(correctStr)
-                       .arg(resultStr);
-
-        emit logMessage(QString("题目%1: 选%2 (正确%3) -> %4").arg(i+1).arg(userStr).arg(correctStr).arg(isCorrect ? "Win" : "Fail"));
+        emit logMessage(QString("题目%1: 选%2 -> %3").arg(i+1).arg(r.selection).arg(isCorrect ? "正确" : "错误"));
     }
-    summaryText += "</table>";
 
-    emit logMessage("测验完成. " + finalScoreStr);
+    Logger::instance().test2Data = data;
+    emit logMessage(QString("测验完成. 得分: %1 / %2").arg(quizScore).arg(questions.size()));
 
-    QDialog *dlg = new QDialog(this);
-    dlg->setAttribute(Qt::WA_DeleteOnClose);
-    dlg->setWindowTitle("测验结果");
-    dlg->resize(Config::Test2::SIZE_RESULT_DIALOG); // Enlarged dialog
-    QVBoxLayout *layout = new QVBoxLayout(dlg);
-
-    QTextEdit *edit = new QTextEdit();
-    edit->setHtml(summaryText);
-    edit->setReadOnly(true);
-    layout->addWidget(edit);
-
-    QPushButton *closeBtn = new QPushButton(Config::Test2::BTN_TEXT_CLOSE_RESULT);
-    connect(closeBtn, &QPushButton::clicked, [this, dlg]() {
-        dlg->accept();
-        emit levelCompleted();
-    });
-    layout->addWidget(closeBtn);
-
-    dlg->exec();
+    // 不再弹出结果，直接完成
+    // QDialog *dlg = new QDialog(this); ... dlg->exec();
+    emit levelCompleted();
 }
 
 void Test2::showImagePreview(QString imagePath, const QString &title) {

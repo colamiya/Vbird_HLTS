@@ -12,6 +12,7 @@
 #include <QHeaderView>
 #include "config.h"
 #include "utils.h"
+#include "logger.h"
 
 Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode(isDevMode) {
     // 主布局 (网格)
@@ -307,7 +308,8 @@ void Test3::updateRPGStatusLabels() {
     for (auto v : gameState.inventory.cleanItems) cleanCount += v;
 
     // 优先显示脏布草 (或混装)
-    if (gameState.inventory.dirtyItemsCount > 0 || errorLog.mixedLinen) {
+    // 修改: 只要脏布草清空了，推车状态就变成正常 (忽略 errorLog.mixedLinen 的视觉影响)
+    if (gameState.inventory.dirtyItemsCount > 0) {
         statusImg = Config::Test3::Images::UI_CART_DIRTY;
     } else if (cleanCount > 0) {
         statusImg = Config::Test3::Images::UI_CART_CLEAN;
@@ -1137,7 +1139,21 @@ void Test3::handleReportWork() {
     QStringList errors;
 
     bool incomplete = false;
-    for(const auto &t : gameState.tasks) if(!t.isCompleted) incomplete = true;
+    // 检查所有任务是否满足要求
+    for(const auto &t : gameState.tasks) {
+        // 实时检查库存 (System Check)
+        bool isMet = true;
+        for(auto it = t.requiredItems.begin(); it != t.requiredItems.end(); ++it) {
+            int current = gameState.floorInventory[t.targetFloor].value(it.key(), 0);
+            if (current < it.value()) {
+                isMet = false;
+                break;
+            }
+        }
+
+        if (!isMet) incomplete = true;
+    }
+
     if (incomplete) errors << Config::Test3::Texts::REPORT_ERR_MISSING_TASK;
 
     if (errorLog.lateClockIn) errors << Config::Test3::Texts::REPORT_ERR_LATE;
@@ -1161,6 +1177,38 @@ void Test3::handleGoHome() {
     if (errorLog.noReportBeforeHome) emit logMessage("错误: 下班前未汇报");
     if (errorLog.noClockOutBeforeHome) emit logMessage("错误: 下班前未打卡");
 
+    // --- 填充简要报表数据 ---
+    Logger::Test3BriefData data;
+
+    data.clockInStatus = errorLog.lateClockIn ? "迟到" : "正常";
+    data.clockOutStatus = errorLog.noClockOutBeforeHome ? "未打卡" : "已打卡";
+    data.isLate = errorLog.lateClockIn;
+    data.emergencyPriorityMet = !errorLog.missedEmergencyPriority;
+    data.mixedLinen = errorLog.mixedLinen;
+
+    for (const auto &t : gameState.tasks) {
+        Logger::Test3BriefData::FloorStatus fs;
+        fs.floor = t.targetFloor;
+
+        // 最终检查: 实际库存 vs 需求 (忽略中间过程状态)
+        bool isCorrect = true;
+        for(auto it = t.requiredItems.begin(); it != t.requiredItems.end(); ++it) {
+            int current = gameState.floorInventory[t.targetFloor].value(it.key(), 0);
+            if (current < it.value()) {
+                isCorrect = false;
+                break;
+            }
+        }
+
+        fs.isCorrect = isCorrect;
+        if (isCorrect) fs.details = "正确完成";
+        else fs.details = "未满足需求";
+        data.floorStatuses.append(fs);
+    }
+
+    Logger::instance().test3Data = data;
+    Logger::instance().generateBriefReport(); // 生成最终报表
+
     emit levelCompleted();
 }
 
@@ -1179,7 +1227,10 @@ void Test3::showTaskSheet(int taskIndex) {
         return;
     }
     if (taskIndex < 0 || taskIndex >= gameState.tasks.size()) taskIndex = 0;
-    const Task &t = gameState.tasks[taskIndex];
+
+    // 注意: 这里使用的是引用，但我们需要修改它，所以用指针或重新获取引用
+    // 为了支持 "Mark Complete" 修改 Task 状态
+    Task *tPtr = &gameState.tasks[taskIndex];
 
     QDialog *dlg = new QDialog(this);
     dlg->setAttribute(Qt::WA_DeleteOnClose);
@@ -1222,12 +1273,38 @@ void Test3::showTaskSheet(int taskIndex) {
 
     // 显示需求量 (固定)
     for (auto it = itemCoords.begin(); it != itemCoords.end(); ++it) {
-        int count = t.requiredItems.value(it.key(), 0);
+        int count = tPtr->requiredItems.value(it.key(), 0);
         drawCenteredText(it.value(), QString::number(count));
     }
 
     bg->setPixmap(pix);
     bg->setGeometry(0,0,Config::Test3::Geometry::SHEET_DIALOG.width(), Config::Test3::Geometry::SHEET_DIALOG.height());
+
+    // --- 新增: "标记为完成" 按钮与印章 ---
+
+    // 盖章 Label (初始隐藏或显示取决于状态)
+    QLabel *stampLbl = new QLabel("✔", bg);
+    stampLbl->setStyleSheet("color: red; font-size: 80px; font-weight: bold; background: transparent; border: 3px solid red; border-radius: 50%; padding: 10px;");
+    stampLbl->adjustSize();
+    // 放在右下角
+    stampLbl->move(Config::Test3::Geometry::SHEET_DIALOG.width() - stampLbl->width() - 50,
+                   Config::Test3::Geometry::SHEET_DIALOG.height() - stampLbl->height() - 50);
+    stampLbl->setVisible(tPtr->isMarkedComplete);
+
+    // 标记按钮
+    QPushButton *markBtn = new QPushButton(dlg);
+    markBtn->setText(tPtr->isMarkedComplete ? "取消标记" : "标记为完成");
+    markBtn->setGeometry(Config::Test3::Geometry::SHEET_DIALOG.width() - 120, 10, 100, 30);
+    markBtn->setCursor(Qt::PointingHandCursor);
+
+    connect(markBtn, &QPushButton::clicked, [this, tPtr, markBtn, stampLbl]() {
+        tPtr->isMarkedComplete = !tPtr->isMarkedComplete;
+        stampLbl->setVisible(tPtr->isMarkedComplete);
+        markBtn->setText(tPtr->isMarkedComplete ? "取消标记" : "标记为完成");
+
+        QString msg = tPtr->isMarkedComplete ? "任务标记为完成" : "取消任务标记";
+        Logger::instance().logAction("Test3", msg);
+    });
 
     dlg->exec();
 }
@@ -1258,21 +1335,30 @@ void Test3::showTutorial() {
 
     layout->addWidget(contentBox);
 
-    // 确定文本内容
+    // 确定文本内容 和 图片路径
     QString tutorialText = Config::Test3::Texts::TUTORIAL_GENERAL;
+    QString imagePath = Config::Test3::Images::IMAGE_TUTORIAL_GENERAL;
 
     if (gameState.currentScene == GameScene::WarehouseShelf || gameState.currentScene == GameScene::LinenRoom) {
         tutorialText = Config::Test3::Texts::TUTORIAL_SHELF;
+        imagePath = Config::Test3::Images::IMAGE_TUTORIAL_SHELF;
     } else if (gameState.currentScene == GameScene::Warehouse) {
         tutorialText = Config::Test3::Texts::TUTORIAL_WAREHOUSE_ENTRY;
+        imagePath = Config::Test3::Images::IMAGE_TUTORIAL_WAREHOUSE;
     }
 
-    // 图片显示区域 (占位)
+    // 图片显示区域
     QLabel *imgLbl = new QLabel(contentBox);
     imgLbl->setGeometry(Config::Test3::Geometry::RECT_TUTORIAL_IMAGE);
     imgLbl->setAlignment(Qt::AlignCenter);
-    imgLbl->setText("示意图 (暂无)");
-    imgLbl->setStyleSheet("color: #aaa; font-size: 20px; border: 2px dashed #555;");
+
+    QPixmap pix(imagePath);
+    if (!pix.isNull()) {
+        imgLbl->setPixmap(pix.scaled(imgLbl->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    } else {
+        imgLbl->setText("示意图 (未找到图片)");
+        imgLbl->setStyleSheet("color: #aaa; font-size: 20px; border: 2px dashed #555;");
+    }
 
     // 文本显示区域
     QLabel *txtLbl = new QLabel(tutorialText, contentBox);

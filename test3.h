@@ -26,6 +26,7 @@ struct Task {
     QMap<QString, int> requiredItems; // 需求物品 -> 数量 (固定值)
     bool isEmergency;                 // 是否紧急
     bool isCompleted;                 // 是否已完成
+    bool isMarkedComplete = false;    // 学生自己标记完成
 };
 
 // 库存结构体 (用于推车)
