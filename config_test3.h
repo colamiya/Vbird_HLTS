@@ -61,11 +61,11 @@ namespace Config {
 
         // --- 逻辑配置 (Logic) ---
         namespace Logic {
-            const int TIME_LATE_THRESHOLD_SEC = 10; // 迟到判定时间 (秒)
+            const int TIME_LATE_THRESHOLD_SEC = 5; // 迟到判定时间 (秒)
             const int TASK_FIXED_FLOOR_1 = 6;       // 基础任务楼层 1
             const int TASK_FIXED_FLOOR_2 = 7;       // 基础任务楼层 2
-            const int MAX_TASK_ITEM_TYPES = 6;      // 任务物品种类最大数量
-            const int MAX_TASK_ITEM_COUNT = 5;      // 单个物品最大数量
+            const int MAX_TASK_ITEM_TYPES = 5;      // 任务物品种类最大数量
+            const int MAX_TASK_ITEM_COUNT = 3;      // 单个物品最大数量
         }
 
         // --- 界面文本 (Texts) ---
@@ -153,10 +153,8 @@ namespace Config {
             constexpr const char* LBL_SUCCESS_GREEN = "font-size: 18px; color: #34C759; font-weight: bold;";
 
             // 箭头按钮样式配置 (Arrow Button)
-            constexpr const char* ARROW_COLOR = "#007AFF";      // 箭头颜色
-            constexpr const char* ARROW_TEXT_COLOR = "#333333"; // 文本颜色
-            const int ARROW_FONT_SIZE = 14;                     // 箭头文本字体大小
-            const int ARROW_TEXT_SIZE = 14;                     // 箭头文本字号 (Duplicate/Rename for clarity)
+            constexpr const char* ARROW_TEXT_COLOR = "rgba(255, 255, 255, 0.1)"; // 文本颜色
+            const int ARROW_TEXT_SIZE = 1;                     // 箭头文本字号 (Duplicate/Rename for clarity)
 
             // --- 独立按钮样式配置 ---
             // 格式: 背景色, 前景色, 边框, 圆角, 字体粗细
@@ -193,7 +191,7 @@ namespace Config {
             const QSize CENTER_PANEL_SIZE(896, 720);
             const int SIDEBAR_WIDTH = 220;
             const int TASK_LIST_HEIGHT = 150;
-            const QSize RETURN_BTN_SIZE(140, 40);
+            const QSize RETURN_BTN_SIZE(145, 45);
 
             // 图标尺寸
             const QSize ICON_CART(140, 140);
@@ -202,7 +200,7 @@ namespace Config {
             const QSize ICON_DIRTY_DRAG(100, 100);
 
             // 悬浮提示位置 (Hover Hint)
-            const QRect RECT_HOVER_HINT(448, 45, 500, 50); // Centered horizontally (896/2=448)
+            const QRect RECT_HOVER_HINT(220, 35, 400, 50); // Centered horizontally (896/2=448)
 
             // --- 1. 入口场景 (Entrance) - 不规则区域 ---
             // 定义4个点的坐标 (相对于 896x720 区域)
@@ -214,8 +212,8 @@ namespace Config {
 
             // Go Home Button (Arrow)
             // Increased size for text visibility
-            const QRect RECT_BTN_ENTRANCE_HOME(261, 655, 200, 80);
-            const int ANGLE_BTN_ENTRANCE_HOME = 110;
+            const QRect RECT_BTN_ENTRANCE_HOME(98, 648, 45, 45);
+            const int ANGLE_BTN_ENTRANCE_HOME = 130;
 
             // Helper to get Polygons
             static const QPolygon POLY_ENTRANCE_ENTER() {
@@ -231,8 +229,8 @@ namespace Config {
             // Increased sizes significantly to allow text display without clipping
 
             // 返回入口
-            const QRect RECT_BTN_HALLWAY_EXIT(512, 686, 200, 80);
-            const int ANGLE_BTN_HALLWAY_EXIT = 110;
+            const QRect RECT_BTN_HALLWAY_EXIT(512, 686, 45, 45);
+            const int ANGLE_BTN_HALLWAY_EXIT = 115;
 
             // 签到/下班 (也是不规则区域)
             const QPoint PT_HALLWAY_CLOCK_1(157, 280);
@@ -247,62 +245,62 @@ namespace Config {
 
             // 场景切换箭头
             // Increased sizes from 50x50 to 150x100 or similar
-            const QRect RECT_BTN_HALLWAY_OFFICE(271, 307, 150, 100);   // 去办公室
-            const int ANGLE_BTN_HALLWAY_OFFICE = 270;
+            const QRect RECT_BTN_HALLWAY_OFFICE(353, 649, 45, 45);   // 去办公室
+            const int ANGLE_BTN_HALLWAY_OFFICE = 200;
 
-            const QRect RECT_BTN_HALLWAY_WAREHOUSE(663, 474, 150, 100);// 去仓库
+            const QRect RECT_BTN_HALLWAY_WAREHOUSE(663, 474, 45, 45);// 去仓库
             const int ANGLE_BTN_HALLWAY_WAREHOUSE = 270;
 
-            const QRect RECT_BTN_HALLWAY_ELEVATOR(537, 495, 150, 100); // 去电梯
+            const QRect RECT_BTN_HALLWAY_ELEVATOR(537, 495, 45, 45); // 去电梯
             const int ANGLE_BTN_HALLWAY_ELEVATOR = 225;
 
             // --- 3. 办公室 (Office) ---
             const QRect RECT_BTN_OFFICE_ACTION(490, 352, 150, 40);    // 汇报/领任务 (普通按钮)
             const QRect RECT_LBL_OFFICE_MSG(425, 256, 300, 50);       // 消息提示
-            const QRect RECT_BTN_OFFICE_BACK(297, 665, 150, 100);      // 返回通道 (箭头)
-            const int ANGLE_BTN_OFFICE_BACK = 110;
+            const QRect RECT_BTN_OFFICE_BACK(297, 665, 45, 45);      // 返回通道 (箭头)
+            const int ANGLE_BTN_OFFICE_BACK = 120;
 
             // --- 4. 仓库入口 (Warehouse Entry) ---
-            const QRect RECT_BTN_WAREHOUSE_TAKE(541, 357, 150, 40);   // 拿取布草
-            const QRect RECT_BTN_WAREHOUSE_BACK(419, 674, 150, 100);   // 返回通道 (箭头)
-            const int ANGLE_BTN_WAREHOUSE_BACK = 110;
+            const QRect RECT_BTN_WAREHOUSE_TAKE(161, 346, 150, 40);   // 拿取布草
+            const QRect RECT_BTN_WAREHOUSE_BACK(419, 674, 45, 45);   // 返回通道 (箭头)
+            const int ANGLE_BTN_WAREHOUSE_BACK = 120;
 
             // --- 5. 仓库货架 (Warehouse Shelf) ---
-            const QRect RECT_BTN_SHELF_BACK(201, 688, 150, 100);       // 返回仓库入口 (箭头)
-            const int ANGLE_BTN_SHELF_BACK = 110;
+            const QRect RECT_BTN_SHELF_BACK(91, 680, 45, 45);       // 返回仓库入口 (箭头)
+            const int ANGLE_BTN_SHELF_BACK = 180;
 
             // 货架物品区域 (中心坐标) - 保持不变
             const QRect AREA_SHEET(348, 568, 120, 120);      //大床单
-            const QRect AREA_DUVET(754, 130, 120, 120);       //大被套
-            const QRect AREA_S_DUVET(262, 130, 120, 120);     //小被套
-            const QRect AREA_PILLOW(216, 410, 120, 120);      //枕巾
+            const QRect AREA_DUVET(757, 410, 120, 120);       //大被套
+            const QRect AREA_S_DUVET(517, 410, 120, 120);     //小被套
+            const QRect AREA_PILLOW(348, 410, 120, 120);      //枕巾
             const QRect AREA_GN_TOWEL(517, 568, 120, 120);    //晚安巾
             const QRect AREA_TOWEL(757, 568, 120, 120);       //毛巾
 
             // --- 6. 电梯厅 (Elevator Hall) ---
             const QRect RECT_BTN_ELEVATOR_ENTER(656, 368, 150, 40);  // 进入电梯
-            const QRect RECT_BTN_ELEVATOR_BACK(186, 655, 150, 100);    // 返回 (箭头)
-            const int ANGLE_BTN_ELEVATOR_BACK = 120;
+            const QRect RECT_BTN_ELEVATOR_BACK(139, 650, 45, 45);    // 返回 (箭头)
+            const int ANGLE_BTN_ELEVATOR_BACK = 140;
 
             // --- 7. 电梯内 (Elevator Inside) ---
             const QRect RECT_BTN_ELEVATOR_EXIT(447, 340, 150, 40); // 出电梯按钮
 
             // 侧边栏按钮布局
-            const QSize SIZE_ELEVATOR_BTN_SIDEBAR(50, 50); // 侧边栏按钮大小
+            const QSize SIZE_ELEVATOR_BTN_SIDEBAR(45, 45); // 侧边栏按钮大小
             const int GRID_SPACING_ELEVATOR = 10;
 
             // --- 8. 楼层走廊 (Floor Corridor) ---
-            const QRect RECT_BTN_CORRIDOR_LINEN(457, 488, 150, 100);    // 去布草间 (箭头)
-            const int ANGLE_BTN_CORRIDOR_LINEN = 280;
-            const QRect RECT_BTN_CORRIDOR_ELEVATOR(439, 647, 150, 100); // 去电梯厅 (箭头)
-            const int ANGLE_BTN_CORRIDOR_ELEVATOR = 100;
+            const QRect RECT_BTN_CORRIDOR_LINEN(457, 488, 45, 45);    // 去布草间 (箭头)
+            const int ANGLE_BTN_CORRIDOR_LINEN = 275;
+            const QRect RECT_BTN_CORRIDOR_ELEVATOR(439, 647, 45, 45); // 去电梯厅 (箭头)
+            const int ANGLE_BTN_CORRIDOR_ELEVATOR = 95;
 
             // --- 9. 布草间 (Linen Room) ---
-            const QRect RECT_BTN_LINEN_BACK(308, 682, 150, 100);         // 返回走廊 (箭头)
+            const QRect RECT_BTN_LINEN_BACK(308, 682, 45, 45);         // 返回走廊 (箭头)
             const int ANGLE_BTN_LINEN_BACK = 110;
 
             // 紧急任务 脏布草 (Event B) 位置配置
-            const QRect RECT_EVENT_DIRTY_LINEN(621, 628, 120, 120); // 突发事件B 脏布草位置
+            const QRect RECT_EVENT_DIRTY_LINEN(149, 589, 120, 120); // 突发事件B 脏布草位置
 
             // 货架物品区域 - 楼层布草间专用
             const QRect AREA_LINEN_SHEET(600, 365, 120, 120);    //大床单
@@ -313,16 +311,16 @@ namespace Config {
             const QRect AREA_LINEN_TOWEL(600, 185, 120, 120);    //毛巾
 
             // 申领表弹窗 (Task Sheet Dialog)
-            const QSize SHEET_DIALOG(600, 560);
-            const QSize SHEET_TEXT_BOX(100, 50); // Text box size for items
+            const QSize SHEET_DIALOG(600, 540);
+            const QSize SHEET_TEXT_BOX(100, 50);
             const QPoint TXT_FLOOR(190, 50);
 
-            const QPoint TXT_SHEET(295, 185);
-            const QPoint TXT_DUVET(295, 250);
-            const QPoint TXT_S_DUVET(295, 315);
-            const QPoint TXT_PILLOW(295, 380);
-            const QPoint TXT_GN_TOWEL(295, 445);
-            const QPoint TXT_TOWEL(295, 510);
+            const QPoint TXT_SHEET(295, 183);
+            const QPoint TXT_DUVET(295, 248);
+            const QPoint TXT_S_DUVET(295, 310);
+            const QPoint TXT_PILLOW(295, 375);
+            const QPoint TXT_GN_TOWEL(295, 440);
+            const QPoint TXT_TOWEL(295, 500);
         }
     }
 }
