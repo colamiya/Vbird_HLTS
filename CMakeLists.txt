@@ -24,6 +24,8 @@ set(PROJECT_SOURCES
     test3.h
     utils.cpp
     utils.h
+    tutorial_overlay.h
+    tutorial_overlay.cpp
     config.h
     config_global.h
     config_test1.h
