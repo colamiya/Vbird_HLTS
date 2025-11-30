@@ -44,6 +44,15 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
         }
     });
 
+    // 新手教程按钮
+    QPushButton *tutorialBtn = new QPushButton(Config::Test3::Texts::BTN_TUTORIAL);
+    tutorialBtn->setFixedSize(Config::Test3::Geometry::TUTORIAL_BTN_SIZE);
+    tutorialBtn->setStyleSheet(Config::Test3::Styles::BTN_TUTORIAL);
+    tutorialBtn->setCursor(Qt::PointingHandCursor);
+    connect(tutorialBtn, &QPushButton::clicked, [this]() {
+        showTutorial();
+    });
+
     locationLabel = new QLabel(QString(Config::Test3::Texts::LBL_LOCATION_PREFIX) + "入口");
     locationLabel->setStyleSheet(Config::Test3::Styles::LBL_TITLE);
 
@@ -52,7 +61,7 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     cartStatusLabel->setFixedSize(Config::Test3::Geometry::ICON_CART);
     cartStatusLabel->setScaledContents(true);
 
-    // 布局调整：上20% (位置)，中70% (推车)，下10% (返回)
+    // 布局调整：上20% (位置)，中20% (教程)，下50% (推车)，最下10% (返回)
     QVBoxLayout *topLayout = new QVBoxLayout();
     topLayout->addWidget(locationLabel);
     topLayout->addStretch();
@@ -65,7 +74,8 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     botLayout->addWidget(returnBtn, 0, Qt::AlignCenter);
 
     leftLayout->addLayout(topLayout, 2); // 20%
-    leftLayout->addLayout(midLayout, 7); // 70%
+    leftLayout->addWidget(tutorialBtn, 2, Qt::AlignCenter); // 20%
+    leftLayout->addLayout(midLayout, 5); // 50%
     leftLayout->addLayout(botLayout, 1); // 10%
 
     rpgLayout->addWidget(leftPanel);
@@ -393,14 +403,27 @@ void Test3::renderScene() {
     }
 
     // 切换侧边栏UI
+    QVBoxLayout* rightLayout = qobject_cast<QVBoxLayout*>(inventoryListWidget->parentWidget()->layout());
     if (gameState.currentScene == GameScene::ElevatorInside) {
         inventoryListWidget->hide();
         inventoryTitleLabel->hide();
         elevatorPanelContainer->show();
+
+        // 调整比例：任务50%，电梯面板50%
+        if (rightLayout) {
+             rightLayout->setStretchFactor(taskListWidget, 5);
+             rightLayout->setStretchFactor(elevatorPanelContainer, 5);
+        }
     } else {
         elevatorPanelContainer->hide();
         inventoryTitleLabel->show();
         inventoryListWidget->show();
+
+        // 恢复比例：任务40%，物品栏60%
+        if (rightLayout) {
+             rightLayout->setStretchFactor(taskListWidget, 4);
+             rightLayout->setStretchFactor(inventoryListWidget, 6);
+        }
     }
 
     switch(gameState.currentScene) {
@@ -1206,6 +1229,58 @@ void Test3::showTaskSheet(int taskIndex) {
     bg->setGeometry(0,0,Config::Test3::Geometry::SHEET_DIALOG.width(), Config::Test3::Geometry::SHEET_DIALOG.height());
 
     dlg->exec();
+}
+
+void Test3::showTutorial() {
+    emit logMessage("Showing Tutorial for scene: " + QString::number((int)gameState.currentScene));
+
+    // 使用自定义 Widget 覆盖在 rpgCenterPanel 上
+    QWidget *overlay = new QWidget(rpgCenterPanel);
+    overlay->setGeometry(rpgCenterPanel->rect()); // 全屏覆盖
+    overlay->setStyleSheet("background-color: rgba(0, 0, 0, 0.5);");
+    overlay->setAttribute(Qt::WA_DeleteOnClose);
+
+    // 内容框
+    QWidget *contentBox = new QWidget(overlay);
+    contentBox->setGeometry(Config::Test3::Geometry::RECT_TUTORIAL_OVERLAY);
+    contentBox->setStyleSheet("background-color: rgba(0, 0, 0, 0.85); border-radius: 12px; border: 2px solid white;");
+
+    QPushButton *closeBtn = new QPushButton("×", contentBox);
+    closeBtn->setGeometry(contentBox->width() - 50, 10, 40, 40);
+    closeBtn->setStyleSheet("color: white; font-size: 30px; border: none; font-weight: bold; background: transparent;");
+    closeBtn->setCursor(Qt::PointingHandCursor);
+    connect(closeBtn, &QPushButton::clicked, [overlay]() {
+        overlay->close();
+    });
+
+    // 点击背景也能关闭
+    // 简单的做法是覆盖一个大的透明按钮在背景层，但这里只要有按钮就行
+
+    // 确定文本内容
+    QString tutorialText = Config::Test3::Texts::TUTORIAL_GENERAL;
+
+    if (gameState.currentScene == GameScene::WarehouseShelf || gameState.currentScene == GameScene::LinenRoom) {
+        tutorialText = Config::Test3::Texts::TUTORIAL_SHELF;
+    } else if (gameState.currentScene == GameScene::Warehouse) {
+        tutorialText = Config::Test3::Texts::TUTORIAL_WAREHOUSE_ENTRY;
+    }
+
+    // 图片显示区域 (占位)
+    QLabel *imgLbl = new QLabel(contentBox);
+    imgLbl->setGeometry(Config::Test3::Geometry::RECT_TUTORIAL_IMAGE);
+    imgLbl->setAlignment(Qt::AlignCenter);
+    imgLbl->setText("示意图 (暂无)");
+    imgLbl->setStyleSheet("color: #aaa; font-size: 20px; border: 2px dashed #555;");
+
+    // 文本显示区域
+    QLabel *txtLbl = new QLabel(tutorialText, contentBox);
+    txtLbl->setGeometry(Config::Test3::Geometry::RECT_TUTORIAL_TEXT);
+    txtLbl->setStyleSheet(Config::Test3::Styles::TUTORIAL_TEXT_STYLE);
+    txtLbl->setWordWrap(true);
+    txtLbl->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+
+    overlay->show();
+    overlay->raise();
 }
 
 QPixmap Test3::generatePlaceholder(QString text, QColor color, QSize size) {
