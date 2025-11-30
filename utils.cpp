@@ -142,6 +142,16 @@ void ClickableArea::mousePressEvent(QMouseEvent *event) {
     event->ignore();
 }
 
+void ClickableArea::enterEvent(QEnterEvent *event) {
+    emit hovered(true, toolTip());
+    QWidget::enterEvent(event);
+}
+
+void ClickableArea::leaveEvent(QEvent *event) {
+    emit hovered(false, "");
+    QWidget::leaveEvent(event);
+}
+
 void ClickableArea::paintEvent(QPaintEvent *) {
     // Invisible by default.
 }
@@ -173,6 +183,9 @@ void ShelfArea::mousePressEvent(QMouseEvent *event) {
         QDrag *drag = new QDrag(this);
         QMimeData *mimeData = new QMimeData;
         mimeData->setText(m_itemName);
+        if (!m_sourceType.isEmpty()) {
+            mimeData->setData("application/x-source", m_sourceType.toUtf8());
+        }
         drag->setMimeData(mimeData);
 
         QPixmap pixmap(100, 30);
@@ -183,6 +196,16 @@ void ShelfArea::mousePressEvent(QMouseEvent *event) {
 
         drag->exec(Qt::CopyAction);
     }
+}
+
+void ShelfArea::enterEvent(QEnterEvent *event) {
+    emit hovered(true, toolTip());
+    QLabel::enterEvent(event);
+}
+
+void ShelfArea::leaveEvent(QEvent *event) {
+    emit hovered(false, "");
+    QLabel::leaveEvent(event);
 }
 
 void ShelfArea::dragEnterEvent(QDragEnterEvent *event) {
@@ -230,6 +253,16 @@ void ArrowButton::setArrowText(const QString &text) {
     update();
 }
 
+void ArrowButton::enterEvent(QEnterEvent *event) {
+    emit hovered(true, m_text);
+    QPushButton::enterEvent(event);
+}
+
+void ArrowButton::leaveEvent(QEvent *event) {
+    emit hovered(false, "");
+    QPushButton::leaveEvent(event);
+}
+
 void ArrowButton::paintEvent(QPaintEvent *) {
     QPainter p(this);
     p.setRenderHint(QPainter::Antialiasing);
@@ -272,31 +305,44 @@ void ArrowButton::paintEvent(QPaintEvent *) {
     // Close to Tip
     path.closeSubpath();
 
-    p.setBrush(m_color);
-    p.setPen(Qt::NoPen);
+    // Use Red Pen (Stroke) and Transparent Brush
+    QPen pen(Qt::red); // Default Red Border
+    pen.setWidth(3);
+    pen.setJoinStyle(Qt::RoundJoin);
+    p.setPen(pen);
+    p.setBrush(Qt::NoBrush);
+
     p.drawPath(path);
 
     p.restore();
 
-    // Draw Text
-    p.setPen(Qt::black); // Text Color
+    // Draw Text - At the "Tail"
+    // To ensure text is upright, we calculate the tail position in unrotated coords
+
+    // Convert polar to cartesian to find tail center
+    // Tail is at -arrowLen/2 relative to center, rotated by angle
+    double radians = qDegreesToRadians((double)m_angle);
+    // Tail offset (backwards from direction)
+    double tailDist = arrowLen / 2.0 + 10.0; // Extra padding
+    double tx = cx - tailDist * qCos(radians);
+    double ty = cy - tailDist * qSin(radians);
+
+    // Define text alignment based on angle
+    int flags = Qt::AlignCenter;
+    // Refined logic for text placement relative to tail
+    // If Angle is 0 (Right) -> Tail is Left -> Text should be Right Aligned (left of tail)? No, text at Left.
+    // Ideally, center the text rect at (tx, ty) but apply alignment.
+
+    // Let's create a bounding rect around (tx, ty)
+    int txtW = 200;
+    int txtH = 50;
+    QRect txtRect(tx - txtW/2, ty - txtH/2, txtW, txtH);
+
+    p.setPen(m_color); // Use user configured color (defaults to black/blue?)
     QFont f = font();
     f.setBold(true);
+    f.setPointSize(14); // Make it visible
     p.setFont(f);
 
-    QRect textRect = rect();
-    int textOffset = arrowLen / 2;
-
-    // Adjust text rect to be "behind" the center based on angle
-    if (m_angle == 0) { // Right -> Tail Left
-         textRect.adjust(0, 0, -textOffset, 0);
-    } else if (m_angle == 180) { // Left -> Tail Right
-         textRect.adjust(textOffset, 0, 0, 0);
-    } else if (m_angle == 90) { // Down -> Tail Up
-         textRect.adjust(0, 0, 0, -textOffset);
-    } else if (m_angle == 270) { // Up -> Tail Down
-         textRect.adjust(0, textOffset, 0, 0);
-    }
-
-    p.drawText(textRect, Qt::AlignCenter, m_text);
+    p.drawText(txtRect, flags, m_text);
 }

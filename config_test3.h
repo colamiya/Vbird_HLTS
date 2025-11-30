@@ -87,6 +87,7 @@ namespace Config {
             // 注意：部分按钮现在使用箭头样式，文本将显示在箭头尾部
             constexpr const char* BTN_ENTER_HOTEL = "进入酒店"; // 不规则区域，无文本显示(或作为Tooltip)
             constexpr const char* BTN_GO_HOME = "下班回家";   // 不规则区域
+            constexpr const char* TEXT_BTN_ENTRANCE_HOME = "下班回家"; // 箭头按钮文本
 
             constexpr const char* BTN_RETURN_ENTRANCE = "返回入口";
             constexpr const char* BTN_CLOCK_IN = "打卡签到";
@@ -200,21 +201,15 @@ namespace Config {
             const QPoint PT_ENTRANCE_ENTER_2(723, 285);
             const QPoint PT_ENTRANCE_ENTER_3(725, 658);
             const QPoint PT_ENTRANCE_ENTER_4(626, 631);
-            // Go Home Area
-            const QPoint PT_ENTRANCE_HOME_1(0, 591);
-            const QPoint PT_ENTRANCE_HOME_2(270, 561);
-            const QPoint PT_ENTRANCE_HOME_3(522, 718);
-            const QPoint PT_ENTRANCE_HOME_4(0, 718);
+
+            // Go Home Button (Arrow)
+            const QRect RECT_BTN_ENTRANCE_HOME(261, 655, 100, 50); // Default position
+            const int ANGLE_BTN_ENTRANCE_HOME = 110;
 
             // Helper to get Polygons
             static const QPolygon POLY_ENTRANCE_ENTER() {
                 QVector<QPoint> v;
                 v << PT_ENTRANCE_ENTER_1 << PT_ENTRANCE_ENTER_2 << PT_ENTRANCE_ENTER_3 << PT_ENTRANCE_ENTER_4;
-                return QPolygon(v);
-            }
-            static const QPolygon POLY_ENTRANCE_HOME() {
-                QVector<QPoint> v;
-                v << PT_ENTRANCE_HOME_1 << PT_ENTRANCE_HOME_2 << PT_ENTRANCE_HOME_3 << PT_ENTRANCE_HOME_4;
                 return QPolygon(v);
             }
 
