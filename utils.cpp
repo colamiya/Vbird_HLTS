@@ -2,6 +2,7 @@
 #include <QDebug>
 #include <QMessageBox>
 #include <QPainterPath>
+#include <QtMath> // Required for qDegreesToRadians, qCos, qSin
 
 // --- DragSourceLabel ---
 DragSourceLabel::DragSourceLabel(const QString &itemName, QWidget *parent)
@@ -264,6 +265,11 @@ void ArrowButton::leaveEvent(QEvent *event) {
 }
 
 void ArrowButton::paintEvent(QPaintEvent *) {
+    // Debug Log (Throttled to first run per instance to avoid spam)
+    if (m_angle == 0 && m_text.isEmpty()) {
+        qDebug() << "ArrowButton painting with default/empty state (potential issue)";
+    }
+
     QPainter p(this);
     p.setRenderHint(QPainter::Antialiasing);
 
