@@ -118,6 +118,45 @@ namespace Config {
         // 菜单按钮尺寸 (宽, 高)
         const QSize SIZE_MENU_BTN(420, 90);
     }
+
+    /**
+     * @brief CSV 报表配置
+     * 控制报表的生成语言、文件名以及包含的字段。
+     */
+    namespace Csv {
+        // --- 输出控制 (Output Control) ---
+        // 是否生成中文报表 (带BOM, 适合Excel打开不乱码)
+        const bool ENABLE_OUTPUT_CN = true;
+        // 是否生成英文报表 (通用UTF-8)
+        const bool ENABLE_OUTPUT_EN = true;
+
+        // --- 文件名配置 (Filenames) ---
+        // 中文简报文件名
+        constexpr const char* FILENAME_BRIEF_CN = "brief_report_cn.csv";
+        // 英文简报文件名
+        constexpr const char* FILENAME_BRIEF_EN = "brief_report_en.csv";
+        // 中文详细日志文件名
+        constexpr const char* FILENAME_DETAILED_CN = "detailed_report_cn.csv";
+        // 英文详细日志文件名
+        constexpr const char* FILENAME_DETAILED_EN = "detailed_report_en.csv";
+
+        // --- 字段开关 (Field Toggles) ---
+        // 学生基础信息
+        const bool LOG_STUDENT_NAME = true;     // 姓名
+        const bool LOG_STUDENT_AGE = true;      // 年龄
+        const bool LOG_STUDENT_GENDER = true;   // 性别
+        const bool LOG_STUDENT_CLASS = true;    // 班级
+        const bool LOG_SESSION_DURATION = true; // 时长
+
+        // 测试2 (知识测验)
+        const bool LOG_TEST2_SCORE = true;      // 总分
+        const bool LOG_TEST2_DETAILS = true;    // 题目详情
+
+        // 测试3 (实训考核)
+        const bool LOG_TEST3_CLOCK = true;        // 打卡时间
+        const bool LOG_TEST3_FLOOR_STATUS = true; // 楼层状态
+        const bool LOG_TEST3_EVENTS = true;       // 突发事件/错误
+    }
 }
 
 #endif // CONFIG_GLOBAL_H
