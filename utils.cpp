@@ -279,11 +279,15 @@ void ArrowButton::paintEvent(QPaintEvent *) {
     }
 
     QPainter p(this);
+    if (!p.isActive()) return; // Safety check
+
     p.setRenderHint(QPainter::Antialiasing);
 
     // Calculate Arrow Geometry
     int w = width();
     int h = height();
+    if (w <= 0 || h <= 0) return; // Skip invalid geometry
+
     int cx = w / 2;
     int cy = h / 2;
 

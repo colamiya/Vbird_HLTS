@@ -205,10 +205,6 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
 }
 
 void Test3::showEvent(QShowEvent *event) {
-    emit logMessage("Test3 Widget Shown (showEvent triggered)");
-    if (heartbeatTimer && !heartbeatTimer->isActive()) {
-        heartbeatTimer->start();
-    }
     QWidget::showEvent(event);
 }
 
