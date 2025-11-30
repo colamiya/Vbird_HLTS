@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include <QFormLayout>
 #include "config.h"
+#include "logger.h"
 
 MainWindow::MainWindow(QWidget *parent, bool devModeDefault)
     : QMainWindow(parent)
@@ -127,6 +128,9 @@ void MainWindow::onStartTraining() {
     student.duration = durationInput->text();
     enableEmergencyEvents = emergencyToggle->isChecked();
 
+    // Initialize Logger
+    Logger::instance().setStudentInfo(student);
+
     // Pass configuration to Test3
     if (test3Widget) {
         test3Widget->setEmergencyMode(enableEmergencyEvents);
@@ -199,14 +203,9 @@ void MainWindow::onLogMessage(QString msg) {
     QString timestamp = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss");
     QString fullMsg = QString("[%1] %2").arg(timestamp, msg);
     
-    // Immediate write to file
-    QString filename = "training_log.txt"; // Use a single log file or rotate
-    QFile file(filename);
-    if (file.open(QIODevice::Append | QIODevice::Text)) {
-        QTextStream out(&file);
-        out << fullMsg << "\n";
-        file.close();
-    }
+    // Detailed Log via Logger (Module can be inferred or passed, currently using Generic/Main)
+    Logger::instance().logAction("Main/System", msg);
+
     qDebug() << fullMsg;
 }
 

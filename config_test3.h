@@ -44,6 +44,11 @@ namespace Config {
             constexpr const char* UI_TASK_SHEET = ":/source/Test3/申领表.png";
             constexpr const char* UI_DIRTY_BIN = ":/source/Test3/脏布草回收.png"; // 新增: 脏布草回收桶
 
+            // 小技巧示意图
+            constexpr const char* IMAGE_TUTORIAL_GENERAL = ":/source/Test3/教程-通用.png";
+            constexpr const char* IMAGE_TUTORIAL_SHELF = ":/source/Test3/教程-货架.png";
+            constexpr const char* IMAGE_TUTORIAL_WAREHOUSE = ":/source/Test3/教程-仓库.png";
+
             // 物品对应的图标路径映射
             static const QMap<QString, QString>& ITEMS() {
                 static const QMap<QString, QString> map = {
