@@ -438,7 +438,15 @@ void Test3::refreshTaskList()
     for (int i = 0; i < gameState.tasks.size(); ++i)
     {
         const Task &t = gameState.tasks[i];
-        QString status = t.isCompleted ? "[已完成]" : "[进行中]";
+
+        // 状态显示逻辑: 优先显示手动标记状态，其次是系统完成状态
+        QString status = "[进行中]";
+        if (t.isMarkedComplete) {
+            status = "[标记完成]";
+        } else if (t.isCompleted) {
+            status = "[已完成]";
+        }
+
         QString headerText = QString("任务%1: %2楼 %3 %4")
                                  .arg(i + 1)
                                  .arg(t.targetFloor)
@@ -1523,7 +1531,7 @@ void Test3::showTaskSheet(int taskIndex)
 
     // 盖章 Label (初始隐藏或显示取决于状态)
     QLabel *stampLbl = new QLabel("✔", bg);
-    stampLbl->setStyleSheet("color: red; font-size: 80px; font-weight: bold; background: transparent; border: 3px solid red; border-radius: 50%; padding: 10px;");
+    stampLbl->setStyleSheet(Config::Test3::Styles::STYLE_LBL_CHECKMARK);
     stampLbl->adjustSize();
     stampLbl->move(Config::Test3::Geometry::SHEET_DIALOG.width() - stampLbl->width() - 50,
                    Config::Test3::Geometry::SHEET_DIALOG.height() - stampLbl->height() - 50);
@@ -1532,7 +1540,8 @@ void Test3::showTaskSheet(int taskIndex)
     // 标记按钮
     QPushButton *markBtn = new QPushButton(dlg);
     markBtn->setText(tPtr->isMarkedComplete ? "取消标记" : "标记为完成");
-    markBtn->setGeometry(Config::Test3::Geometry::SHEET_DIALOG.width() - 120, 10, 100, 30);
+    markBtn->setGeometry(Config::Test3::Geometry::RECT_BTN_MARK_COMPLETE);
+    markBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_MARK_COMPLETE);
     markBtn->setCursor(Qt::PointingHandCursor);
 
     connect(markBtn, &QPushButton::clicked, [this, tPtr, markBtn, stampLbl]()
@@ -1542,7 +1551,11 @@ void Test3::showTaskSheet(int taskIndex)
         markBtn->setText(tPtr->isMarkedComplete ? "取消标记" : "标记为完成");
 
         QString msg = tPtr->isMarkedComplete ? "任务标记为完成" : "取消任务标记";
-        Logger::instance().logAction("Test3", msg); });
+        Logger::instance().logAction("Test3", msg);
+
+        // 实时刷新右侧任务列表状态
+        refreshTaskList();
+    });
 
     dlg->exec();
 }
