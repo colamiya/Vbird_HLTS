@@ -5,7 +5,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QListWidget>
-#include <QTreeWidget> // Changed from ListWidget
+#include <QTreeWidget>
 #include <QStackedWidget>
 #include <QMap>
 #include <QVector>
@@ -24,9 +24,9 @@
 struct Task {
     int targetFloor;                  // 目标楼层
     QMap<QString, int> requiredItems; // 需求物品 -> 数量 (固定值)
-    bool isEmergency;                 // 是否紧急
-    bool isCompleted;                 // 是否已完成
-    bool isMarkedComplete = false;    // 学生自己标记完成
+    bool isEmergency;                 // 是否为紧急任务
+    bool isCompleted;                 // 是否已完成 (系统判定)
+    bool isMarkedComplete = false;    // 学生手动标记完成 (仅视觉)
 };
 
 // 库存结构体 (用于推车)
@@ -50,32 +50,32 @@ enum class GameScene {
 
 // 游戏状态结构体
 struct GameState {
-    GameScene currentScene;
-    int currentFloor; // 0 (G), 2-10
-    QList<Task> tasks;
-    Inventory inventory; // 推车库存
+    GameScene currentScene; // 当前场景
+    int currentFloor;       // 当前楼层: 0 (G), 2-10
+    QList<Task> tasks;      // 任务列表
+    Inventory inventory;    // 推车库存
 
     // 楼层库存 (Floor Inventory) - 独立于任务，记录放置在各楼层的物品
-    // Map<Floor, Map<ItemName, Count>>
+    // 结构: Map<楼层号, Map<物品名, 数量>>
     QMap<int, QMap<QString, int>> floorInventory;
 
-    bool hasClockedIn;    // 已签到
-    bool hasReceivedTask; // 已领任务
-    bool hasReported;     // 已汇报
+    bool hasClockedIn;    // 是否已签到
+    bool hasReceivedTask; // 是否已领任务
+    bool hasReported;     // 是否已汇报工作
 
-    // 脏布草袋状态 (楼层 -> 是否有脏布草)
+    // 脏布草袋状态 (楼层 -> 是否有脏布草需要回收)
     QMap<int, bool> dirtyBagState;
 };
 
-// 错误日志 (用于最终汇报)
+// 错误日志 (用于最终汇报评估)
 struct ErrorLog {
     bool lateClockIn = false;           // 迟到
     bool missedEmergencyPriority = false; // 未优先处理紧急任务
     bool noReportBeforeHome = false;    // 下班前未汇报
     bool noClockOutBeforeHome = false;  // 下班前未打卡
-    bool mixedLinen = false;            // 混装布草 (新)
+    bool mixedLinen = false;            // 混装布草 (脏净混放)
 
-    // 检查是否有错误
+    // 检查是否有任何错误
     bool hasErrors() const {
         return lateClockIn || missedEmergencyPriority || noReportBeforeHome || noClockOutBeforeHome || mixedLinen;
     }
@@ -85,16 +85,19 @@ class Test3 : public QWidget {
     Q_OBJECT
 public:
     explicit Test3(bool isDevMode, QWidget *parent = nullptr);
+
+    // 设置开发者模式
     void setDeveloperMode(bool enabled) { isDeveloperMode = enabled; }
+    // 设置突发事件模式
     void setEmergencyMode(bool enabled) { isEmergencyEnabled = enabled; }
 
     // 重置游戏状态
     void reset();
 
 signals:
-    void levelCompleted();
-    void levelCancelled();
-    void logMessage(QString msg);
+    void levelCompleted();  // 关卡完成信号
+    void levelCancelled();  // 关卡取消信号
+    void logMessage(QString msg); // 日志信号
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
@@ -107,31 +110,37 @@ private:
     ErrorLog errorLog;
 
     // 逻辑计时器与标志
-    QTimer *latenessTimer;
-    QTimer *heartbeatTimer;
-    bool isLate = false;
-    bool isTimerTriggered = false;
-    bool isEmergencyActive = false;
+    QTimer *latenessTimer;   // 迟到判定计时器
+    QTimer *heartbeatTimer;  // 心跳日志计时器 (调试用)
+    bool isLate = false;     // 是否已迟到
+    bool isTimerTriggered = false; // 计时器是否已触发过
+    bool isEmergencyActive = false; // 当前是否有未完成的紧急任务
+
+    // 资源缓存
+    QMap<QString, QPixmap> m_sceneCache; // 场景与UI图片缓存
 
     // UI 元素
-    QWidget *rpgCenterPanel;
-    QPushButton *tutorialBtn; // 新手教程按钮
-    QLabel *locationLabel;
-    QLabel *hoverHintLabel;
-    QLabel *cartStatusLabel;
-    QTreeWidget *taskListWidget; // 改为 TreeWidget 以支持展开
+    QWidget *rpgCenterPanel;      // 游戏主画面面板
+    QPushButton *tutorialBtn;     // 新手教程按钮
+    QLabel *locationLabel;        // 位置显示标签
+    QLabel *hoverHintLabel;       // 悬浮提示标签
+    QLabel *cartStatusLabel;      // 推车状态图标
+    QTreeWidget *taskListWidget;  // 任务列表控件
 
     // 右侧侧边栏元素
     QLabel *inventoryTitleLabel;
-    DraggableListWidget *inventoryListWidget;
-    QWidget *elevatorPanelContainer;
+    DraggableListWidget *inventoryListWidget; // 可拖拽的库存列表
+    QWidget *elevatorPanelContainer;          // 电梯楼层面板
 
-    // 场景渲染
-    void goToScene(GameScene scene);
-    void renderScene();
-    void updateRPGStatusLabels();
-    void refreshInventoryList();
-    void refreshTaskList();
+    // 核心渲染逻辑
+    void goToScene(GameScene scene); // 切换场景
+    void renderScene();              // 渲染当前场景
+    void updateRPGStatusLabels();    // 更新状态标签 (位置、推车)
+    void refreshInventoryList();     // 刷新库存列表显示
+    void refreshTaskList();          // 刷新任务列表显示
+
+    // 获取图片 (带缓存)
+    QPixmap getPixmap(const QString &path);
 
     // 开发者模式过滤器
     void installDevFilter(QWidget *widget);
@@ -148,26 +157,26 @@ private:
     void renderLinenRoom();
 
     // 逻辑处理函数
-    void handleClockIn();
-    void handleClockOut();
-    void handleGetTask();
-    void handleReportWork();
-    void handleGoHome();
-    void handleElevatorButton(int floor);
-    void showTaskSheet(int taskIndex = -1);
-    void checkEmergencyTask();
+    void handleClockIn();    // 处理打卡上班
+    void handleClockOut();   // 处理打卡下班
+    void handleGetTask();    // 处理领取任务
+    void handleReportWork(); // 处理汇报工作
+    void handleGoHome();     // 处理下班回家
+    void handleElevatorButton(int floor); // 处理电梯楼层选择
+    void showTaskSheet(int taskIndex = -1); // 显示物资申领表
+    void checkEmergencyTask(); // 检查紧急任务状态
 
     // 辅助函数
-    int getNormalRandom(int min, int max);
+    int getNormalRandom(int min, int max); // 获取正态分布随机数
 
     // 交互处理
-    void handleInventoryDrop(QString itemName, const QMimeData *mimeData = nullptr); // 拿取 (货架->车)
-    void handleSceneDrop(QString itemName, bool isWarehouse); // 放置 (车->货架)
+    void handleInventoryDrop(QString itemName, const QMimeData *mimeData = nullptr); // 处理物品放入推车
+    void handleSceneDrop(QString itemName, bool isWarehouse); // 处理物品从推车取出放置 (到货架或仓库)
 
     // 新手教程
     void showTutorial();
 
-    // 生成占位图
+    // 生成占位图 (当资源缺失时)
     QPixmap generatePlaceholder(QString text, QColor color, QSize size);
 };
 

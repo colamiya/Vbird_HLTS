@@ -4,10 +4,11 @@
 #include "logger.h"
 
 Test2::Test2(QWidget *parent) : QWidget(parent) {
-    // Return Button (Top Right)
+    // 主布局 (网格布局，方便右上角放置按钮)
     QGridLayout *mainGrid = new QGridLayout(this);
     mainGrid->setAlignment(Qt::AlignCenter);
 
+    // 返回按钮 (右上角)
     QPushButton *returnBtn = new QPushButton(Config::Test2::BTN_TEXT_BACK_TO_MENU);
     returnBtn->setFixedSize(Config::Test2::RETURN_BTN_SIZE);
     returnBtn->setStyleSheet(Config::Test2::BTN_RETURN_STYLE);
@@ -21,14 +22,15 @@ Test2::Test2(QWidget *parent) : QWidget(parent) {
     });
     mainGrid->addWidget(returnBtn, 0, 1, Qt::AlignRight | Qt::AlignTop);
 
-    // Main Content
+    // 主内容容器
     QWidget *contentWidget = new QWidget();
     QVBoxLayout *layout = new QVBoxLayout(contentWidget);
     layout->setAlignment(Qt::AlignCenter);
     mainGrid->addWidget(contentWidget, 1, 0, 1, 2);
 
 
-    // Initial Data
+    // --- 初始化数据 ---
+    // 内部结构体用于临时构建数据
     struct QuizItem { QString text; int correctIndex; };
     QList<QuizItem> quizData = {
         {"1. 上午8:00上班，谁的工作态度正确？", 2},
@@ -52,6 +54,7 @@ Test2::Test2(QWidget *parent) : QWidget(parent) {
         {"19. 下午17:00下班了，谁做的是对的？", 0}
     };
 
+    // 构建问题列表
     for (const auto &item : quizData) {
         Question q;
         q.text = item.text;
@@ -60,33 +63,37 @@ Test2::Test2(QWidget *parent) : QWidget(parent) {
         questions.append(q);
     }
 
+    // --- UI 构建 ---
+    // 问题标签
     questionLabel = new QLabel();
     questionLabel->setStyleSheet(Config::Test2::STYLE_QUESTION_LBL);
     questionLabel->setAlignment(Qt::AlignCenter);
     layout->addWidget(questionLabel);
 
+    // 选项组
     optionGroup = new QButtonGroup(this);
     optionsContainer = new QWidget();
     QGridLayout *grid = new QGridLayout(optionsContainer);
-    // Increase spacing
-    grid->setSpacing(20);
+    grid->setSpacing(20); // 增加间距
     char optionChars[] = {'A', 'B', 'C', 'D'};
 
     for (int i = 0; i < 4; ++i) {
         QWidget *optWidget = new QWidget();
         QVBoxLayout *optLayout = new QVBoxLayout(optWidget);
-        optLayout->setSpacing(10); // Spacing between image and button
+        optLayout->setSpacing(10); // 图片和按钮之间的间距
 
+        // 图片按钮 (点击可放大)
         optionImages[i] = new QPushButton();
         optionImages[i]->setFixedSize(Config::Test2::SIZE_OPTION_IMG);
         optionImages[i]->setFlat(true);
         optionImages[i]->setStyleSheet(Config::Test2::STYLE_IMG_BTN);
 
+        // 选项按钮 (A/B/C/D)
         optionButtons[i] = new QPushButton(QString("%1%2").arg(Config::Test2::TEXT_OPTION_PREFIX).arg(optionChars[i]));
         optionButtons[i]->setCheckable(true);
         optionButtons[i]->setFixedSize(Config::Test2::SIZE_OPTION_BTN);
         optionButtons[i]->setStyleSheet(Config::Test2::STYLE_OPTION_BTN);
-        optionGroup->addButton(optionButtons[i], i);
+        optionGroup->addButton(optionButtons[i], i); // 添加到按钮组，ID 为索引
 
         connect(optionButtons[i], &QPushButton::clicked, [this, i]() {
             handleOptionSelect(i);
@@ -94,10 +101,11 @@ Test2::Test2(QWidget *parent) : QWidget(parent) {
 
         optLayout->addWidget(optionImages[i], 0, Qt::AlignCenter);
         optLayout->addWidget(optionButtons[i], 0, Qt::AlignCenter);
-        grid->addWidget(optWidget, i / 2, i % 2);
+        grid->addWidget(optWidget, i / 2, i % 2); // 2x2 网格布局
     }
     layout->addWidget(optionsContainer);
 
+    // 导航按钮
     QHBoxLayout *navLayout = new QHBoxLayout();
     QPushButton *prevQBtn = new QPushButton(Config::Test2::BTN_TEXT_PREV);
     nextQBtn = new QPushButton(Config::Test2::BTN_TEXT_NEXT);
@@ -108,6 +116,7 @@ Test2::Test2(QWidget *parent) : QWidget(parent) {
     scoreLabel = new QLabel("");
     layout->addWidget(scoreLabel);
 
+    // 连接导航信号
     connect(prevQBtn, &QPushButton::clicked, [this]() {
         if (currentQuestionIndex > 0) {
             currentQuestionIndex--;
@@ -126,12 +135,14 @@ void Test2::loadQuestion() {
     Question &q = questions[currentQuestionIndex];
     questionLabel->setText(q.text);
 
+    // 暂时阻塞信号以防止在设置状态时触发逻辑
     optionGroup->blockSignals(true);
-    optionGroup->setExclusive(false);
+    optionGroup->setExclusive(false); // 暂时允许无选择状态 (虽然这里逻辑上总是单选，但为了重置显示)
 
     for (int i = 0; i < 4; ++i) {
         optionButtons[i]->setText(q.options[i]);
 
+        // 恢复之前的选择
         if (q.userSelection == i) {
             optionButtons[i]->setChecked(true);
         } else {
@@ -141,7 +152,7 @@ void Test2::loadQuestion() {
         char suffix = 'A' + i;
         QString imgName = QString("%1%2").arg(currentQuestionIndex + 1).arg(suffix);
 
-        // Use config path template
+        // 使用配置中的路径模板加载图片
         QString path = QString(Config::Test2::PATH_FMT_JPG).arg(imgName);
 
         QPixmap pix(path);
@@ -151,13 +162,12 @@ void Test2::loadQuestion() {
         } else {
             optionImages[i]->setText("");
             optionImages[i]->setIcon(QIcon(pix));
-            // Use larger icon size from config
+            // 使用配置中的大图标尺寸
             optionImages[i]->setIconSize(Config::Test2::SIZE_OPTION_ICON);
         }
 
+        // 断开旧连接并连接新的预览信号
         optionImages[i]->disconnect();
-
-        // Pass title to preview
         QString title = QString("第 %1 题 - 选项 %2").arg(currentQuestionIndex + 1).arg(suffix);
         connect(optionImages[i], &QPushButton::clicked, [this, path, title]() {
             showImagePreview(path, title);
@@ -166,9 +176,9 @@ void Test2::loadQuestion() {
     optionGroup->setExclusive(true);
     optionGroup->blockSignals(false);
 
+    // 更新按钮文本 (最后一题显示提交)
     if (currentQuestionIndex == questions.size() - 1) {
         nextQBtn->setText(Config::Test2::BTN_TEXT_SUBMIT);
-        // Use config color for submit
         nextQBtn->setStyleSheet(QString("background-color: %1; color: %2;").arg(Config::Test2::COL_BTN_SUBMIT, Config::Test2::COL_BTN_TEXT_WHITE));
     } else {
         nextQBtn->setText(Config::Test2::BTN_TEXT_NEXT);
@@ -181,11 +191,8 @@ void Test2::handleOptionSelect(int index) {
 }
 
 void Test2::handleNextOrSubmit() {
-    // 移除必选提示
-    // if (questions[currentQuestionIndex].userSelection == -1) {
-    //    QMessageBox::warning(this, "提示", Config::Test2::MSG_WARNING_SELECT);
-    //    return;
-    // }
+    // 允许不选直接下一题 (按用户需求: 移除必选提示)
+    // if (questions[currentQuestionIndex].userSelection == -1) { ... return; }
 
     if (currentQuestionIndex < questions.size() - 1) {
         currentQuestionIndex++;
@@ -198,7 +205,7 @@ void Test2::handleNextOrSubmit() {
 void Test2::showQuizSummary() {
     quizScore = 0;
 
-    // Calculate score first
+    // 计算总分
     for (const auto &q : questions) {
         if (q.userSelection == q.correctIndex) quizScore++;
     }
@@ -226,14 +233,13 @@ void Test2::showQuizSummary() {
     Logger::instance().test2Data = data;
     emit logMessage(QString("测验完成. 得分: %1 / %2").arg(quizScore).arg(questions.size()));
 
-    // 不再弹出结果，直接完成
-    // QDialog *dlg = new QDialog(this); ... dlg->exec();
+    // 直接完成关卡，不弹窗
     emit levelCompleted();
 }
 
 void Test2::showImagePreview(QString imagePath, const QString &title) {
     QDialog *dlg = new QDialog(this);
-    dlg->setAttribute(Qt::WA_DeleteOnClose);
+    dlg->setAttribute(Qt::WA_DeleteOnClose); // 关闭时自动释放内存
     dlg->setWindowTitle(title);
     dlg->resize(Config::Test2::SIZE_PREVIEW_DIALOG);
 
@@ -245,13 +251,10 @@ void Test2::showImagePreview(QString imagePath, const QString &title) {
     QPixmap pix(imagePath);
     if (!pix.isNull()) {
         imgLbl->setPixmap(pix);
-        // Do not scale contents to fill, we want lightbox behavior
+        // Lightbox 行为: 显示全图，由 ScrollArea 提供滚动
         imgLbl->setScaledContents(false);
 
-        // However, if image is larger than screen/dialog, we might want to scale it down to fit reasonably
-        // But for "Lightbox", usually full size inside scroll is expected, OR fit to window.
-        // Given user asked for "reasonable size" calc.
-        // Let's ensure it doesn't explode the view.
+        // 如果图片过大，适当缩放到对话框大小，避免打开时过于夸张
         if (pix.width() > Config::Test2::SIZE_PREVIEW_DIALOG.width()) {
              imgLbl->setPixmap(pix.scaled(Config::Test2::SIZE_PREVIEW_DIALOG - QSize(50,50), Qt::KeepAspectRatio, Qt::SmoothTransformation));
         }
@@ -260,7 +263,7 @@ void Test2::showImagePreview(QString imagePath, const QString &title) {
     }
 
     scroll->setWidget(imgLbl);
-    scroll->setWidgetResizable(true); // Allow centering if smaller
+    scroll->setWidgetResizable(true); // 允许居中
     layout->addWidget(scroll);
 
     dlg->exec();

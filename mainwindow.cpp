@@ -16,6 +16,7 @@ MainWindow::MainWindow(QWidget *parent, bool devModeDefault)
 MainWindow::~MainWindow() {}
 
 void MainWindow::setupStyle() {
+    // 加载全局样式表
     this->setStyleSheet(Config::Global::GLOBAL_STYLESHEET);
 }
 
@@ -23,48 +24,48 @@ void MainWindow::setupUI() {
     mainStack = new QStackedWidget(this);
     setCentralWidget(mainStack);
 
-    // 0: Start
+    // 0: 开始页
     mainStack->addWidget(createStartPage());
 
-    // 1: Menu
+    // 1: 主菜单
     mainStack->addWidget(createMainMenu());
 
-    // 2: Test 1
+    // 2: Test 1 (幻灯片)
     test1Widget = new Test1();
     connect(test1Widget, &Test1::logMessage, this, &MainWindow::onLogMessage);
     connect(test1Widget, &Test1::levelCompleted, [this](){ onLevelCompleted(1); });
     connect(test1Widget, &Test1::levelCancelled, [this](){ mainStack->setCurrentIndex(1); });
     mainStack->addWidget(test1Widget);
 
-    // 3: Test 2
+    // 3: Test 2 (测验)
     test2Widget = new Test2();
     connect(test2Widget, &Test2::logMessage, this, &MainWindow::onLogMessage);
     connect(test2Widget, &Test2::levelCompleted, [this](){ onLevelCompleted(2); });
     connect(test2Widget, &Test2::levelCancelled, [this](){ mainStack->setCurrentIndex(1); });
     mainStack->addWidget(test2Widget);
 
-    // 4: Test 3
-    test3Widget = new Test3(isDeveloperMode); // Pass dev mode
+    // 4: Test 3 (RPG 实训)
+    test3Widget = new Test3(isDeveloperMode); // 传递开发者模式状态
     connect(test3Widget, &Test3::logMessage, this, &MainWindow::onLogMessage);
     connect(test3Widget, &Test3::levelCompleted, [this](){ onLevelCompleted(3); });
     connect(test3Widget, &Test3::levelCancelled, [this](){ mainStack->setCurrentIndex(1); });
     mainStack->addWidget(test3Widget);
 }
 
-// --- Start Page ---
+// --- 开始页 (Start Page) ---
 QWidget *MainWindow::createStartPage() {
     QWidget *page = new QWidget();
     QVBoxLayout *layout = new QVBoxLayout(page);
     layout->setAlignment(Qt::AlignCenter);
     layout->setSpacing(30);
 
-    // Title
+    // 标题
     QLabel *title = new QLabel(Config::Global::TITLE_START_PAGE);
     title->setStyleSheet(QString("font-size: %1px; font-weight: bold;").arg(Config::Global::FONT_SIZE_SUBTITLE));
     title->setAlignment(Qt::AlignCenter);
     layout->addWidget(title, 0, Qt::AlignCenter);
 
-    // Form
+    // 表单布局
     QFormLayout *form = new QFormLayout();
     form->setLabelAlignment(Qt::AlignRight | Qt::AlignVCenter);
     form->setFormAlignment(Qt::AlignCenter);
@@ -73,7 +74,7 @@ QWidget *MainWindow::createStartPage() {
 
     ageInput = new QSpinBox();
     ageInput->setRange(16, 100);
-    ageInput->setButtonSymbols(QAbstractSpinBox::NoButtons); // Remove +/- buttons
+    ageInput->setButtonSymbols(QAbstractSpinBox::NoButtons); // 移除加减按钮
     ageInput->setAlignment(Qt::AlignCenter);
 
     genderInput = new QComboBox();
@@ -94,13 +95,13 @@ QWidget *MainWindow::createStartPage() {
 
     layout->addWidget(formWidget, 0, Qt::AlignCenter);
 
-    // Start Button
+    // 开始按钮
     QPushButton *startBtn = new QPushButton(Config::Global::BTN_TEXT_START);
     startBtn->setFixedWidth(Config::Global::SIZE_START_BTN_WIDTH);
     connect(startBtn, &QPushButton::clicked, this, &MainWindow::onStartTraining);
     layout->addWidget(startBtn, 0, Qt::AlignCenter);
 
-    // Emergency Event Toggle
+    // 突发事件开关 (Test 3)
     emergencyToggle = new QCheckBox(Config::Global::CHECKBOX_TEXT_EMERGENCY);
     emergencyToggle->setChecked(false);
     emergencyToggle->setStyleSheet(QString("color: %1; font-size: 12px;").arg(Config::Global::COL_TEXT_DISABLED));
@@ -128,10 +129,10 @@ void MainWindow::onStartTraining() {
     student.duration = durationInput->text();
     enableEmergencyEvents = emergencyToggle->isChecked();
 
-    // Initialize Logger
+    // 初始化日志记录器
     Logger::instance().setStudentInfo(student);
 
-    // Pass configuration to Test3
+    // 将配置传递给 Test3
     if (test3Widget) {
         test3Widget->setEmergencyMode(enableEmergencyEvents);
     }
@@ -141,7 +142,7 @@ void MainWindow::onStartTraining() {
     mainStack->setCurrentIndex(1);
 }
 
-// --- Main Menu ---
+// --- 主菜单 (Main Menu) ---
 QWidget *MainWindow::createMainMenu() {
     QWidget *page = new QWidget();
     QVBoxLayout *layout = new QVBoxLayout(page);
@@ -152,6 +153,7 @@ QWidget *MainWindow::createMainMenu() {
     title->setStyleSheet(QString("font-size: %1px; font-weight: bold;").arg(Config::Global::FONT_SIZE_TITLE));
     layout->addWidget(title, 0, Qt::AlignCenter);
 
+    // 动态添加按钮的 Lambda
     auto addBtn = [&](QString text, int idx) {
         QPushButton *btn = new QPushButton(text);
         btn->setFixedSize(Config::Global::SIZE_MENU_BTN);
@@ -165,20 +167,12 @@ QWidget *MainWindow::createMainMenu() {
     addBtn(Config::Global::BTN_TEXT_TEST2, 3);
     addBtn(Config::Global::BTN_TEXT_TEST3, 4);
 
-    // 开发者模式切换按钮已移除，请在 main.cpp 中设置 DEV_MODE_DEFAULT
-    // Developer mode toggle removed. Set DEV_MODE_DEFAULT in main.cpp instead.
-    /*
-    QCheckBox *devCheck = new QCheckBox(Config::Global::CHECKBOX_TEXT_DEV_MODE);
-    devCheck->setChecked(isDeveloperMode); // Set initial state
-    connect(devCheck, &QCheckBox::checkStateChanged, this, &MainWindow::toggleDeveloperMode);
-    layout->addWidget(devCheck, 0, Qt::AlignCenter);
-    */
-
     return page;
 }
 
 void MainWindow::updateMainMenu() {
     for (int i = 0; i < mainMenuButtons.size(); ++i) {
+        // 如果是开发者模式，解锁所有按钮；否则按进度解锁
         if (isDeveloperMode || i < progressState) {
             mainMenuButtons[i]->setEnabled(true);
             mainMenuButtons[i]->setToolTip("");
@@ -191,33 +185,34 @@ void MainWindow::updateMainMenu() {
 
 void MainWindow::toggleDeveloperMode(int state) {
     isDeveloperMode = (state == Qt::Checked);
-    // Propagate to Test3 if it exists
+    // 传播到 Test3
     if (test3Widget) test3Widget->setDeveloperMode(isDeveloperMode);
     updateMainMenu();
     onLogMessage(isDeveloperMode ? "开发者模式已开启" : "开发者模式已关闭");
 }
 
-// --- Logic ---
+// --- 逻辑 (Logic) ---
 
 void MainWindow::onLogMessage(QString msg) {
     QString timestamp = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss");
     QString fullMsg = QString("[%1] %2").arg(timestamp, msg);
     
-    // Detailed Log via Logger (Module can be inferred or passed, currently using Generic/Main)
+    // 记录详细日志
     Logger::instance().logAction("Main/System", msg);
 
     qDebug() << fullMsg;
 }
 
 void MainWindow::onLevelCompleted(int level) {
+    // 只有当新完成的关卡大于当前进度时才更新
     if (progressState < level + 1) {
         progressState = level + 1;
     }
     updateMainMenu();
-    mainStack->setCurrentIndex(1); // Return to menu
+    mainStack->setCurrentIndex(1); // 返回主菜单
     
     if (level == 3) {
         QMessageBox::information(this, "恭喜", "您已完成所有实训内容！");
-        QApplication::quit();
+        // QApplication::quit(); // 也可以选择不退出
     }
 }

@@ -3,11 +3,11 @@
 #include <QMessageBox>
 
 Test1::Test1(QWidget *parent) : QWidget(parent) {
-    // Main Layout (Grid to allow top-right positioning)
+    // 主布局 (网格布局，方便右上角放置按钮)
     QGridLayout *mainGrid = new QGridLayout(this);
     mainGrid->setAlignment(Qt::AlignCenter);
 
-    // Return Button (Top Right)
+    // 返回按钮 (右上角)
     QPushButton *returnBtn = new QPushButton(Config::Test1::BTN_TEXT_BACK_TO_MENU);
     returnBtn->setFixedSize(Config::Test1::RETURN_BTN_SIZE);
     returnBtn->setStyleSheet(Config::Test1::BTN_RETURN_STYLE);
@@ -16,32 +16,22 @@ Test1::Test1(QWidget *parent) : QWidget(parent) {
         reply = QMessageBox::question(this, "确认退出", "确定要退出当前测试并返回主菜单吗？\n当前进度将不会保存。",
                                       QMessageBox::Yes|QMessageBox::No);
         if (reply == QMessageBox::Yes) {
-            // Logic to handle exit without saving score/progress?
-            // The levelCompleted signal usually advances progress.
-            // We need a way to just go back.
-            // Since we don't have a specific signal for "cancel", we might need to add one or use levelCompleted but check progress logic in MainWindow?
-            // User requirement: "can cancel and not retain results".
-            // If I just emit levelCompleted, it might mark it as done.
-            // I should emit a specific signal or let MainWindow handle cancellation.
-            // For now, I will reuse levelCompleted BUT logic in MainWindow might advance level.
-            // Wait, looking at MainWindow::onLevelCompleted: "if (progressState < level + 1) progressState = level + 1;"
-            // This is BAD for cancellation.
-
-            // I need to add a "levelCancelled" signal.
+            // 发出取消信号，由 MainWindow 处理页面切换
             emit levelCancelled();
         }
     });
-    // Add to top right: row 0, col 1, align right
+    // 添加到右上角: 第0行, 第1列, 右对齐 | 顶对齐
     mainGrid->addWidget(returnBtn, 0, 1, Qt::AlignRight | Qt::AlignTop);
 
-    // Content Container
+    // 内容容器
     QWidget *contentWidget = new QWidget();
     QVBoxLayout *layout = new QVBoxLayout(contentWidget);
 
-    // Add content to row 1, span 2 columns
+    // 添加内容到第1行, 跨2列
     mainGrid->addWidget(contentWidget, 1, 0, 1, 2);
 
 
+    // --- 幻灯片区域 ---
     slideshowContainer = new QWidget();
     QVBoxLayout *slideLayout = new QVBoxLayout(slideshowContainer);
 
@@ -49,6 +39,7 @@ Test1::Test1(QWidget *parent) : QWidget(parent) {
     slideImageLabel->setAlignment(Qt::AlignCenter);
     slideLayout->addWidget(slideImageLabel);
 
+    // 导航按钮
     QHBoxLayout *navLayout = new QHBoxLayout();
     QPushButton *prevBtn = new QPushButton(Config::Test1::BTN_TEXT_PREV);
     QPushButton *nextBtn = new QPushButton(Config::Test1::BTN_TEXT_NEXT);
@@ -73,7 +64,7 @@ Test1::Test1(QWidget *parent) : QWidget(parent) {
 
     layout->addWidget(slideshowContainer);
 
-    // Summary Widget (Initially Hidden)
+    // --- 总结区域 (初始隐藏) ---
     slideshowSummaryWidget = new QWidget();
     slideshowSummaryWidget->setVisible(false);
     layout->addWidget(slideshowSummaryWidget);
@@ -81,11 +72,27 @@ Test1::Test1(QWidget *parent) : QWidget(parent) {
     updateSlide();
 }
 
+QPixmap Test1::getPixmap(const QString &path) {
+    // 检查缓存
+    if (m_pixmapCache.contains(path)) {
+        return m_pixmapCache.value(path);
+    }
+
+    // 加载新图片
+    QPixmap pix(path);
+    if (!pix.isNull()) {
+        m_pixmapCache.insert(path, pix); // 存入缓存
+    }
+    return pix;
+}
+
 void Test1::updateSlide() {
-    // Check if index is within bounds of config list
+    // 检查索引是否在配置列表范围内
     if (currentSlideIndex >= 0 && currentSlideIndex < Config::Test1::SLIDE_IMAGES().size()) {
         QString imagePath = Config::Test1::SLIDE_IMAGES()[currentSlideIndex];
-        QPixmap pixmap(imagePath);
+
+        // 使用缓存机制获取图片
+        QPixmap pixmap = getPixmap(imagePath);
 
         if (!pixmap.isNull()) {
             slideImageLabel->setPixmap(pixmap.scaled(Config::Test1::DISPLAY_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
@@ -97,7 +104,7 @@ void Test1::updateSlide() {
             ));
         }
     } else {
-        // Fallback
+        // 索引越界回退
         slideImageLabel->setPixmap(generatePlaceholder("无效的幻灯片索引", Qt::red, Config::Test1::DISPLAY_SIZE));
     }
 }
@@ -106,17 +113,17 @@ void Test1::finishSlideshow() {
     slideshowContainer->setVisible(false);
     slideshowSummaryWidget->setVisible(true);
 
+    // 创建网格布局显示缩略图
     QGridLayout *grid = new QGridLayout(slideshowSummaryWidget);
     for (int i = 0; i < totalSlides; ++i) {
         QLabel *thumb = new QLabel();
 
-        // Use config paths
         QString imagePath = "";
         if (i < Config::Test1::SLIDE_IMAGES().size()) {
             imagePath = Config::Test1::SLIDE_IMAGES()[i];
         }
 
-        QPixmap pix(imagePath);
+        QPixmap pix = getPixmap(imagePath); // 同样使用缓存
         if (pix.isNull()) {
              pix = generatePlaceholder(QString("图 %1").arg(i + 1), Qt::gray, Config::Test1::THUMBNAIL_SIZE);
         } else {
@@ -129,6 +136,7 @@ void Test1::finishSlideshow() {
         grid->addWidget(thumb, i / 5, i % 5);
     }
 
+    // 完成按钮
     QPushButton *finishBtn = new QPushButton(Config::Test1::BTN_TEXT_FINISH);
     connect(finishBtn, &QPushButton::clicked, [this]() {
         emit levelCompleted();
@@ -139,6 +147,7 @@ void Test1::finishSlideshow() {
 }
 
 QPixmap Test1::generatePlaceholder(QString text, QColor color, QSize size) {
+    // 动态生成的占位图通常不缓存，因为包含特定文本
     QPixmap pixmap(size);
     pixmap.fill(color);
     QPainter painter(&pixmap);
