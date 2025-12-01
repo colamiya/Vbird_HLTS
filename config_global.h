@@ -131,7 +131,7 @@ namespace Config
         // 是否生成中文报表 (带BOM, 适合Excel打开不乱码)
         const bool ENABLE_OUTPUT_CN = true;
         // 是否生成英文报表 (通用UTF-8)
-        const bool ENABLE_OUTPUT_EN = true;
+        const bool ENABLE_OUTPUT_EN = false;
 
         // --- 文件名配置 (Filenames) ---
         // 中文简报文件名

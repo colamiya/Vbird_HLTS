@@ -74,7 +74,7 @@ namespace Config
             const int TASK_FIXED_FLOOR_1 = 6;       // 基础任务楼层 1
             const int TASK_FIXED_FLOOR_2 = 7;       // 基础任务楼层 2
             const int MAX_TASK_ITEM_TYPES = 6;      // 任务物品种类最大数量
-            const int MAX_TASK_ITEM_COUNT = 3;      // 单个物品最大数量
+            const int MAX_TASK_ITEM_COUNT = 7;      // 单个物品最大数量
 
             // 物品量词映射 (Classifiers)
             static const QMap<QString, QString> &CLASSIFIERS()
@@ -138,15 +138,15 @@ namespace Config
             constexpr const char *LBL_DIRTY_BIN_TIP = "脏布草回收处 (拖拽放入)";
 
             constexpr const char *STATUS_IN_PROGRESS = "[进行中]";
-            constexpr const char *STATUS_MARKED_COMPLETE = "[标记完成]";
+            constexpr const char *STATUS_MARKED_COMPLETE = "[完成]";
 
             // 紧急任务弹窗
             constexpr const char *POPUP_EMERGENCY_MANAGER = "经理：%1楼现在需要马上补充一些布草，你先去%1楼送一下。";
 
             // 汇报工作与错误反馈
             constexpr const char *REPORT_SUCCESS = "经理：工作做得很好，流程很规范。";
-            constexpr const char *REPORT_BLOCK_MSG = "经理：你检查下申领表，完成的要写上已完成";
-            constexpr const char *REPORT_ERR_MARKED_INCOMPLETE = "任务%1楼已标记完成但未满足要求！工作请更仔细一点。";
+            constexpr const char *REPORT_BLOCK_MSG = "经理：你检查下申领表，完成的要标记";
+            constexpr const char *REPORT_ERR_MARKED_INCOMPLETE = "经理：%1楼任务完成未满足要求！工作请更仔细一点。";
 
             constexpr const char *REPORT_ERR_LATE = "经理：你今天迟到了。";
             constexpr const char *REPORT_ERR_PRIORITY = "经理：做的好，但以后需要先完成紧急任务？";
@@ -367,7 +367,7 @@ namespace Config
 
             // 申领表弹窗
             const QSize SHEET_DIALOG(600, 540);
-            const QRect RECT_BTN_MARK_COMPLETE(480, 10, 100, 30); // 手动标记完成按钮位置
+            const QRect RECT_BTN_MARK_COMPLETE(480, 30, 110, 40); // 手动标记完成按钮位置
 
             const QSize SHEET_TEXT_BOX(100, 50);
             const QPoint TXT_FLOOR(190, 50);

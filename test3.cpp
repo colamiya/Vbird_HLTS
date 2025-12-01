@@ -1,4 +1,4 @@
-#include "test3.h"
+﻿#include "test3.h"
 #include "tutorial_overlay.h"
 #include <QBoxLayout>
 #include <QPainter>
@@ -1550,7 +1550,7 @@ void Test3::showTaskSheet(int taskIndex)
 
     // 标记按钮
     QPushButton *markBtn = new QPushButton(dlg);
-    markBtn->setText(tPtr->isMarkedComplete ? "取消标记" : "标记为完成");
+    markBtn->setText(tPtr->isMarkedComplete ? "取消标记" : "标记完成");
     markBtn->setGeometry(Config::Test3::Geometry::RECT_BTN_MARK_COMPLETE);
     markBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_MARK_COMPLETE);
     markBtn->setCursor(Qt::PointingHandCursor);
@@ -1559,7 +1559,7 @@ void Test3::showTaskSheet(int taskIndex)
             {
         tPtr->isMarkedComplete = !tPtr->isMarkedComplete;
         stampLbl->setVisible(tPtr->isMarkedComplete);
-        markBtn->setText(tPtr->isMarkedComplete ? "取消标记" : "标记为完成");
+        markBtn->setText(tPtr->isMarkedComplete ? "取消标记" : "标记完成");
 
         QString msg = tPtr->isMarkedComplete ? "任务标记为完成" : "取消任务标记";
         Logger::instance().logAction("Test3", msg);
