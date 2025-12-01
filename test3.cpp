@@ -439,12 +439,10 @@ void Test3::refreshTaskList()
     {
         const Task &t = gameState.tasks[i];
 
-        // 状态显示逻辑: 优先显示手动标记状态，其次是系统完成状态
-        QString status = "[进行中]";
+        // 状态显示逻辑: 优先显示手动标记状态
+        QString status = Config::Test3::Texts::STATUS_IN_PROGRESS;
         if (t.isMarkedComplete) {
-            status = "[标记完成]";
-        } else if (t.isCompleted) {
-            status = "[已完成]";
+            status = Config::Test3::Texts::STATUS_MARKED_COMPLETE;
         }
 
         QString headerText = QString("任务%1: %2楼 %3 %4")
@@ -1199,19 +1197,6 @@ void Test3::handleSceneDrop(QString itemName, bool isWarehouse)
         }
     }
 
-    // 全局完成检查
-    if (anyUpdate)
-    {
-        bool allAllDone = true;
-        for (const auto &checkT : gameState.tasks)
-            if (!checkT.isCompleted)
-                allAllDone = false;
-        if (allAllDone)
-        {
-            QMessageBox::information(this, "提示", "所有任务已完成！请回办公室汇报。");
-        }
-    }
-
     refreshInventoryList();
     refreshTaskList();
     renderScene();
@@ -1356,6 +1341,16 @@ void Test3::handleGetTask()
 
 void Test3::handleReportWork()
 {
+    // 1. 预检查：是否所有任务都已手动标记为完成
+    for (const auto &t : gameState.tasks)
+    {
+        if (!t.isMarkedComplete)
+        {
+            QMessageBox::warning(this, "提示", Config::Test3::Texts::REPORT_BLOCK_MSG);
+            return;
+        }
+    }
+
     QString msg = Config::Test3::Texts::REPORT_SUCCESS;
     QStringList errors;
 
@@ -1376,11 +1371,27 @@ void Test3::handleReportWork()
         }
 
         if (!isMet)
+        {
             incomplete = true;
+            // 如果已标记完成但未达标，添加具体责备信息
+            if (t.isMarkedComplete) {
+                errors << QString(Config::Test3::Texts::REPORT_ERR_MARKED_INCOMPLETE).arg(t.targetFloor);
+            }
+        }
     }
 
     if (incomplete)
-        errors << Config::Test3::Texts::REPORT_ERR_MISSING_TASK;
+    {
+        // 如果有错误，但不一定是"Missing Task"那么简单，可能是"Marked Incomplete"
+        // 只有当没有任何specific error时才添加通用错误
+        bool hasSpecificError = false;
+        for(const QString &err : errors) {
+            if(err.contains("标记完成但未满足")) hasSpecificError = true;
+        }
+        if(!hasSpecificError) {
+             errors << Config::Test3::Texts::REPORT_ERR_MISSING_TASK;
+        }
+    }
 
     if (errorLog.lateClockIn)
         errors << Config::Test3::Texts::REPORT_ERR_LATE;
