@@ -187,6 +187,11 @@ namespace Config
             // 提示标签颜色 (成功)
             constexpr const char *LBL_SUCCESS_GREEN = "font-size: 18px; color: #34C759; font-weight: bold;";
 
+            // 申领表手动标记完成按钮
+            constexpr const char *STYLE_BTN_MARK_COMPLETE = "background-color: #007AFF; color: white; border-radius: 5px; font-weight: bold;";
+            // 申领表完成印章 (绿色)
+            constexpr const char *STYLE_LBL_CHECKMARK = "color: #34C759; font-size: 80px; font-weight: bold; background: transparent; border: 3px solid #34C759; border-radius: 50%; padding: 10px;";
+
             // 箭头按钮样式配置
             constexpr const char *ARROW_TEXT_COLOR = "rgba(255, 255, 255, 0.1)";
             const int ARROW_TEXT_SIZE = 1;
@@ -356,6 +361,8 @@ namespace Config
 
             // 申领表弹窗
             const QSize SHEET_DIALOG(600, 540);
+            const QRect RECT_BTN_MARK_COMPLETE(480, 10, 100, 30); // 手动标记完成按钮位置
+
             const QSize SHEET_TEXT_BOX(100, 50);
             const QPoint TXT_FLOOR(190, 50);
 
