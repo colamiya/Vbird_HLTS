@@ -21,8 +21,10 @@
  * @param widget 要定位的控件
  * @param rect QRect，其中 x, y 为中心坐标，width, height 为尺寸
  */
-inline void setGeometryCentered(QWidget *widget, const QRect &rect) {
-    if (!widget) return;
+inline void setGeometryCentered(QWidget *widget, const QRect &rect)
+{
+    if (!widget)
+        return;
     int w = rect.width();
     int h = rect.height();
     int x = rect.x() - (w / 2);
@@ -38,15 +40,17 @@ inline void setGeometryCentered(QWidget *widget, const QRect &rect) {
  * @param w 宽度
  * @param h 高度
  */
-inline void setGeometryCentered(QWidget *widget, int centerX, int centerY, int w, int h) {
-    if (!widget) return;
+inline void setGeometryCentered(QWidget *widget, int centerX, int centerY, int w, int h)
+{
+    if (!widget)
+        return;
     widget->setGeometry(centerX - (w / 2), centerY - (h / 2), w, h);
 }
 
-
 // 拖拽源标签 (Drag Source Label)
 // 用于仓库中从货架拖拽物品到推车
-class DragSourceLabel : public QLabel {
+class DragSourceLabel : public QLabel
+{
     Q_OBJECT
 public:
     DragSourceLabel(const QString &itemName, QWidget *parent = nullptr);
@@ -60,7 +64,8 @@ private:
 
 // 放置目标标签 (Drop Label)
 // 用于布草间从推车拖拽物品到货架
-class DropLabel : public QLabel {
+class DropLabel : public QLabel
+{
     Q_OBJECT
 public:
     DropLabel(const QString &text, QWidget *parent = nullptr);
@@ -74,7 +79,8 @@ protected:
 
 // 可拖拽列表控件 (Draggable List Widget)
 // 用于推车库存，支持拖出 (Source) 和拖入 (Target)
-class DraggableListWidget : public QListWidget {
+class DraggableListWidget : public QListWidget
+{
     Q_OBJECT
 public:
     DraggableListWidget(QWidget *parent = nullptr);
@@ -96,7 +102,8 @@ protected:
  * @brief 由多边形定义的透明可点击区域
  * 用于不规则按钮，如“进入酒店”
  */
-class ClickableArea : public QWidget {
+class ClickableArea : public QWidget
+{
     Q_OBJECT
 public:
     ClickableArea(QWidget *parent = nullptr);
@@ -123,7 +130,8 @@ private:
  * @brief 辅助类: 仓库货架组合控件 (Source + Target)
  * 允许从中拖拽 (Source) 并且允许放置到上面 (Target)
  */
-class ShelfArea : public QLabel {
+class ShelfArea : public QLabel
+{
     Q_OBJECT
 public:
     ShelfArea(const QString &itemName, QWidget *parent = nullptr);
@@ -159,7 +167,8 @@ private:
  * @brief 自定义箭头按钮
  * 绘制指向特定方向的箭头 + 尾部文本
  */
-class ArrowButton : public QPushButton {
+class ArrowButton : public QPushButton
+{
     Q_OBJECT
 public:
     ArrowButton(QWidget *parent = nullptr);

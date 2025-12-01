@@ -7,7 +7,8 @@
 #include <QKeyEvent>
 #include <QVBoxLayout>
 
-class TutorialOverlay : public QWidget {
+class TutorialOverlay : public QWidget
+{
     Q_OBJECT
 public:
     explicit TutorialOverlay(QWidget *parent = nullptr);

@@ -6,15 +6,18 @@
 
 // --- 拖拽源标签 (DragSourceLabel) ---
 DragSourceLabel::DragSourceLabel(const QString &itemName, QWidget *parent)
-    : QLabel(parent), m_itemName(itemName) {
+    : QLabel(parent), m_itemName(itemName)
+{
     // 设置半透明背景样式，作为视觉叠加层
     setStyleSheet("background-color: rgba(255, 255, 255, 0.1); border: 1px dashed rgba(255,255,255,0.5);");
     setCursor(Qt::PointingHandCursor); // 设置为手型光标，提示可交互
     setToolTip("拖拽 " + itemName);
 }
 
-void DragSourceLabel::mousePressEvent(QMouseEvent *event) {
-    if (event->button() == Qt::LeftButton) {
+void DragSourceLabel::mousePressEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::LeftButton)
+    {
         // 创建拖拽对象
         QDrag *drag = new QDrag(this);
         QMimeData *mimeData = new QMimeData;
@@ -34,7 +37,8 @@ void DragSourceLabel::mousePressEvent(QMouseEvent *event) {
 }
 
 // --- 放置目标标签 (DropLabel) ---
-DropLabel::DropLabel(const QString &text, QWidget *parent) : QLabel(text, parent) {
+DropLabel::DropLabel(const QString &text, QWidget *parent) : QLabel(text, parent)
+{
     setAcceptDrops(true); // 允许接受放置事件
     setAlignment(Qt::AlignCenter);
     setStyleSheet(
@@ -43,22 +47,26 @@ DropLabel::DropLabel(const QString &text, QWidget *parent) : QLabel(text, parent
         "background-color: rgba(236, 240, 241, 0.8);"
         "color: #7f8c8d;"
         "font-weight: bold;"
-        "font-size: 14px;"
-    );
+        "font-size: 14px;");
 }
 
-void DropLabel::dragEnterEvent(QDragEnterEvent *event) {
+void DropLabel::dragEnterEvent(QDragEnterEvent *event)
+{
     // 仅接受包含文本数据的拖拽
-    if (event->mimeData()->hasText()) {
+    if (event->mimeData()->hasText())
+    {
         event->acceptProposedAction();
     }
 }
 
-void DropLabel::dropEvent(QDropEvent *event) {
-    if (event->mimeData()->hasText()) {
+void DropLabel::dropEvent(QDropEvent *event)
+{
+    if (event->mimeData()->hasText())
+    {
         QString text = event->mimeData()->text();
         // 如果设置了回调函数，则执行回调
-        if (onDropCallback) {
+        if (onDropCallback)
+        {
             onDropCallback(text);
         }
         event->acceptProposedAction();
@@ -66,18 +74,21 @@ void DropLabel::dropEvent(QDropEvent *event) {
 }
 
 // --- 可拖拽列表控件 (DraggableListWidget) ---
-DraggableListWidget::DraggableListWidget(QWidget *parent) : QListWidget(parent) {
+DraggableListWidget::DraggableListWidget(QWidget *parent) : QListWidget(parent)
+{
     setDragEnabled(true);
     setAcceptDrops(true); // 允许拖入 (例如从仓库货架放回推车)
     setDropIndicatorShown(true);
     setDragDropMode(QAbstractItemView::DragDrop);
     setDefaultDropAction(Qt::CopyAction); // 默认操作为复制 (逻辑上由业务层控制数量扣减)
-    setCursor(Qt::PointingHandCursor); // 设置光标
+    setCursor(Qt::PointingHandCursor);    // 设置光标
 }
 
-void DraggableListWidget::startDrag(Qt::DropActions supportedActions) {
+void DraggableListWidget::startDrag(Qt::DropActions supportedActions)
+{
     QListWidgetItem *item = currentItem();
-    if (item) {
+    if (item)
+    {
         QMimeData *mimeData = new QMimeData;
         mimeData->setText(item->data(Qt::UserRole).toString()); // 传递物品类型标识
 
@@ -86,7 +97,8 @@ void DraggableListWidget::startDrag(Qt::DropActions supportedActions) {
 
         // 使用当前项的图标作为拖拽视觉反馈，如果没有则生成文字图
         QPixmap pixmap = item->icon().pixmap(50, 50);
-        if (pixmap.isNull()) {
+        if (pixmap.isNull())
+        {
             pixmap = QPixmap(100, 30);
             pixmap.fill(Qt::lightGray);
             QPainter painter(&pixmap);
@@ -98,50 +110,66 @@ void DraggableListWidget::startDrag(Qt::DropActions supportedActions) {
     }
 }
 
-void DraggableListWidget::dragEnterEvent(QDragEnterEvent *event) {
-    if (event->mimeData()->hasText()) {
+void DraggableListWidget::dragEnterEvent(QDragEnterEvent *event)
+{
+    if (event->mimeData()->hasText())
+    {
         event->acceptProposedAction();
-    } else {
+    }
+    else
+    {
         QListWidget::dragEnterEvent(event);
     }
 }
 
-void DraggableListWidget::dragMoveEvent(QDragMoveEvent *event) {
-    if (event->mimeData()->hasText()) {
-         event->acceptProposedAction();
-    } else {
-         QListWidget::dragMoveEvent(event);
+void DraggableListWidget::dragMoveEvent(QDragMoveEvent *event)
+{
+    if (event->mimeData()->hasText())
+    {
+        event->acceptProposedAction();
+    }
+    else
+    {
+        QListWidget::dragMoveEvent(event);
     }
 }
 
-void DraggableListWidget::dropEvent(QDropEvent *event) {
+void DraggableListWidget::dropEvent(QDropEvent *event)
+{
     // 如果拖拽源不是自己 (即从外部拖入)，且包含文本数据
-    if (event->source() != this && event->mimeData()->hasText()) {
+    if (event->source() != this && event->mimeData()->hasText())
+    {
         QString text = event->mimeData()->text();
-        if (onItemDroppedIn) {
+        if (onItemDroppedIn)
+        {
             onItemDroppedIn(text);
         }
         event->acceptProposedAction();
-    } else {
+    }
+    else
+    {
         // 内部排序或无效操作交由父类处理
         QListWidget::dropEvent(event);
     }
 }
 
 // --- 可点击区域 (ClickableArea) ---
-ClickableArea::ClickableArea(QWidget *parent) : QWidget(parent) {
+ClickableArea::ClickableArea(QWidget *parent) : QWidget(parent)
+{
     setCursor(Qt::PointingHandCursor);
     setAttribute(Qt::WA_TranslucentBackground); // 背景透明
 }
 
-void ClickableArea::setPolygon(const QPolygon &poly) {
+void ClickableArea::setPolygon(const QPolygon &poly)
+{
     m_poly = poly;
     qDebug() << "ClickableArea::setPolygon 点数:" << poly.count(); // 调试日志
     // 设置遮罩，限制鼠标事件仅在多边形区域内生效
     setMask(m_poly);
 }
 
-void ClickableArea::mousePressEvent(QMouseEvent *event) {
+void ClickableArea::mousePressEvent(QMouseEvent *event)
+{
     // 由于设置了 setMask，只有多边形内的点击会触发此事件
     emit clicked();
 
@@ -149,26 +177,30 @@ void ClickableArea::mousePressEvent(QMouseEvent *event) {
     event->ignore();
 }
 
-void ClickableArea::enterEvent(QEnterEvent *event) {
+void ClickableArea::enterEvent(QEnterEvent *event)
+{
     // 鼠标进入区域，发出悬停信号
     qDebug() << "ClickableArea::enterEvent:" << toolTip(); // 调试日志
     emit hovered(true, toolTip());
     QWidget::enterEvent(event);
 }
 
-void ClickableArea::leaveEvent(QEvent *event) {
+void ClickableArea::leaveEvent(QEvent *event)
+{
     // 鼠标离开区域，取消悬停信号
     emit hovered(false, "");
     QWidget::leaveEvent(event);
 }
 
-void ClickableArea::paintEvent(QPaintEvent *) {
+void ClickableArea::paintEvent(QPaintEvent *)
+{
     // 默认不可见，仅用于交互
 }
 
 // --- 货架区域 (ShelfArea) ---
 ShelfArea::ShelfArea(const QString &itemName, QWidget *parent)
-    : QLabel(parent), m_itemName(itemName), m_isDraggable(true) {
+    : QLabel(parent), m_itemName(itemName), m_isDraggable(true)
+{
     setAcceptDrops(true); // 允许作为放置目标
     // 样式: 半透明虚线框
     setStyleSheet("background-color: rgba(255, 255, 255, 0.1); border: 1px dashed rgba(255,255,255,0.5);");
@@ -176,25 +208,33 @@ ShelfArea::ShelfArea(const QString &itemName, QWidget *parent)
     setToolTip(itemName);
 }
 
-void ShelfArea::setDraggable(bool enabled) {
+void ShelfArea::setDraggable(bool enabled)
+{
     m_isDraggable = enabled;
-    if (m_isDraggable) {
+    if (m_isDraggable)
+    {
         setCursor(Qt::PointingHandCursor);
-    } else {
+    }
+    else
+    {
         setCursor(Qt::ArrowCursor);
     }
 }
 
-void ShelfArea::mousePressEvent(QMouseEvent *event) {
+void ShelfArea::mousePressEvent(QMouseEvent *event)
+{
     // 如果被禁用拖拽 (例如无库存)，则直接返回
-    if (!m_isDraggable) return;
+    if (!m_isDraggable)
+        return;
 
-    if (event->button() == Qt::LeftButton) {
+    if (event->button() == Qt::LeftButton)
+    {
         QDrag *drag = new QDrag(this);
         QMimeData *mimeData = new QMimeData;
         mimeData->setText(m_itemName);
         // 如果设置了源类型 (如 "WarehouseShelf")，则附加此数据
-        if (!m_sourceType.isEmpty()) {
+        if (!m_sourceType.isEmpty())
+        {
             mimeData->setData("application/x-source", m_sourceType.toUtf8());
         }
         drag->setMimeData(mimeData);
@@ -210,35 +250,44 @@ void ShelfArea::mousePressEvent(QMouseEvent *event) {
     }
 }
 
-void ShelfArea::enterEvent(QEnterEvent *event) {
+void ShelfArea::enterEvent(QEnterEvent *event)
+{
     emit hovered(true, toolTip());
     QLabel::enterEvent(event);
 }
 
-void ShelfArea::leaveEvent(QEvent *event) {
+void ShelfArea::leaveEvent(QEvent *event)
+{
     emit hovered(false, "");
     QLabel::leaveEvent(event);
 }
 
-void ShelfArea::dragEnterEvent(QDragEnterEvent *event) {
-    if (event->mimeData()->hasText()) {
+void ShelfArea::dragEnterEvent(QDragEnterEvent *event)
+{
+    if (event->mimeData()->hasText())
+    {
         event->acceptProposedAction();
     }
 }
 
-void ShelfArea::dropEvent(QDropEvent *event) {
+void ShelfArea::dropEvent(QDropEvent *event)
+{
     // 防止自我放置 (从货架拖起又放回同一个货架)
-    if (event->source() == this) {
+    if (event->source() == this)
+    {
         event->ignore();
         return;
     }
 
-    if (event->mimeData()->hasText()) {
+    if (event->mimeData()->hasText())
+    {
         QString text = event->mimeData()->text();
         // 只有当拖入的物品名称与货架名称一致时才接受 (例如只能将"床单"放回"床单"货架)
         // 注意: 实际上 onDropCallback 内部可能还会做进一步检查
-        if (text == m_itemName) {
-            if (onDropCallback) onDropCallback(text);
+        if (text == m_itemName)
+        {
+            if (onDropCallback)
+                onDropCallback(text);
             event->acceptProposedAction();
         }
     }
@@ -254,63 +303,75 @@ ArrowButton::ArrowButton(QWidget *parent)
     setStyleSheet("background: transparent; border: none;");
 }
 
-void ArrowButton::setAngle(int degrees) {
+void ArrowButton::setAngle(int degrees)
+{
     m_angle = degrees;
     update();
 }
 
-void ArrowButton::setColor(const QColor &color) {
+void ArrowButton::setColor(const QColor &color)
+{
     m_color = color;
     update();
 }
 
-void ArrowButton::setArrowText(const QString &text) {
+void ArrowButton::setArrowText(const QString &text)
+{
     m_text = text;
     update();
 }
 
-void ArrowButton::setArrowTextSize(int size) {
+void ArrowButton::setArrowTextSize(int size)
+{
     m_textSize = size;
     update();
 }
 
-bool ArrowButton::hitButton(const QPoint &pos) const {
+bool ArrowButton::hitButton(const QPoint &pos) const
+{
     // 点击判定区域改为整个控件矩形，而不是仅限于绘制的箭头形状，以提高易用性
     return QPushButton::hitButton(pos);
 }
 
-void ArrowButton::enterEvent(QEnterEvent *event) {
+void ArrowButton::enterEvent(QEnterEvent *event)
+{
     emit hovered(true, m_text);
     QPushButton::enterEvent(event);
 }
 
-void ArrowButton::leaveEvent(QEvent *event) {
+void ArrowButton::leaveEvent(QEvent *event)
+{
     emit hovered(false, "");
     QPushButton::leaveEvent(event);
 }
 
-void ArrowButton::paintEvent(QPaintEvent *) {
+void ArrowButton::paintEvent(QPaintEvent *)
+{
     // 调试日志 (每个实例仅限首次运行以避免刷屏影响性能)
-    if (m_angle == 0 && m_text.isEmpty()) {
+    if (m_angle == 0 && m_text.isEmpty())
+    {
         qDebug() << "ArrowButton: 正在绘制默认/空状态 (可能是潜在配置问题)";
     }
 
     static bool loggedOnce = false;
-    if (!loggedOnce) {
+    if (!loggedOnce)
+    {
         qDebug() << "ArrowButton::paintEvent 执行中 (角度:" << m_angle << "文本:" << m_text << ")";
         loggedOnce = true;
     }
 
     QPainter p(this);
     // 安全检查: 确保 Painter 处于活跃状态，防止崩溃
-    if (!p.isActive()) return;
+    if (!p.isActive())
+        return;
 
     p.setRenderHint(QPainter::Antialiasing);
 
     // 获取控件尺寸
     int w = width();
     int h = height();
-    if (w <= 0 || h <= 0) return; // 跳过无效几何尺寸
+    if (w <= 0 || h <= 0)
+        return; // 跳过无效几何尺寸
 
     int cx = w / 2;
     int cy = h / 2;
@@ -328,19 +389,19 @@ void ArrowButton::paintEvent(QPaintEvent *) {
     int arrowLen = qMin(w, h) * 0.8;
     // 示例: 如果 w=200, h=80，则 arrowLen 为 64
 
-    int headLen = arrowLen * 0.4;   // 箭头头部长度
+    int headLen = arrowLen * 0.4;    // 箭头头部长度
     int shaftThick = arrowLen * 0.3; // 箭杆厚度
 
     QPainterPath path;
     // 绘制箭头路径
-    path.moveTo(arrowLen / 2, 0); // 尖端
+    path.moveTo(arrowLen / 2, 0);                             // 尖端
     path.lineTo(arrowLen / 2 - headLen, -arrowLen / 2 * 0.5); // 上翼点
-    path.lineTo(arrowLen / 2 - headLen, -shaftThick / 2); // 轴上部连接点
-    path.lineTo(-arrowLen / 2, -shaftThick / 2); // 轴尾上部
-    path.lineTo(-arrowLen / 2, shaftThick / 2); // 轴尾下部
-    path.lineTo(arrowLen / 2 - headLen, shaftThick / 2); // 轴下部连接点
-    path.lineTo(arrowLen / 2 - headLen, arrowLen / 2 * 0.5); // 下翼点
-    path.closeSubpath(); // 闭合路径
+    path.lineTo(arrowLen / 2 - headLen, -shaftThick / 2);     // 轴上部连接点
+    path.lineTo(-arrowLen / 2, -shaftThick / 2);              // 轴尾上部
+    path.lineTo(-arrowLen / 2, shaftThick / 2);               // 轴尾下部
+    path.lineTo(arrowLen / 2 - headLen, shaftThick / 2);      // 轴下部连接点
+    path.lineTo(arrowLen / 2 - headLen, arrowLen / 2 * 0.5);  // 下翼点
+    path.closeSubpath();                                      // 闭合路径
 
     // 设置画笔 (红色描边) 和 画刷 (透明填充)
     QPen pen(Qt::red);
@@ -370,7 +431,7 @@ void ArrowButton::paintEvent(QPaintEvent *) {
     // 定义文本框大小
     int txtW = 200;
     int txtH = 50;
-    QRect txtRect(tx - txtW/2, ty - txtH/2, txtW, txtH);
+    QRect txtRect(tx - txtW / 2, ty - txtH / 2, txtW, txtH);
 
     p.setPen(m_color); // 使用用户配置的颜色
     QFont f = font();

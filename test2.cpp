@@ -3,7 +3,8 @@
 #include <QMessageBox>
 #include "logger.h"
 
-Test2::Test2(QWidget *parent) : QWidget(parent) {
+Test2::Test2(QWidget *parent) : QWidget(parent)
+{
     // 主布局 (网格布局，方便右上角放置按钮)
     QGridLayout *mainGrid = new QGridLayout(this);
     mainGrid->setAlignment(Qt::AlignCenter);
@@ -12,14 +13,14 @@ Test2::Test2(QWidget *parent) : QWidget(parent) {
     QPushButton *returnBtn = new QPushButton(Config::Test2::BTN_TEXT_BACK_TO_MENU);
     returnBtn->setFixedSize(Config::Test2::RETURN_BTN_SIZE);
     returnBtn->setStyleSheet(Config::Test2::BTN_RETURN_STYLE);
-    connect(returnBtn, &QPushButton::clicked, [this]() {
+    connect(returnBtn, &QPushButton::clicked, [this]()
+            {
         QMessageBox::StandardButton reply;
         reply = QMessageBox::question(this, "确认退出", "确定要退出当前测验并返回主菜单吗？\n当前进度将不会保留。",
                                       QMessageBox::Yes|QMessageBox::No);
         if (reply == QMessageBox::Yes) {
              emit levelCancelled();
-        }
-    });
+        } });
     mainGrid->addWidget(returnBtn, 0, 1, Qt::AlignRight | Qt::AlignTop);
 
     // 主内容容器
@@ -28,10 +29,13 @@ Test2::Test2(QWidget *parent) : QWidget(parent) {
     layout->setAlignment(Qt::AlignCenter);
     mainGrid->addWidget(contentWidget, 1, 0, 1, 2);
 
-
     // --- 初始化数据 ---
     // 内部结构体用于临时构建数据
-    struct QuizItem { QString text; int correctIndex; };
+    struct QuizItem
+    {
+        QString text;
+        int correctIndex;
+    };
     QList<QuizItem> quizData = {
         {"1. 上午8:00上班，谁的工作态度正确？", 2},
         {"2. 开始工作前主管安排任务。谁的工作态度正确？", 3},
@@ -51,11 +55,11 @@ Test2::Test2(QWidget *parent) : QWidget(parent) {
         {"16. 房间里的布草不够了，谁的工作方式正确？", 1},
         {"17. 和同事相处时，谁的做法错误？", 3},
         {"18. 被批评了，谁的态度是对的？", 1},
-        {"19. 下午17:00下班了，谁做的是对的？", 0}
-    };
+        {"19. 下午17:00下班了，谁做的是对的？", 0}};
 
     // 构建问题列表
-    for (const auto &item : quizData) {
+    for (const auto &item : quizData)
+    {
         Question q;
         q.text = item.text;
         q.options = QStringList() << "选项 A" << "选项 B" << "选项 C" << "选项 D";
@@ -77,7 +81,8 @@ Test2::Test2(QWidget *parent) : QWidget(parent) {
     grid->setSpacing(20); // 增加间距
     char optionChars[] = {'A', 'B', 'C', 'D'};
 
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < 4; ++i)
+    {
         QWidget *optWidget = new QWidget();
         QVBoxLayout *optLayout = new QVBoxLayout(optWidget);
         optLayout->setSpacing(10); // 图片和按钮之间的间距
@@ -95,9 +100,8 @@ Test2::Test2(QWidget *parent) : QWidget(parent) {
         optionButtons[i]->setStyleSheet(Config::Test2::STYLE_OPTION_BTN);
         optionGroup->addButton(optionButtons[i], i); // 添加到按钮组，ID 为索引
 
-        connect(optionButtons[i], &QPushButton::clicked, [this, i]() {
-            handleOptionSelect(i);
-        });
+        connect(optionButtons[i], &QPushButton::clicked, [this, i]()
+                { handleOptionSelect(i); });
 
         optLayout->addWidget(optionImages[i], 0, Qt::AlignCenter);
         optLayout->addWidget(optionButtons[i], 0, Qt::AlignCenter);
@@ -117,21 +121,21 @@ Test2::Test2(QWidget *parent) : QWidget(parent) {
     layout->addWidget(scoreLabel);
 
     // 连接导航信号
-    connect(prevQBtn, &QPushButton::clicked, [this]() {
+    connect(prevQBtn, &QPushButton::clicked, [this]()
+            {
         if (currentQuestionIndex > 0) {
             currentQuestionIndex--;
             loadQuestion();
-        }
-    });
+        } });
 
-    connect(nextQBtn, &QPushButton::clicked, [this]() {
-         handleNextOrSubmit();
-    });
+    connect(nextQBtn, &QPushButton::clicked, [this]()
+            { handleNextOrSubmit(); });
 
     loadQuestion();
 }
 
-void Test2::loadQuestion() {
+void Test2::loadQuestion()
+{
     Question &q = questions[currentQuestionIndex];
     questionLabel->setText(q.text);
 
@@ -139,13 +143,17 @@ void Test2::loadQuestion() {
     optionGroup->blockSignals(true);
     optionGroup->setExclusive(false); // 暂时允许无选择状态 (虽然这里逻辑上总是单选，但为了重置显示)
 
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < 4; ++i)
+    {
         optionButtons[i]->setText(q.options[i]);
 
         // 恢复之前的选择
-        if (q.userSelection == i) {
+        if (q.userSelection == i)
+        {
             optionButtons[i]->setChecked(true);
-        } else {
+        }
+        else
+        {
             optionButtons[i]->setChecked(false);
         }
 
@@ -156,10 +164,13 @@ void Test2::loadQuestion() {
         QString path = QString(Config::Test2::PATH_FMT_JPG).arg(imgName);
 
         QPixmap pix(path);
-        if (pix.isNull()) {
+        if (pix.isNull())
+        {
             optionImages[i]->setIcon(QIcon());
             optionImages[i]->setText(Config::Test2::TEXT_NO_IMAGE);
-        } else {
+        }
+        else
+        {
             optionImages[i]->setText("");
             optionImages[i]->setIcon(QIcon(pix));
             // 使用配置中的大图标尺寸
@@ -169,45 +180,55 @@ void Test2::loadQuestion() {
         // 断开旧连接并连接新的预览信号
         optionImages[i]->disconnect();
         QString title = QString("第 %1 题 - 选项 %2").arg(currentQuestionIndex + 1).arg(suffix);
-        connect(optionImages[i], &QPushButton::clicked, [this, path, title]() {
-            showImagePreview(path, title);
-        });
+        connect(optionImages[i], &QPushButton::clicked, [this, path, title]()
+                { showImagePreview(path, title); });
     }
     optionGroup->setExclusive(true);
     optionGroup->blockSignals(false);
 
     // 更新按钮文本 (最后一题显示提交)
-    if (currentQuestionIndex == questions.size() - 1) {
+    if (currentQuestionIndex == questions.size() - 1)
+    {
         nextQBtn->setText(Config::Test2::BTN_TEXT_SUBMIT);
         nextQBtn->setStyleSheet(QString("background-color: %1; color: %2;").arg(Config::Test2::COL_BTN_SUBMIT, Config::Test2::COL_BTN_TEXT_WHITE));
-    } else {
+    }
+    else
+    {
         nextQBtn->setText(Config::Test2::BTN_TEXT_NEXT);
         nextQBtn->setStyleSheet("");
     }
 }
 
-void Test2::handleOptionSelect(int index) {
+void Test2::handleOptionSelect(int index)
+{
     questions[currentQuestionIndex].userSelection = index;
 }
 
-void Test2::handleNextOrSubmit() {
+void Test2::handleNextOrSubmit()
+{
     // 允许不选直接下一题 (按用户需求: 移除必选提示)
     // if (questions[currentQuestionIndex].userSelection == -1) { ... return; }
 
-    if (currentQuestionIndex < questions.size() - 1) {
+    if (currentQuestionIndex < questions.size() - 1)
+    {
         currentQuestionIndex++;
         loadQuestion();
-    } else {
+    }
+    else
+    {
         showQuizSummary();
     }
 }
 
-void Test2::showQuizSummary() {
+void Test2::showQuizSummary()
+{
     quizScore = 0;
 
     // 计算总分
-    for (const auto &q : questions) {
-        if (q.userSelection == q.correctIndex) quizScore++;
+    for (const auto &q : questions)
+    {
+        if (q.userSelection == q.correctIndex)
+            quizScore++;
     }
 
     // 填充 Logger 数据
@@ -217,7 +238,8 @@ void Test2::showQuizSummary() {
 
     char optionChars[] = {'A', 'B', 'C', 'D'};
 
-    for (int i = 0; i < questions.size(); ++i) {
+    for (int i = 0; i < questions.size(); ++i)
+    {
         const Question &q = questions[i];
         bool isCorrect = (q.userSelection == q.correctIndex);
 
@@ -227,7 +249,7 @@ void Test2::showQuizSummary() {
         r.correct = isCorrect;
         data.results.append(r);
 
-        emit logMessage(QString("题目%1: 选%2 -> %3").arg(i+1).arg(r.selection).arg(isCorrect ? "正确" : "错误"));
+        emit logMessage(QString("题目%1: 选%2 -> %3").arg(i + 1).arg(r.selection).arg(isCorrect ? "正确" : "错误"));
     }
 
     Logger::instance().test2Data = data;
@@ -237,7 +259,8 @@ void Test2::showQuizSummary() {
     emit levelCompleted();
 }
 
-void Test2::showImagePreview(QString imagePath, const QString &title) {
+void Test2::showImagePreview(QString imagePath, const QString &title)
+{
     QDialog *dlg = new QDialog(this);
     dlg->setAttribute(Qt::WA_DeleteOnClose); // 关闭时自动释放内存
     dlg->setWindowTitle(title);
@@ -249,16 +272,20 @@ void Test2::showImagePreview(QString imagePath, const QString &title) {
     imgLbl->setAlignment(Qt::AlignCenter);
 
     QPixmap pix(imagePath);
-    if (!pix.isNull()) {
+    if (!pix.isNull())
+    {
         imgLbl->setPixmap(pix);
         // Lightbox 行为: 显示全图，由 ScrollArea 提供滚动
         imgLbl->setScaledContents(false);
 
         // 如果图片过大，适当缩放到对话框大小，避免打开时过于夸张
-        if (pix.width() > Config::Test2::SIZE_PREVIEW_DIALOG.width()) {
-             imgLbl->setPixmap(pix.scaled(Config::Test2::SIZE_PREVIEW_DIALOG - QSize(50,50), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        if (pix.width() > Config::Test2::SIZE_PREVIEW_DIALOG.width())
+        {
+            imgLbl->setPixmap(pix.scaled(Config::Test2::SIZE_PREVIEW_DIALOG - QSize(50, 50), Qt::KeepAspectRatio, Qt::SmoothTransformation));
         }
-    } else {
+    }
+    else
+    {
         imgLbl->setText("无法加载图片");
     }
 

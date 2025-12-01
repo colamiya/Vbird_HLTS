@@ -12,23 +12,24 @@
 #include <QDebug>
 #include <QMap>
 
-class Test1 : public QWidget {
+class Test1 : public QWidget
+{
     Q_OBJECT
 public:
     explicit Test1(QWidget *parent = nullptr);
 
 signals:
-    void levelCompleted();  // 关卡完成信号
-    void levelCancelled();  // 关卡取消信号
+    void levelCompleted();        // 关卡完成信号
+    void levelCancelled();        // 关卡取消信号
     void logMessage(QString msg); // 日志信号
 
 private:
-    QWidget *slideshowContainer;      // 幻灯片容器
-    QWidget *slideshowSummaryWidget;  // 总结页面容器
-    QLabel *slideImageLabel;          // 显示幻灯片图片的标签
+    QWidget *slideshowContainer;     // 幻灯片容器
+    QWidget *slideshowSummaryWidget; // 总结页面容器
+    QLabel *slideImageLabel;         // 显示幻灯片图片的标签
 
-    int currentSlideIndex = 0;        // 当前幻灯片索引
-    const int totalSlides = 10;       // 总幻灯片数
+    int currentSlideIndex = 0;  // 当前幻灯片索引
+    const int totalSlides = 10; // 总幻灯片数
 
     QMap<QString, QPixmap> m_pixmapCache; // 图片缓存，避免重复加载
 

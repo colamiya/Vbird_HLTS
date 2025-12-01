@@ -15,12 +15,14 @@ MainWindow::MainWindow(QWidget *parent, bool devModeDefault)
 
 MainWindow::~MainWindow() {}
 
-void MainWindow::setupStyle() {
+void MainWindow::setupStyle()
+{
     // 加载全局样式表
     this->setStyleSheet(Config::Global::GLOBAL_STYLESHEET);
 }
 
-void MainWindow::setupUI() {
+void MainWindow::setupUI()
+{
     mainStack = new QStackedWidget(this);
     setCentralWidget(mainStack);
 
@@ -33,27 +35,34 @@ void MainWindow::setupUI() {
     // 2: Test 1 (幻灯片)
     test1Widget = new Test1();
     connect(test1Widget, &Test1::logMessage, this, &MainWindow::onLogMessage);
-    connect(test1Widget, &Test1::levelCompleted, [this](){ onLevelCompleted(1); });
-    connect(test1Widget, &Test1::levelCancelled, [this](){ mainStack->setCurrentIndex(1); });
+    connect(test1Widget, &Test1::levelCompleted, [this]()
+            { onLevelCompleted(1); });
+    connect(test1Widget, &Test1::levelCancelled, [this]()
+            { mainStack->setCurrentIndex(1); });
     mainStack->addWidget(test1Widget);
 
     // 3: Test 2 (测验)
     test2Widget = new Test2();
     connect(test2Widget, &Test2::logMessage, this, &MainWindow::onLogMessage);
-    connect(test2Widget, &Test2::levelCompleted, [this](){ onLevelCompleted(2); });
-    connect(test2Widget, &Test2::levelCancelled, [this](){ mainStack->setCurrentIndex(1); });
+    connect(test2Widget, &Test2::levelCompleted, [this]()
+            { onLevelCompleted(2); });
+    connect(test2Widget, &Test2::levelCancelled, [this]()
+            { mainStack->setCurrentIndex(1); });
     mainStack->addWidget(test2Widget);
 
     // 4: Test 3 (RPG 实训)
     test3Widget = new Test3(isDeveloperMode); // 传递开发者模式状态
     connect(test3Widget, &Test3::logMessage, this, &MainWindow::onLogMessage);
-    connect(test3Widget, &Test3::levelCompleted, [this](){ onLevelCompleted(3); });
-    connect(test3Widget, &Test3::levelCancelled, [this](){ mainStack->setCurrentIndex(1); });
+    connect(test3Widget, &Test3::levelCompleted, [this]()
+            { onLevelCompleted(3); });
+    connect(test3Widget, &Test3::levelCancelled, [this]()
+            { mainStack->setCurrentIndex(1); });
     mainStack->addWidget(test3Widget);
 }
 
 // --- 开始页 (Start Page) ---
-QWidget *MainWindow::createStartPage() {
+QWidget *MainWindow::createStartPage()
+{
     QWidget *page = new QWidget();
     QVBoxLayout *layout = new QVBoxLayout(page);
     layout->setAlignment(Qt::AlignCenter);
@@ -117,8 +126,10 @@ QWidget *MainWindow::createStartPage() {
     return page;
 }
 
-void MainWindow::onStartTraining() {
-    if (nameInput->text().isEmpty() || classInput->text().isEmpty()) {
+void MainWindow::onStartTraining()
+{
+    if (nameInput->text().isEmpty() || classInput->text().isEmpty())
+    {
         QMessageBox::warning(this, "验证失败", "请填写所有字段。");
         return;
     }
@@ -133,7 +144,8 @@ void MainWindow::onStartTraining() {
     Logger::instance().setStudentInfo(student);
 
     // 将配置传递给 Test3
-    if (test3Widget) {
+    if (test3Widget)
+    {
         test3Widget->setEmergencyMode(enableEmergencyEvents);
     }
 
@@ -143,7 +155,8 @@ void MainWindow::onStartTraining() {
 }
 
 // --- 主菜单 (Main Menu) ---
-QWidget *MainWindow::createMainMenu() {
+QWidget *MainWindow::createMainMenu()
+{
     QWidget *page = new QWidget();
     QVBoxLayout *layout = new QVBoxLayout(page);
     layout->setAlignment(Qt::AlignCenter);
@@ -154,11 +167,13 @@ QWidget *MainWindow::createMainMenu() {
     layout->addWidget(title, 0, Qt::AlignCenter);
 
     // 动态添加按钮的 Lambda
-    auto addBtn = [&](QString text, int idx) {
+    auto addBtn = [&](QString text, int idx)
+    {
         QPushButton *btn = new QPushButton(text);
         btn->setFixedSize(Config::Global::SIZE_MENU_BTN);
         btn->setStyleSheet("font-size: 18px;");
-        connect(btn, &QPushButton::clicked, [this, idx](){ mainStack->setCurrentIndex(idx); });
+        connect(btn, &QPushButton::clicked, [this, idx]()
+                { mainStack->setCurrentIndex(idx); });
         layout->addWidget(btn, 0, Qt::AlignCenter);
         mainMenuButtons.append(btn);
     };
@@ -170,48 +185,59 @@ QWidget *MainWindow::createMainMenu() {
     return page;
 }
 
-void MainWindow::updateMainMenu() {
-    for (int i = 0; i < mainMenuButtons.size(); ++i) {
+void MainWindow::updateMainMenu()
+{
+    for (int i = 0; i < mainMenuButtons.size(); ++i)
+    {
         // 如果是开发者模式，解锁所有按钮；否则按进度解锁
-        if (isDeveloperMode || i < progressState) {
+        if (isDeveloperMode || i < progressState)
+        {
             mainMenuButtons[i]->setEnabled(true);
             mainMenuButtons[i]->setToolTip("");
-        } else {
+        }
+        else
+        {
             mainMenuButtons[i]->setEnabled(false);
             mainMenuButtons[i]->setToolTip("请先完成前一个测试");
         }
     }
 }
 
-void MainWindow::toggleDeveloperMode(int state) {
+void MainWindow::toggleDeveloperMode(int state)
+{
     isDeveloperMode = (state == Qt::Checked);
     // 传播到 Test3
-    if (test3Widget) test3Widget->setDeveloperMode(isDeveloperMode);
+    if (test3Widget)
+        test3Widget->setDeveloperMode(isDeveloperMode);
     updateMainMenu();
     onLogMessage(isDeveloperMode ? "开发者模式已开启" : "开发者模式已关闭");
 }
 
 // --- 逻辑 (Logic) ---
 
-void MainWindow::onLogMessage(QString msg) {
+void MainWindow::onLogMessage(QString msg)
+{
     QString timestamp = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss");
     QString fullMsg = QString("[%1] %2").arg(timestamp, msg);
-    
+
     // 记录详细日志
     Logger::instance().logAction("Main/System", msg);
 
     qDebug() << fullMsg;
 }
 
-void MainWindow::onLevelCompleted(int level) {
+void MainWindow::onLevelCompleted(int level)
+{
     // 只有当新完成的关卡大于当前进度时才更新
-    if (progressState < level + 1) {
+    if (progressState < level + 1)
+    {
         progressState = level + 1;
     }
     updateMainMenu();
     mainStack->setCurrentIndex(1); // 返回主菜单
-    
-    if (level == 3) {
+
+    if (level == 3)
+    {
         QMessageBox::information(this, "恭喜", "您已完成所有实训内容！");
         // QApplication::quit(); // 也可以选择不退出
     }
