@@ -28,6 +28,9 @@ struct Task
     bool isEmergency;                 // 是否为紧急任务
     bool isCompleted;                 // 是否已完成 (系统判定)
     bool isMarkedComplete = false;    // 学生手动标记完成 (仅视觉)
+
+    // 物品级标记状态 (Item Name -> Is Checked)
+    QMap<QString, bool> itemCompletionStatus;
 };
 
 // 库存结构体 (用于推车)
@@ -69,6 +72,12 @@ struct GameState
 
     // 脏布草袋状态 (楼层 -> 是否有脏布草需要回收)
     QMap<int, bool> dirtyBagState;
+
+    // Tip Flags (Ensure bubbles only show once per session)
+    bool hasShownTipEntrance = false;
+    bool hasShownTipWarehouse = false;
+    bool hasShownTipShelf = false;
+    bool hasShownTipLinenRoom = false;
 };
 
 // 错误日志 (用于最终汇报评估)
@@ -175,12 +184,13 @@ private:
 
     // 辅助函数
     int getNormalRandom(int min, int max); // 获取正态分布随机数
+    void tryShowTip(GameScene scene); // 尝试显示气泡提示
 
     // 交互处理
     void handleInventoryDrop(QString itemName, const QMimeData *mimeData = nullptr); // 处理物品放入推车
     void handleSceneDrop(QString itemName, bool isWarehouse);                        // 处理物品从推车取出放置 (到货架或仓库)
 
-    // 新手教程
+    // 新手教程 (Deprecated but kept for compatibility or manual trigger)
     void showTutorial();
 
     // 生成占位图 (当资源缺失时)

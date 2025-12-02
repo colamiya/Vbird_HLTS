@@ -140,8 +140,9 @@ void MainWindow::onStartTraining()
     student.duration = durationInput->text();
     enableEmergencyEvents = emergencyToggle->isChecked();
 
-    // 初始化日志记录器
+    // 初始化日志记录器 (Set info, then start session)
     Logger::instance().setStudentInfo(student);
+    Logger::instance().startNewSession(); // Create timestamped files
 
     // 将配置传递给 Test3
     if (test3Widget)
@@ -182,24 +183,24 @@ QWidget *MainWindow::createMainMenu()
     addBtn(Config::Global::BTN_TEXT_TEST2, 3);
     addBtn(Config::Global::BTN_TEXT_TEST3, 4);
 
+    // 添加结束训练按钮
+    QPushButton *exitBtn = new QPushButton("结束训练");
+    exitBtn->setFixedSize(Config::Global::SIZE_MENU_BTN);
+    exitBtn->setStyleSheet("background-color: #e74c3c; font-size: 18px;");
+    connect(exitBtn, &QPushButton::clicked, this, &QWidget::close);
+    layout->addWidget(exitBtn, 0, Qt::AlignCenter);
+
     return page;
 }
 
 void MainWindow::updateMainMenu()
 {
+    // Task 4: Free selection logic (Unlock all)
+    // "取消主界面的测试顺序限制，可以自由选择测试1 2 3"
     for (int i = 0; i < mainMenuButtons.size(); ++i)
     {
-        // 如果是开发者模式，解锁所有按钮；否则按进度解锁
-        if (isDeveloperMode || i < progressState)
-        {
-            mainMenuButtons[i]->setEnabled(true);
-            mainMenuButtons[i]->setToolTip("");
-        }
-        else
-        {
-            mainMenuButtons[i]->setEnabled(false);
-            mainMenuButtons[i]->setToolTip("请先完成前一个测试");
-        }
+        mainMenuButtons[i]->setEnabled(true);
+        mainMenuButtons[i]->setToolTip("");
     }
 }
 
@@ -228,17 +229,16 @@ void MainWindow::onLogMessage(QString msg)
 
 void MainWindow::onLevelCompleted(int level)
 {
-    // 只有当新完成的关卡大于当前进度时才更新
+    // 更新进度状态 (虽然现在自由选择，但保留逻辑无害)
     if (progressState < level + 1)
     {
         progressState = level + 1;
     }
     updateMainMenu();
-    mainStack->setCurrentIndex(1); // 返回主菜单
+    mainStack->setCurrentIndex(1); // 返回主菜单 (All tests return to Main Menu)
 
     if (level == 3)
     {
-        QMessageBox::information(this, "恭喜", "您已完成所有实训内容！");
-        // QApplication::quit(); // 也可以选择不退出
+        QMessageBox::information(this, "恭喜", "本轮实训已结束！");
     }
 }

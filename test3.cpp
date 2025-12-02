@@ -1,4 +1,4 @@
-﻿#include "test3.h"
+#include "test3.h"
 #include "tutorial_overlay.h"
 #include <QBoxLayout>
 #include <QPainter>
@@ -10,6 +10,7 @@
 #include <QtMath>
 #include <QMessageBox>
 #include <QHeaderView>
+#include <QCheckBox>
 #include "config.h"
 #include "utils.h"
 #include "logger.h"
@@ -26,9 +27,9 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     rpgLayout->setContentsMargins(0, 0, 0, 0);
     rpgLayout->setSpacing(0);
 
-    // --- 左侧面板 ---
+    // --- 左侧面板 (Updated Size) ---
     QWidget *leftPanel = new QWidget();
-    leftPanel->setFixedWidth(Config::Test3::Geometry::SIDEBAR_WIDTH);
+    leftPanel->setFixedWidth(Config::Test3::Geometry::SIDEBAR_LEFT_WIDTH);
     leftPanel->setStyleSheet(Config::Test3::Styles::SIDEBAR_LEFT);
     QVBoxLayout *leftLayout = new QVBoxLayout(leftPanel);
 
@@ -47,7 +48,7 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
              emit levelCancelled();
         } });
 
-    // 新手教程按钮
+    // 新手教程按钮 (Kept as backup or additional help)
     tutorialBtn = new QPushButton(Config::Test3::Texts::BTN_TUTORIAL);
     tutorialBtn->setFixedSize(Config::Test3::Geometry::TUTORIAL_BTN_SIZE);
     tutorialBtn->setStyleSheet(Config::Test3::Styles::BTN_TUTORIAL);
@@ -57,13 +58,14 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
 
     locationLabel = new QLabel(QString(Config::Test3::Texts::LBL_LOCATION_PREFIX) + "入口");
     locationLabel->setStyleSheet(Config::Test3::Styles::LBL_TITLE);
+    locationLabel->setWordWrap(true);
 
     // 推车状态图标
     cartStatusLabel = new QLabel();
     cartStatusLabel->setFixedSize(Config::Test3::Geometry::ICON_CART);
     cartStatusLabel->setScaledContents(true);
 
-    // 布局调整：上20% (位置)，中20% (教程)，下50% (推车)，最下10% (返回)
+    // 布局调整
     QVBoxLayout *topLayout = new QVBoxLayout();
     topLayout->addWidget(locationLabel);
     topLayout->addStretch();
@@ -75,10 +77,10 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     QVBoxLayout *botLayout = new QVBoxLayout();
     botLayout->addWidget(returnBtn, 0, Qt::AlignCenter);
 
-    leftLayout->addLayout(topLayout, 2);                    // 20%
-    leftLayout->addWidget(tutorialBtn, 2, Qt::AlignCenter); // 20%
-    leftLayout->addLayout(midLayout, 5);                    // 50%
-    leftLayout->addLayout(botLayout, 1);                    // 10%
+    leftLayout->addLayout(topLayout, 2);
+    leftLayout->addWidget(tutorialBtn, 2, Qt::AlignCenter);
+    leftLayout->addLayout(midLayout, 5);
+    leftLayout->addLayout(botLayout, 1);
 
     rpgLayout->addWidget(leftPanel);
 
@@ -86,25 +88,25 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     rpgCenterPanel = new QWidget();
     rpgCenterPanel->setFixedSize(Config::Test3::Geometry::CENTER_PANEL_SIZE);
     rpgCenterPanel->setStyleSheet("background-color: #ecf0f1;");
-    rpgCenterPanel->installEventFilter(this); // 安装过滤器用于 Dev 模式点击追踪
+    rpgCenterPanel->installEventFilter(this);
     rpgLayout->addWidget(rpgCenterPanel);
 
-    // 悬浮提示标签 (全局单例，避免重复创建)
+    // 悬浮提示标签 (全局单例)
     hoverHintLabel = new QLabel(rpgCenterPanel);
     hoverHintLabel->setAlignment(Qt::AlignCenter);
     hoverHintLabel->setStyleSheet(Config::Test3::Styles::LBL_HOVER_HINT);
     hoverHintLabel->hide();
     hoverHintLabel->setGeometry(Config::Test3::Geometry::RECT_HOVER_HINT);
 
-    // --- 右侧面板 ---
+    // --- 右侧面板 (Updated Size) ---
     QWidget *rightPanel = new QWidget();
-    rightPanel->setFixedWidth(Config::Test3::Geometry::SIDEBAR_WIDTH);
+    rightPanel->setFixedWidth(Config::Test3::Geometry::SIDEBAR_RIGHT_WIDTH);
     rightPanel->setStyleSheet(Config::Test3::Styles::SIDEBAR_RIGHT);
     QVBoxLayout *rightLayout = new QVBoxLayout(rightPanel);
 
     // 1. 任务标题
     QLabel *taskTitle = new QLabel(Config::Test3::Texts::LBL_TASK_TITLE);
-    taskTitle->setStyleSheet(Config::Test3::Styles::LBL_TITLE);
+    taskTitle->setStyleSheet(Config::Test3::Styles::LBL_TITLE_RIGHT); // Use dark text for light bg
     rightLayout->addWidget(taskTitle);
 
     // 2. 任务列表 (TreeWidget) - 占 40%
@@ -112,7 +114,8 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     taskListWidget->setHeaderHidden(true);
     taskListWidget->setStyleSheet(Config::Test3::Styles::LIST_WIDGET);
     taskListWidget->setRootIsDecorated(true);
-    rightLayout->addWidget(taskListWidget, 4); // 拉伸因子 4 (40%)
+    // 鼠标悬停逻辑: 无需额外处理，TreeWidget自带滚动条，宽度已扩大
+    rightLayout->addWidget(taskListWidget, 4);
 
     // 查看申领表按钮
     QPushButton *viewTaskSheetBtn = new QPushButton(Config::Test3::Texts::BTN_VIEW_TASK_SHEET);
@@ -120,7 +123,7 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     viewTaskSheetBtn->setCursor(Qt::PointingHandCursor);
     connect(viewTaskSheetBtn, &QPushButton::clicked, [this]()
             {
-        // 获取选中的任务，支持点击子项自动定位到父任务
+        // 获取选中的任务
         QTreeWidgetItem *item = taskListWidget->currentItem();
         int idx = 0;
         if (item) {
@@ -132,7 +135,7 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
 
     // 3. 库存标题
     inventoryTitleLabel = new QLabel(Config::Test3::Texts::LBL_INVENTORY_TITLE);
-    inventoryTitleLabel->setStyleSheet(Config::Test3::Styles::LBL_TITLE);
+    inventoryTitleLabel->setStyleSheet(Config::Test3::Styles::LBL_TITLE_RIGHT);
     rightLayout->addWidget(inventoryTitleLabel);
 
     // 4. 库存列表 - 占 60%
@@ -143,22 +146,20 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     {
         handleInventoryDrop(itemName);
     };
-    rightLayout->addWidget(inventoryListWidget, 6); // 拉伸因子 6 (60%)
+    rightLayout->addWidget(inventoryListWidget, 6);
 
     // --- 电梯面板容器 (Sidebar) ---
-    // 仅在电梯内部场景显示，替换库存列表
     elevatorPanelContainer = new QWidget();
     QVBoxLayout *elePanelLayout = new QVBoxLayout(elevatorPanelContainer);
     elePanelLayout->setContentsMargins(0, 0, 0, 0);
 
     QLabel *eleTitle = new QLabel(Config::Test3::Texts::LBL_ELEVATOR_PANEL_TITLE);
-    eleTitle->setStyleSheet(Config::Test3::Styles::LBL_TITLE);
+    eleTitle->setStyleSheet(Config::Test3::Styles::LBL_TITLE_RIGHT);
     elePanelLayout->addWidget(eleTitle);
 
     QGridLayout *btnGrid = new QGridLayout();
     btnGrid->setSpacing(Config::Test3::Geometry::GRID_SPACING_ELEVATOR);
 
-    // 创建电梯楼层按钮辅助函数
     auto createEleBtn = [&](int floor)
     {
         QString txt = (floor == 0) ? "G层" : QString("%1楼").arg(floor);
@@ -171,7 +172,6 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
         return btn;
     };
 
-    // 布局楼层按钮
     btnGrid->addWidget(createEleBtn(9), 0, 0);
     btnGrid->addWidget(createEleBtn(10), 0, 1);
     btnGrid->addWidget(createEleBtn(7), 1, 0);
@@ -186,7 +186,6 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     elePanelLayout->addLayout(btnGrid);
     elePanelLayout->addStretch();
 
-    // 默认隐藏，仅在 GameScene::ElevatorInside 显示
     rightLayout->addWidget(elevatorPanelContainer);
     elevatorPanelContainer->hide();
 
@@ -202,10 +201,9 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
         isLate = true;
         emit logMessage("计时结束: 标记为迟到状态");
         if (gameState.currentScene == GameScene::StaffHallway) {
-            renderStaffHallway(); // 刷新背景显示迟到状态
+            renderStaffHallway();
         } });
 
-    // 心跳日志计时器 (用于调试主线程活性)
     heartbeatTimer = new QTimer(this);
     heartbeatTimer->setInterval(1000);
     connect(heartbeatTimer, &QTimer::timeout, [this]()
@@ -248,7 +246,13 @@ void Test3::reset()
     gameState.inventory.cleanItems.clear();
     gameState.inventory.dirtyItemsCount = 0;
     gameState.dirtyBagState.clear();
-    gameState.floorInventory.clear(); // 清空楼层库存
+    gameState.floorInventory.clear();
+
+    // Reset Tip Flags
+    gameState.hasShownTipEntrance = false;
+    gameState.hasShownTipWarehouse = false;
+    gameState.hasShownTipShelf = false;
+    gameState.hasShownTipLinenRoom = false;
 
     isLate = false;
     isTimerTriggered = false;
@@ -280,7 +284,6 @@ void Test3::installDevFilter(QWidget *widget)
 
 bool Test3::eventFilter(QObject *watched, QEvent *event)
 {
-    // 开发者模式下，点击任何位置都会输出坐标，方便配置 ClickableArea
     if (event->type() == QEvent::MouseButtonPress && isDeveloperMode)
     {
         QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
@@ -300,7 +303,6 @@ void Test3::goToScene(GameScene scene)
 {
     emit logMessage(QString("goToScene: %1").arg((int)scene));
 
-    // 迟到计时逻辑: 首次离开员工通道时开始计时
     if (gameState.currentScene == GameScene::StaffHallway && scene != GameScene::StaffHallway)
     {
         if (!gameState.hasClockedIn && !isTimerTriggered && !isLate)
@@ -318,70 +320,40 @@ void Test3::goToScene(GameScene scene)
 
 void Test3::updateRPGStatusLabels()
 {
-    // 更新位置文本
     QString locStr;
     switch (gameState.currentScene)
     {
-    case GameScene::Entrance:
-        locStr = "入口";
-        break;
-    case GameScene::StaffHallway:
-        locStr = "员工通道";
-        break;
-    case GameScene::Office:
-        locStr = "办公室";
-        break;
-    case GameScene::Warehouse:
-        locStr = "布草仓库(入口)";
-        break;
-    case GameScene::WarehouseShelf:
-        locStr = "布草仓库(货架)";
-        break;
-    case GameScene::ElevatorHall:
-        locStr = (gameState.currentFloor == 0) ? "电梯厅 (G)" : QString("%1楼 电梯厅").arg(gameState.currentFloor);
-        break;
-    case GameScene::ElevatorInside:
-        locStr = "电梯内";
-        break;
-    case GameScene::FloorCorridor:
-        locStr = QString("%1楼 走廊").arg(gameState.currentFloor);
-        break;
-    case GameScene::LinenRoom:
-        locStr = QString("%1楼 布草间").arg(gameState.currentFloor);
-        break;
+    case GameScene::Entrance: locStr = "入口"; break;
+    case GameScene::StaffHallway: locStr = "员工通道"; break;
+    case GameScene::Office: locStr = "办公室"; break;
+    case GameScene::Warehouse: locStr = "布草仓库(入口)"; break;
+    case GameScene::WarehouseShelf: locStr = "布草仓库(货架)"; break;
+    case GameScene::ElevatorHall: locStr = (gameState.currentFloor == 0) ? "电梯厅 (G)" : QString("%1楼 电梯厅").arg(gameState.currentFloor); break;
+    case GameScene::ElevatorInside: locStr = "电梯内"; break;
+    case GameScene::FloorCorridor: locStr = QString("%1楼 走廊").arg(gameState.currentFloor); break;
+    case GameScene::LinenRoom: locStr = QString("%1楼 布草间").arg(gameState.currentFloor); break;
     }
     locationLabel->setText(QString(Config::Test3::Texts::LBL_LOCATION_PREFIX) + locStr);
 
-    // 更新推车图标
     QString statusImg;
     int cleanCount = 0;
     for (auto v : gameState.inventory.cleanItems)
         cleanCount += v;
 
-    // 优先显示脏布草状态
-    if (gameState.inventory.dirtyItemsCount > 0)
-    {
+    if (gameState.inventory.dirtyItemsCount > 0) {
         statusImg = Config::Test3::Images::UI_CART_DIRTY;
-    }
-    else if (cleanCount > 0)
-    {
+    } else if (cleanCount > 0) {
         statusImg = Config::Test3::Images::UI_CART_CLEAN;
-    }
-    else
-    {
+    } else {
         statusImg = Config::Test3::Images::UI_CART_EMPTY;
     }
 
     QPixmap pix = getPixmap(statusImg);
-    if (pix.isNull())
-    {
-        // 图片缺失时的文本回退
+    if (pix.isNull()) {
         cartStatusLabel->setText(gameState.inventory.dirtyItemsCount > 0 ? Config::Test3::Texts::LBL_CART_DIRTY
                                                                          : (cleanCount > 0 ? Config::Test3::Texts::LBL_CART_HAS_ITEMS : Config::Test3::Texts::LBL_CART_EMPTY));
         cartStatusLabel->setStyleSheet("border: 1px solid white; color: white;");
-    }
-    else
-    {
+    } else {
         cartStatusLabel->setPixmap(pix);
         cartStatusLabel->setText("");
         cartStatusLabel->setStyleSheet("border: none;");
@@ -391,55 +363,44 @@ void Test3::updateRPGStatusLabels()
 void Test3::refreshInventoryList()
 {
     inventoryListWidget->clear();
-    // 显示干净布草
     for (auto it = gameState.inventory.cleanItems.begin(); it != gameState.inventory.cleanItems.end(); ++it)
     {
         if (it.value() > 0)
         {
             QListWidgetItem *item = new QListWidgetItem();
-
-            // 格式: X条 大床单
             QString classifier = Config::Test3::Logic::CLASSIFIERS().value(it.key(), "个");
             item->setText(QString("%1%2 %3").arg(it.value()).arg(classifier).arg(it.key()));
             item->setData(Qt::UserRole, it.key());
 
             QString iconPath = Config::Test3::Images::ITEMS().value(it.key());
-            if (QFile::exists(iconPath))
-            {
-                // 图标不缓存，因为 DraggableListWidget 会处理大小
-                item->setIcon(QIcon(iconPath));
-            }
-
+            if (QFile::exists(iconPath)) item->setIcon(QIcon(iconPath));
             inventoryListWidget->addItem(item);
         }
     }
 
-    // 显示脏布草
     if (gameState.inventory.dirtyItemsCount > 0)
     {
         QListWidgetItem *item = new QListWidgetItem();
         QString classifier = Config::Test3::Logic::CLASSIFIERS().value("脏布草", "件");
         item->setText(QString("%1%2 脏布草").arg(gameState.inventory.dirtyItemsCount).arg(classifier));
-
         QString iconPath = Config::Test3::Images::UI_DIRTY_LINEN;
-        if (QFile::exists(iconPath))
-            item->setIcon(QIcon(iconPath));
+        if (QFile::exists(iconPath)) item->setIcon(QIcon(iconPath));
         item->setData(Qt::UserRole, "DirtyLinen");
         inventoryListWidget->addItem(item);
     }
     updateRPGStatusLabels();
 }
 
+// Updated refreshTaskList with CheckBoxes
 void Test3::refreshTaskList()
 {
     taskListWidget->clear();
 
-    // 遍历任务
     for (int i = 0; i < gameState.tasks.size(); ++i)
     {
-        const Task &t = gameState.tasks[i];
+        Task &t = gameState.tasks[i]; // Reference to modify if needed
 
-        // 状态显示逻辑: 优先显示手动标记状态
+        // Top Level Item (Task Header)
         QString status = Config::Test3::Texts::STATUS_IN_PROGRESS;
         if (t.isMarkedComplete) {
             status = Config::Test3::Texts::STATUS_MARKED_COMPLETE;
@@ -454,15 +415,56 @@ void Test3::refreshTaskList()
         QTreeWidgetItem *topItem = new QTreeWidgetItem(taskListWidget);
         topItem->setText(0, headerText);
 
-        // 子项: 需求列表 (固定)
+        // Child Items (Requirements with Checkbox)
         for (auto it = t.requiredItems.begin(); it != t.requiredItems.end(); ++it)
         {
             if (it.value() > 0)
             {
-                QString classifier = Config::Test3::Logic::CLASSIFIERS().value(it.key(), "个");
-                QString subText = QString("%1: %2%3").arg(it.key()).arg(it.value()).arg(classifier);
+                QString itemName = it.key();
+                QString classifier = Config::Test3::Logic::CLASSIFIERS().value(itemName, "个");
+                QString subText = QString("%1: %2%3").arg(itemName).arg(it.value()).arg(classifier);
+
                 QTreeWidgetItem *subItem = new QTreeWidgetItem(topItem);
-                subItem->setText(0, subText);
+                taskListWidget->setItemWidget(subItem, 0, nullptr); // Clear previous
+
+                // Create a container widget for Text + Checkbox
+                QWidget *widget = new QWidget();
+                QHBoxLayout *hLayout = new QHBoxLayout(widget);
+                hLayout->setContentsMargins(5, 2, 5, 2);
+
+                QLabel *lbl = new QLabel(subText);
+                lbl->setStyleSheet("color: black; font-size: 14px;");
+
+                QCheckBox *chk = new QCheckBox();
+                // Custom style for round checkbox
+                chk->setStyleSheet(
+                    "QCheckBox::indicator { width: 20px; height: 20px; border: 2px solid #999; border-radius: 11px; background: white; }"
+                    "QCheckBox::indicator:checked { background: transparent; border: 2px solid #27ae60; image: none; }"
+                    // Since I can't easily draw a tick with image, I'll use text or background color.
+                    // Actually, simpler approach: standard checkbox styled round.
+                    // Or let's use a Toggle Button that looks like a circle.
+                );
+                // Let's stick to standard checkbox but styled round.
+                chk->setStyleSheet(
+                    "QCheckBox::indicator { width: 18px; height: 18px; border-radius: 10px; border: 2px solid #555; }"
+                    "QCheckBox::indicator:checked { background-color: #27ae60; border-color: #27ae60; image: url(:/non_existent); }" // Green fill
+                );
+
+                // Initialize state
+                bool isChecked = t.itemCompletionStatus.value(itemName, false);
+                chk->setChecked(isChecked);
+
+                // Handle click
+                connect(chk, &QCheckBox::clicked, [this, &t, itemName](bool checked){
+                    t.itemCompletionStatus[itemName] = checked;
+                    // No need to full refresh, just update model state
+                });
+
+                hLayout->addWidget(lbl);
+                hLayout->addStretch();
+                hLayout->addWidget(chk);
+
+                taskListWidget->setItemWidget(subItem, 0, widget);
             }
         }
     }
@@ -474,7 +476,6 @@ void Test3::refreshTaskList()
 void Test3::renderScene()
 {
     emit logMessage(QString("renderScene: %1").arg((int)gameState.currentScene));
-    // 清理中心面板的旧控件，但保留 hoverHintLabel
     QList<QObject *> children = rpgCenterPanel->children();
     for (QObject *child : children)
     {
@@ -485,7 +486,6 @@ void Test3::renderScene()
         child->deleteLater();
     }
 
-    // 切换右侧侧边栏UI (电梯面板 vs 库存列表)
     QVBoxLayout *rightLayout = qobject_cast<QVBoxLayout *>(inventoryListWidget->parentWidget()->layout());
     if (gameState.currentScene == GameScene::ElevatorInside)
     {
@@ -493,7 +493,6 @@ void Test3::renderScene()
         inventoryTitleLabel->hide();
         elevatorPanelContainer->show();
 
-        // 调整比例：任务50%，电梯面板50%
         if (rightLayout)
         {
             rightLayout->setStretchFactor(taskListWidget, 5);
@@ -506,7 +505,6 @@ void Test3::renderScene()
         inventoryTitleLabel->show();
         inventoryListWidget->show();
 
-        // 恢复比例：任务40%，物品栏60%
         if (rightLayout)
         {
             rightLayout->setStretchFactor(taskListWidget, 4);
@@ -514,42 +512,66 @@ void Test3::renderScene()
         }
     }
 
-    // 根据场景类型调用渲染函数
+    // Render Scene Backgrounds & Objects
     switch (gameState.currentScene)
     {
-    case GameScene::Entrance:
-        renderEntrance();
-        break;
-    case GameScene::StaffHallway:
-        renderStaffHallway();
-        break;
-    case GameScene::Office:
-        renderOffice();
-        break;
-    case GameScene::Warehouse:
-        renderWarehouse();
-        break;
-    case GameScene::WarehouseShelf:
-        renderWarehouseShelf();
-        break;
-    case GameScene::ElevatorHall:
-        renderElevatorHall();
-        break;
-    case GameScene::ElevatorInside:
-        renderElevatorInside();
-        break;
-    case GameScene::FloorCorridor:
-        renderFloorCorridor();
-        break;
-    case GameScene::LinenRoom:
-        renderLinenRoom();
-        break;
+    case GameScene::Entrance: renderEntrance(); tryShowTip(GameScene::Entrance); break;
+    case GameScene::StaffHallway: renderStaffHallway(); break;
+    case GameScene::Office: renderOffice(); break;
+    case GameScene::Warehouse: renderWarehouse(); tryShowTip(GameScene::Warehouse); break;
+    case GameScene::WarehouseShelf: renderWarehouseShelf(); tryShowTip(GameScene::WarehouseShelf); break;
+    case GameScene::ElevatorHall: renderElevatorHall(); break;
+    case GameScene::ElevatorInside: renderElevatorInside(); break;
+    case GameScene::FloorCorridor: renderFloorCorridor(); break;
+    case GameScene::LinenRoom: renderLinenRoom(); tryShowTip(GameScene::LinenRoom); break;
     }
     updateRPGStatusLabels();
-    installDevFilter(rpgCenterPanel); // 重新安装事件过滤器
+    installDevFilter(rpgCenterPanel);
     if (hoverHintLabel)
-        hoverHintLabel->raise(); // 确保提示在最上层
+        hoverHintLabel->raise();
 }
+
+void Test3::tryShowTip(GameScene scene)
+{
+    QString tipText;
+    bool *flag = nullptr;
+
+    switch (scene) {
+        case GameScene::Entrance:
+            if (!gameState.hasShownTipEntrance) {
+                tipText = Config::Test3::Texts::TUTORIAL_GENERAL;
+                flag = &gameState.hasShownTipEntrance;
+            }
+            break;
+        case GameScene::Warehouse:
+            if (!gameState.hasShownTipWarehouse) {
+                tipText = Config::Test3::Texts::TUTORIAL_WAREHOUSE_ENTRY;
+                flag = &gameState.hasShownTipWarehouse;
+            }
+            break;
+        case GameScene::WarehouseShelf:
+            if (!gameState.hasShownTipShelf) {
+                tipText = Config::Test3::Texts::TUTORIAL_WAREHOUSE_SHELF_ACTION;
+                flag = &gameState.hasShownTipShelf;
+            }
+            break;
+        case GameScene::LinenRoom:
+             if (!gameState.hasShownTipLinenRoom) {
+                tipText = Config::Test3::Texts::TUTORIAL_SHELF; // Contains the 1,2,3 steps
+                flag = &gameState.hasShownTipLinenRoom;
+            }
+            break;
+        default: break;
+    }
+
+    if (flag && *flag == false) {
+        // Show Bubble
+        SpeechBubble *bubble = new SpeechBubble(tipText, rpgCenterPanel);
+        bubble->show();
+        *flag = true; // Mark as shown
+    }
+}
+
 
 void Test3::renderEntrance()
 {
@@ -562,7 +584,6 @@ void Test3::renderEntrance()
                         Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
     bg->show();
 
-    // 下班回家
     ArrowButton *btnHome = new ArrowButton(rpgCenterPanel);
     setGeometryCentered(btnHome, Config::Test3::Geometry::RECT_BTN_ENTRANCE_HOME);
     btnHome->setAngle(Config::Test3::Geometry::ANGLE_BTN_ENTRANCE_HOME);
@@ -577,7 +598,6 @@ void Test3::renderEntrance()
         else hoverHintLabel->hide(); });
     btnHome->show();
 
-    // 进入酒店 (不规则点击区域)
     ClickableArea *btnEnter = new ClickableArea(rpgCenterPanel);
     btnEnter->setPolygon(Config::Test3::Geometry::POLY_ENTRANCE_ENTER());
     btnEnter->setToolTip(Config::Test3::Texts::BTN_ENTER_HOTEL);
@@ -595,46 +615,31 @@ void Test3::renderStaffHallway()
 {
     QLabel *bg = new QLabel(rpgCenterPanel);
     QString bgPath = Config::Test3::Images::SCENE_HALLWAY_NORMAL;
-
-    // 根据状态选择背景图
     bool anyTaskDone = false;
-    for (const auto &t : gameState.tasks)
-        if (t.isCompleted)
-            anyTaskDone = true;
-
-    if (anyTaskDone)
-    {
-        bgPath = Config::Test3::Images::SCENE_HALLWAY_CLOCKED_OUT; // 实际逻辑: 任务完成后通常是下班状态
-    }
-    else if (isLate)
-    {
-        bgPath = Config::Test3::Images::SCENE_HALLWAY_LATE;
-    }
+    for (const auto &t : gameState.tasks) if (t.isCompleted) anyTaskDone = true;
+    if (anyTaskDone) bgPath = Config::Test3::Images::SCENE_HALLWAY_CLOCKED_OUT;
+    else if (isLate) bgPath = Config::Test3::Images::SCENE_HALLWAY_LATE;
 
     QPixmap pix = getPixmap(bgPath);
-    if (pix.isNull())
-        pix = generatePlaceholder("员工通道", Qt::lightGray, rpgCenterPanel->size());
+    if (pix.isNull()) pix = generatePlaceholder("员工通道", Qt::lightGray, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     setGeometryCentered(bg, Config::Test3::Geometry::CENTER_PANEL_SIZE.width() / 2, Config::Test3::Geometry::CENTER_PANEL_SIZE.height() / 2,
                         Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
     bg->show();
 
-    // 返回入口
     ArrowButton *exitBtn = new ArrowButton(rpgCenterPanel);
     setGeometryCentered(exitBtn, Config::Test3::Geometry::RECT_BTN_HALLWAY_EXIT);
     exitBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_HALLWAY_EXIT);
     exitBtn->setArrowText("");
     exitBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
     exitBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
-    connect(exitBtn, &QPushButton::clicked, [this]()
-            { goToScene(GameScene::Entrance); });
+    connect(exitBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::Entrance); });
     connect(exitBtn, &ArrowButton::hovered, [this](bool status, QString text)
             {
         if (status) { hoverHintLabel->setText(Config::Test3::Texts::BTN_RETURN_ENTRANCE); hoverHintLabel->show(); hoverHintLabel->raise(); }
         else hoverHintLabel->hide(); });
     exitBtn->show();
 
-    // 打卡区域
     ClickableArea *btnClock = new ClickableArea(rpgCenterPanel);
     btnClock->setPolygon(Config::Test3::Geometry::POLY_HALLWAY_CLOCK());
     QString clockText = gameState.hasClockedIn ? Config::Test3::Texts::BTN_CLOCK_OUT : Config::Test3::Texts::BTN_CLOCK_IN;
@@ -650,7 +655,6 @@ void Test3::renderStaffHallway()
     btnClock->setGeometry(rpgCenterPanel->rect());
     btnClock->show();
 
-    // 导航箭头生成辅助
     auto createArrow = [&](const QRect &rect, int angle, QString text, auto func)
     {
         ArrowButton *btn = new ArrowButton(rpgCenterPanel);
@@ -667,123 +671,56 @@ void Test3::renderStaffHallway()
         btn->show();
     };
 
-    createArrow(Config::Test3::Geometry::RECT_BTN_HALLWAY_OFFICE,
-                Config::Test3::Geometry::ANGLE_BTN_HALLWAY_OFFICE,
-                Config::Test3::Texts::BTN_GO_OFFICE,
-                [this]()
-                { goToScene(GameScene::Office); });
-
-    createArrow(Config::Test3::Geometry::RECT_BTN_HALLWAY_WAREHOUSE,
-                Config::Test3::Geometry::ANGLE_BTN_HALLWAY_WAREHOUSE,
-                Config::Test3::Texts::BTN_GO_WAREHOUSE,
-                [this]()
-                { goToScene(GameScene::Warehouse); });
-
-    createArrow(Config::Test3::Geometry::RECT_BTN_HALLWAY_ELEVATOR,
-                Config::Test3::Geometry::ANGLE_BTN_HALLWAY_ELEVATOR,
-                Config::Test3::Texts::BTN_GO_ELEVATOR,
-                [this]()
-                { goToScene(GameScene::ElevatorHall); });
-}
-
-void Test3::renderOffice()
-{
-    QLabel *bg = new QLabel(rpgCenterPanel);
-    QPixmap pix = getPixmap(Config::Test3::Images::SCENE_OFFICE);
-    if (pix.isNull())
-        pix = generatePlaceholder("办公室", Qt::darkBlue, rpgCenterPanel->size());
-    bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-    setGeometryCentered(bg, Config::Test3::Geometry::CENTER_PANEL_SIZE.width() / 2, Config::Test3::Geometry::CENTER_PANEL_SIZE.height() / 2,
-                        Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
-    bg->show();
-
-    // 动作按钮 (领任务 / 汇报)
-    QPushButton *actionBtn = new QPushButton(rpgCenterPanel);
-    setGeometryCentered(actionBtn, Config::Test3::Geometry::RECT_BTN_OFFICE_ACTION);
-    actionBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_OFFICE_ACTION);
-    actionBtn->setCursor(Qt::PointingHandCursor);
-
-    if (gameState.hasReceivedTask)
-    {
-        actionBtn->setText(Config::Test3::Texts::BTN_REPORT_WORK);
-        connect(actionBtn, &QPushButton::clicked, this, &Test3::handleReportWork);
-    }
-    else
-    {
-        actionBtn->setText(Config::Test3::Texts::BTN_GET_TASK);
-        connect(actionBtn, &QPushButton::clicked, this, &Test3::handleGetTask);
-    }
-    actionBtn->show();
-
-    // 返回按钮
-    ArrowButton *backBtn = new ArrowButton(rpgCenterPanel);
-    setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_OFFICE_BACK);
-    backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_OFFICE_BACK);
-    backBtn->setArrowText("");
-    backBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
-    backBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
-    connect(backBtn, &QPushButton::clicked, [this]()
-            { goToScene(GameScene::StaffHallway); });
-    connect(backBtn, &ArrowButton::hovered, [this](bool status, QString text)
-            {
-        if (status) { hoverHintLabel->setText(Config::Test3::Texts::BTN_RETURN_HALLWAY); hoverHintLabel->show(); hoverHintLabel->raise(); }
-        else hoverHintLabel->hide(); });
-    backBtn->show();
-
-    if (gameState.hasReported)
-    {
-        QLabel *lbl = new QLabel(Config::Test3::Texts::LBL_WORK_REPORTED, rpgCenterPanel);
-        setGeometryCentered(lbl, Config::Test3::Geometry::RECT_LBL_OFFICE_MSG);
-        lbl->setStyleSheet(Config::Test3::Styles::LBL_SUCCESS_GREEN);
-        lbl->show();
-    }
+    createArrow(Config::Test3::Geometry::RECT_BTN_HALLWAY_OFFICE, Config::Test3::Geometry::ANGLE_BTN_HALLWAY_OFFICE, Config::Test3::Texts::BTN_GO_OFFICE, [this](){ goToScene(GameScene::Office); });
+    createArrow(Config::Test3::Geometry::RECT_BTN_HALLWAY_WAREHOUSE, Config::Test3::Geometry::ANGLE_BTN_HALLWAY_WAREHOUSE, Config::Test3::Texts::BTN_GO_WAREHOUSE, [this](){ goToScene(GameScene::Warehouse); });
+    createArrow(Config::Test3::Geometry::RECT_BTN_HALLWAY_ELEVATOR, Config::Test3::Geometry::ANGLE_BTN_HALLWAY_ELEVATOR, Config::Test3::Texts::BTN_GO_ELEVATOR, [this](){ goToScene(GameScene::ElevatorHall); });
 }
 
 void Test3::renderWarehouse()
 {
     QLabel *bg = new QLabel(rpgCenterPanel);
     QPixmap pix = getPixmap(Config::Test3::Images::SCENE_WAREHOUSE_ENTRY);
-    if (pix.isNull())
-        pix = generatePlaceholder("仓库 (入口)", Qt::darkYellow, rpgCenterPanel->size());
+    if (pix.isNull()) pix = generatePlaceholder("仓库 (入口)", Qt::darkYellow, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     setGeometryCentered(bg, Config::Test3::Geometry::CENTER_PANEL_SIZE.width() / 2, Config::Test3::Geometry::CENTER_PANEL_SIZE.height() / 2,
                         Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
     bg->show();
 
-    // 脏布草回收桶 (可拖入)
-    DropLabel *dirtyBin = new DropLabel("", rpgCenterPanel);
-    QPixmap binPix = getPixmap(Config::Test3::Images::UI_DIRTY_BIN);
-    if (!binPix.isNull())
-    {
-        dirtyBin->setPixmap(binPix.scaled(Config::Test3::Geometry::RECT_WAREHOUSE_BIN.size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
-        dirtyBin->setAlignment(Qt::AlignCenter);
-    }
-    dirtyBin->setStyleSheet(Config::Test3::Styles::SHELF_AREA);
-    dirtyBin->setToolTip(Config::Test3::Texts::LBL_DIRTY_BIN_TIP);
-    dirtyBin->onDropCallback = [this](QString item)
-    {
-        if (item == "DirtyLinen" || item == "脏布草")
-        {
+    // Replaced Rectangular DropLabel with ClickableArea (Polygon) that supports Drop
+    ClickableArea *binArea = new ClickableArea(rpgCenterPanel);
+    binArea->setPolygon(Config::Test3::Geometry::POLY_WAREHOUSE_BIN());
+    binArea->setToolTip(Config::Test3::Texts::LBL_DIRTY_BIN_TIP);
+    binArea->setGeometry(rpgCenterPanel->rect()); // Cover full area, masked by polygon
+
+    // Callback handles both "DirtyLinen" and clean linen (Recycle logic)
+    binArea->onDropCallback = [this](QString item) {
+        if (item == "DirtyLinen" || item == "脏布草") {
             gameState.inventory.dirtyItemsCount = 0;
             emit logMessage("脏布草已回收");
             refreshInventoryList();
-            QMessageBox::information(this, "提示", "脏布草已放入回收桶。");
-        }
-        else
-        {
-            QMessageBox::warning(this, "提示", "这里只能放脏布草。");
+            QMessageBox::information(this, "提示", "脏布草已回收。");
+        } else {
+            // "I can also drag clean linen to it" -> Recycle clean linen (remove from cart)
+            int count = gameState.inventory.cleanItems[item];
+            if (count > 0) {
+                 gameState.inventory.cleanItems[item] = 0;
+                 emit logMessage("回收(丢弃): " + item);
+                 refreshInventoryList();
+                 QMessageBox::information(this, "提示", QString("已将 %1 放入回收处理。").arg(item));
+            }
         }
     };
-    setGeometryCentered(dirtyBin, Config::Test3::Geometry::RECT_WAREHOUSE_BIN);
-    dirtyBin->show();
+    connect(binArea, &ClickableArea::hovered, [this](bool status, QString text) {
+        if (status) { hoverHintLabel->setText(text); hoverHintLabel->show(); hoverHintLabel->raise(); }
+        else hoverHintLabel->hide();
+    });
+    binArea->show();
 
-    // 拿取布草按钮
     QPushButton *takeBtn = new QPushButton(Config::Test3::Texts::BTN_TAKE_LINEN, rpgCenterPanel);
     setGeometryCentered(takeBtn, Config::Test3::Geometry::RECT_BTN_WAREHOUSE_TAKE);
     takeBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_WAREHOUSE_TAKE);
     takeBtn->setCursor(Qt::PointingHandCursor);
-    connect(takeBtn, &QPushButton::clicked, [this]()
-            { goToScene(GameScene::WarehouseShelf); });
+    connect(takeBtn, &QPushButton::clicked, [this](){ goToScene(GameScene::WarehouseShelf); });
     takeBtn->show();
 
     ArrowButton *backBtn = new ArrowButton(rpgCenterPanel);
@@ -792,8 +729,7 @@ void Test3::renderWarehouse()
     backBtn->setArrowText("");
     backBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
     backBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
-    connect(backBtn, &QPushButton::clicked, [this]()
-            { goToScene(GameScene::StaffHallway); });
+    connect(backBtn, &QPushButton::clicked, [this](){ goToScene(GameScene::StaffHallway); });
     connect(backBtn, &ArrowButton::hovered, [this](bool status, QString text)
             {
         if (status) { hoverHintLabel->setText(Config::Test3::Texts::BTN_RETURN_HALLWAY); hoverHintLabel->show(); hoverHintLabel->raise(); }
@@ -805,21 +741,19 @@ void Test3::renderWarehouseShelf()
 {
     QLabel *bg = new QLabel(rpgCenterPanel);
     QPixmap pix = getPixmap(Config::Test3::Images::SCENE_WAREHOUSE_SHELF);
-    if (pix.isNull())
-        pix = generatePlaceholder("货架", Qt::darkYellow, rpgCenterPanel->size());
+    if (pix.isNull()) pix = generatePlaceholder("货架", Qt::darkYellow, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     setGeometryCentered(bg, Config::Test3::Geometry::CENTER_PANEL_SIZE.width() / 2, Config::Test3::Geometry::CENTER_PANEL_SIZE.height() / 2,
                         Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
     bg->show();
 
-    // 创建货架区域 lambda
     auto createShelfArea = [&](const QString &name, const QRect &rect)
     {
         ShelfArea *area = new ShelfArea(name, rpgCenterPanel);
         setGeometryCentered(area, rect);
         area->setStyleSheet(Config::Test3::Styles::SHELF_AREA);
         area->setDraggable(true);
-        area->setSourceType("WarehouseShelf"); // 标记源为仓库货架 (无限供应)
+        area->setSourceType("WarehouseShelf");
         area->setToolTip(name + " (可拿取)");
         connect(area, &ShelfArea::hovered, [this](bool status, QString text)
                 {
@@ -837,7 +771,16 @@ void Test3::renderWarehouseShelf()
             }
         }
 
-        // 放置回调 (从车放回货架)
+        // Add Label Underneath
+        QLabel *lbl = new QLabel(name, rpgCenterPanel);
+        lbl->setStyleSheet("color: white; font-weight: bold; font-size: 16px; background-color: rgba(0,0,0,0.5); padding: 2px; border-radius: 4px;");
+        lbl->adjustSize();
+        // Position below the rect
+        int lx = rect.center().x() - lbl->width() / 2;
+        int ly = rect.bottom() + 5;
+        lbl->move(lx, ly);
+        lbl->show();
+
         area->onDropCallback = [this, name](QString item)
         {
             if (item != name)
@@ -845,7 +788,7 @@ void Test3::renderWarehouseShelf()
                 QMessageBox::critical(this, "错误", QString("存放失败：不能将 %1 放入 %2 的位置！").arg(item, name));
                 return;
             }
-            handleSceneDrop(item, true); // true 表示放回仓库
+            handleSceneDrop(item, true);
         };
         area->show();
     };
@@ -863,8 +806,7 @@ void Test3::renderWarehouseShelf()
     backBtn->setArrowText("");
     backBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
     backBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
-    connect(backBtn, &QPushButton::clicked, [this]()
-            { goToScene(GameScene::Warehouse); });
+    connect(backBtn, &QPushButton::clicked, [this](){ goToScene(GameScene::Warehouse); });
     connect(backBtn, &ArrowButton::hovered, [this](bool status, QString text)
             {
         if (status) { hoverHintLabel->setText(Config::Test3::Texts::BTN_RETURN_WAREHOUSE_ENTRY); hoverHintLabel->show(); hoverHintLabel->raise(); }
@@ -872,241 +814,51 @@ void Test3::renderWarehouseShelf()
     backBtn->show();
 }
 
-void Test3::renderElevatorHall()
-{
-    QLabel *bg = new QLabel(rpgCenterPanel);
-    QPixmap pix = getPixmap(Config::Test3::Images::SCENE_ELEVATOR_HALL);
-    if (pix.isNull())
-        pix = generatePlaceholder("电梯厅", Qt::gray, rpgCenterPanel->size());
-    bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-    setGeometryCentered(bg, Config::Test3::Geometry::CENTER_PANEL_SIZE.width() / 2, Config::Test3::Geometry::CENTER_PANEL_SIZE.height() / 2,
-                        Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
-    bg->show();
-
-    QPushButton *callElevator = new QPushButton(Config::Test3::Texts::BTN_ENTER_ELEVATOR, rpgCenterPanel);
-    setGeometryCentered(callElevator, Config::Test3::Geometry::RECT_BTN_ELEVATOR_ENTER);
-    callElevator->setStyleSheet(Config::Test3::Styles::STYLE_BTN_ELEVATOR_ENTER);
-    callElevator->setCursor(Qt::PointingHandCursor);
-    connect(callElevator, &QPushButton::clicked, [this]()
-            { goToScene(GameScene::ElevatorInside); });
-    callElevator->show();
-
-    ArrowButton *backBtn = new ArrowButton(rpgCenterPanel);
-    setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_ELEVATOR_BACK);
-    backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_ELEVATOR_BACK);
-    backBtn->setArrowText("");
-    backBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
-    backBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
-    connect(backBtn, &QPushButton::clicked, [this]()
-            {
-        if (gameState.currentFloor == 0) goToScene(GameScene::StaffHallway);
-        else goToScene(GameScene::FloorCorridor); });
-    connect(backBtn, &ArrowButton::hovered, [this](bool status, QString text)
-            {
-        if (status) { hoverHintLabel->setText(Config::Test3::Texts::BTN_RETURN_BACK); hoverHintLabel->show(); hoverHintLabel->raise(); }
-        else hoverHintLabel->hide(); });
-    backBtn->show();
-}
-
-void Test3::renderElevatorInside()
-{
-    QLabel *bg = new QLabel(rpgCenterPanel);
-    QPixmap pix = getPixmap(Config::Test3::Images::SCENE_ELEVATOR_INSIDE);
-    if (pix.isNull())
-        pix = generatePlaceholder("电梯内部", Qt::lightGray, rpgCenterPanel->size());
-    bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-    setGeometryCentered(bg, Config::Test3::Geometry::CENTER_PANEL_SIZE.width() / 2, Config::Test3::Geometry::CENTER_PANEL_SIZE.height() / 2,
-                        Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
-    bg->show();
-
-    QPushButton *exitBtn = new QPushButton(Config::Test3::Texts::BTN_EXIT_ELEVATOR, rpgCenterPanel);
-    setGeometryCentered(exitBtn, Config::Test3::Geometry::RECT_BTN_ELEVATOR_EXIT);
-    exitBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_ELEVATOR_EXIT);
-    exitBtn->setCursor(Qt::PointingHandCursor);
-    connect(exitBtn, &QPushButton::clicked, [this]()
-            { goToScene(GameScene::ElevatorHall); });
-    exitBtn->show();
-}
-
-void Test3::renderFloorCorridor()
-{
-    QLabel *bg = new QLabel(rpgCenterPanel);
-    QPixmap pix = getPixmap(Config::Test3::Images::SCENE_FLOOR_CORRIDOR);
-    if (pix.isNull())
-        pix = generatePlaceholder("走廊", Qt::cyan, rpgCenterPanel->size());
-    bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-    setGeometryCentered(bg, Config::Test3::Geometry::CENTER_PANEL_SIZE.width() / 2, Config::Test3::Geometry::CENTER_PANEL_SIZE.height() / 2,
-                        Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
-    bg->show();
-
-    ArrowButton *linenRoomBtn = new ArrowButton(rpgCenterPanel);
-    setGeometryCentered(linenRoomBtn, Config::Test3::Geometry::RECT_BTN_CORRIDOR_LINEN);
-    linenRoomBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_CORRIDOR_LINEN);
-    linenRoomBtn->setArrowText("");
-    linenRoomBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
-    linenRoomBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
-    connect(linenRoomBtn, &QPushButton::clicked, [this]()
-            { goToScene(GameScene::LinenRoom); });
-    connect(linenRoomBtn, &ArrowButton::hovered, [this](bool status, QString text)
-            {
-        if (status) { hoverHintLabel->setText(Config::Test3::Texts::BTN_GO_LINEN_ROOM); hoverHintLabel->show(); hoverHintLabel->raise(); }
-        else hoverHintLabel->hide(); });
-    linenRoomBtn->show();
-
-    ArrowButton *elevatorBtn = new ArrowButton(rpgCenterPanel);
-    setGeometryCentered(elevatorBtn, Config::Test3::Geometry::RECT_BTN_CORRIDOR_ELEVATOR);
-    elevatorBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_CORRIDOR_ELEVATOR);
-    elevatorBtn->setArrowText("");
-    elevatorBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
-    elevatorBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
-    connect(elevatorBtn, &QPushButton::clicked, [this]()
-            { goToScene(GameScene::ElevatorHall); });
-    connect(elevatorBtn, &ArrowButton::hovered, [this](bool status, QString text)
-            {
-        if (status) { hoverHintLabel->setText(Config::Test3::Texts::BTN_GO_ELEVATOR_HALL); hoverHintLabel->show(); hoverHintLabel->raise(); }
-        else hoverHintLabel->hide(); });
-    elevatorBtn->show();
-}
-
-void Test3::renderLinenRoom()
-{
-    QLabel *bg = new QLabel(rpgCenterPanel);
-    QPixmap pix = getPixmap(Config::Test3::Images::SCENE_LINEN_ROOM_EMPTY);
-    if (pix.isNull())
-        pix = generatePlaceholder("布草间", Qt::white, rpgCenterPanel->size());
-    bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-    setGeometryCentered(bg, Config::Test3::Geometry::CENTER_PANEL_SIZE.width() / 2, Config::Test3::Geometry::CENTER_PANEL_SIZE.height() / 2,
-                        Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
-    bg->show();
-
-    // 初始化楼层的脏布草状态 (如果不存在)
-    if (!gameState.dirtyBagState.contains(gameState.currentFloor))
-    {
-        gameState.dirtyBagState[gameState.currentFloor] = false;
-    }
-
-    auto createShelfArea = [&](const QString &name, const QRect &rect)
-    {
-        ShelfArea *area = new ShelfArea(name, rpgCenterPanel);
-        setGeometryCentered(area, rect);
-        area->setStyleSheet(Config::Test3::Styles::SHELF_AREA);
-        area->setSourceType("LinenRoomShelf"); // 标记源为布草间货架
-        area->setToolTip(name + " (拖拽取回/放置)");
-        connect(area, &ShelfArea::hovered, [this](bool status, QString text)
-                {
-            if (status) { hoverHintLabel->setText(text); hoverHintLabel->show(); hoverHintLabel->raise(); }
-            else hoverHintLabel->hide(); });
-
-        // 检查楼层库存 (Floor Inventory)
-        int placedCount = gameState.floorInventory[gameState.currentFloor].value(name, 0);
-
-        if (placedCount > 0)
-        {
-            area->setDraggable(true);
-            QString iconPath = Config::Test3::Images::ITEMS().value(name);
-            if (QFile::exists(iconPath))
-            {
-                QPixmap pix = getPixmap(iconPath);
-                if (!pix.isNull())
-                {
-                    area->setPixmap(pix.scaled(Config::Test3::Geometry::ICON_SHELF_ITEM, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-                    area->setAlignment(Qt::AlignCenter);
-                }
-            }
-            // 显示数量角标
-            QLabel *countLbl = new QLabel(QString("x%1").arg(placedCount), area);
-            countLbl->setStyleSheet(QString("color: %1; font-weight: bold; font-size: %2px; background: transparent; padding: 2px;")
-                                        .arg(Config::Test3::Fonts::COL_LINEN_COUNT)
-                                        .arg(Config::Test3::Fonts::SIZE_LINEN_COUNT));
-            countLbl->adjustSize();
-            countLbl->move((area->width() - countLbl->width()) / 2, (area->height() - countLbl->height()) / 2);
-            countLbl->show();
-        }
-        else
-        {
-            area->setDraggable(false);
-            area->clear();
-        }
-
-        // 放置回调
-        area->onDropCallback = [this, name, area](QString item)
-        {
-            if (item != name)
-            {
-                QMessageBox::critical(this, "错误", QString("放置失败：不能将 %1 放置在 %2 的位置！").arg(item, name));
-                return;
-            }
-            // 放置到楼层 (false = 不是仓库)
-            handleSceneDrop(item, false);
-        };
-        area->show();
-    };
-
-    createShelfArea("大床单", Config::Test3::Geometry::AREA_LINEN_SHEET);
-    createShelfArea("大被套", Config::Test3::Geometry::AREA_LINEN_DUVET);
-    createShelfArea("小被套", Config::Test3::Geometry::AREA_LINEN_S_DUVET);
-    createShelfArea("枕巾", Config::Test3::Geometry::AREA_LINEN_PILLOW);
-    createShelfArea("晚安巾", Config::Test3::Geometry::AREA_LINEN_GN_TOWEL);
-    createShelfArea("毛巾", Config::Test3::Geometry::AREA_LINEN_TOWEL);
-
-    // 脏布草 (如果存在)
-    if (gameState.dirtyBagState[gameState.currentFloor])
-    {
-        DragSourceLabel *dirty = new DragSourceLabel("脏布草", rpgCenterPanel);
-        QPixmap dirtyPix = getPixmap(Config::Test3::Images::UI_DIRTY_LINEN);
-        if (!dirtyPix.isNull())
-            dirty->setPixmap(dirtyPix.scaled(Config::Test3::Geometry::ICON_DIRTY_DRAG));
-        setGeometryCentered(dirty, Config::Test3::Geometry::RECT_EVENT_DIRTY_LINEN);
-        dirty->show();
-    }
-
-    ArrowButton *backBtn = new ArrowButton(rpgCenterPanel);
-    setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_LINEN_BACK);
-    backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_LINEN_BACK);
-    backBtn->setArrowText("");
-    backBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
-    backBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
-    connect(backBtn, &QPushButton::clicked, [this]()
-            { goToScene(GameScene::FloorCorridor); });
-    connect(backBtn, &ArrowButton::hovered, [this](bool status, QString text)
-            {
-        if (status) { hoverHintLabel->setText(Config::Test3::Texts::BTN_RETURN_CORRIDOR); hoverHintLabel->show(); hoverHintLabel->raise(); }
-        else hoverHintLabel->hide(); });
-    backBtn->show();
-}
-
-// --- 动作处理 (Action Handlers) ---
-
 void Test3::handleInventoryDrop(QString itemName, const QMimeData *mimeData)
 {
+    // Cart limit check (Total count)
+    int totalItems = 0;
+    for (auto c : gameState.inventory.cleanItems) totalItems += c;
+    totalItems += gameState.inventory.dirtyItemsCount;
+
+    // Only check limit when ADDING to cart.
+    // However, if we are just moving things around or dropping "DirtyLinen" which might replace something?
+    // Actually, dragging from shelf adds. Dragging from floor adds.
+    // If dropping dirty linen, it adds 1.
+    // We check if (totalItems + 1 > 40).
+
+    // Note: If dropping "DirtyLinen" into "DirtyLinen" slot (handleInventoryDrop logic handles generic add), we check.
+    // Logic:
+
     if (itemName == "脏布草")
     {
-        // 混装检查: 如果车里有干净布草，则记录错误
-        int cleanCount = 0;
-        for (auto c : gameState.inventory.cleanItems)
-            cleanCount += c;
-
-        if (cleanCount > 0)
-        {
-            errorLog.mixedLinen = true;
+        if (totalItems + 1 > Config::Test3::Logic::MAX_CART_ITEMS) {
+            QMessageBox::warning(this, "推车已满", "推车已满，无法再装入物品！(上限40件)");
+            return;
         }
 
+        // 混装检查: 如果车里有干净布草，则记录错误
+        int cleanCount = 0;
+        for (auto c : gameState.inventory.cleanItems) cleanCount += c;
+        if (cleanCount > 0) errorLog.mixedLinen = true;
+
         gameState.inventory.dirtyItemsCount++;
-        gameState.dirtyBagState[gameState.currentFloor] = false; // 清除楼层的脏布草
+        gameState.dirtyBagState[gameState.currentFloor] = false;
         emit logMessage("回收脏布草");
         renderScene();
     }
     else
     {
-        // 混装检查: 脏布草在车上时装干净布草
-        if (gameState.inventory.dirtyItemsCount > 0)
-        {
-            errorLog.mixedLinen = true;
+        if (totalItems + 1 > Config::Test3::Logic::MAX_CART_ITEMS) {
+            QMessageBox::warning(this, "推车已满", "推车已满，无法再装入物品！(上限40件)");
+            return;
         }
+
+        // 混装检查: 脏布草在车上时装干净布草
+        if (gameState.inventory.dirtyItemsCount > 0) errorLog.mixedLinen = true;
 
         if (gameState.currentScene == GameScene::LinenRoom)
         {
-            // 从楼层货架取回 -> 减少楼层库存
             if (gameState.floorInventory[gameState.currentFloor].value(itemName, 0) > 0)
             {
                 gameState.floorInventory[gameState.currentFloor][itemName]--;
@@ -1114,251 +866,35 @@ void Test3::handleInventoryDrop(QString itemName, const QMimeData *mimeData)
             }
         }
 
-        // 增加推车库存 (默认+1，因为是拖拽一个图标)
         gameState.inventory.cleanItems[itemName]++;
         emit logMessage("装车: " + itemName);
 
-        if (gameState.currentScene == GameScene::LinenRoom)
-        {
-            renderScene(); // 刷新以更新数量角标
-        }
+        if (gameState.currentScene == GameScene::LinenRoom) renderScene();
     }
     refreshInventoryList();
-}
-
-void Test3::handleSceneDrop(QString itemName, bool isWarehouse)
-{
-    int countInCart = gameState.inventory.cleanItems[itemName];
-    if (countInCart <= 0)
-        return;
-
-    if (isWarehouse)
-    {
-        // 放回仓库：清空推车该物品
-        gameState.inventory.cleanItems[itemName] = 0;
-        emit logMessage(QString("放回仓库: %1 x%2").arg(itemName).arg(countInCart));
-        refreshInventoryList();
-        return;
-    }
-
-    // 放置到楼层：全部放入
-    gameState.inventory.cleanItems[itemName] = 0;
-    gameState.floorInventory[gameState.currentFloor][itemName] += countInCart;
-
-    emit logMessage(QString("放置 %1 x%2 到 %3楼货架").arg(itemName).arg(countInCart).arg(gameState.currentFloor));
-
-    // 检查任务完成情况
-    bool anyUpdate = false;
-    for (int i = 0; i < gameState.tasks.size(); ++i)
-    {
-        Task &t = gameState.tasks[i];
-        if (t.targetFloor == gameState.currentFloor && !t.isCompleted)
-        {
-            // 检查该任务的所有需求是否满足
-            bool allMet = true;
-            for (auto it = t.requiredItems.begin(); it != t.requiredItems.end(); ++it)
-            {
-                QString name = it.key();
-                int required = it.value();
-                int current = gameState.floorInventory[gameState.currentFloor].value(name, 0);
-                if (current < required)
-                {
-                    allMet = false;
-                    break;
-                }
-            }
-
-            if (allMet)
-            {
-                t.isCompleted = true;
-                anyUpdate = true;
-                emit logMessage("任务完成: " + QString::number(gameState.currentFloor) + "楼");
-
-                // 紧急任务优先级检查
-                if (isEmergencyActive)
-                {
-                    bool emergencyDone = false;
-                    for (const auto &et : gameState.tasks)
-                        if (et.isEmergency && et.isCompleted)
-                            emergencyDone = true;
-
-                    // 如果当前完成的不是紧急任务，且紧急任务还未完成 -> 错误
-                    if (!t.isEmergency && !emergencyDone)
-                    {
-                        errorLog.missedEmergencyPriority = true;
-                        emit logMessage("错误: 未优先完成紧急任务");
-                    }
-                    else if (t.isEmergency)
-                    {
-                        isEmergencyActive = false; // 紧急任务已解决
-                    }
-                }
-            }
-        }
-    }
-
-    refreshInventoryList();
-    refreshTaskList();
-    renderScene();
-}
-
-void Test3::checkEmergencyTask()
-{
-    // 占位符，实际逻辑集成在定时器中
-}
-
-int Test3::getNormalRandom(int min, int max)
-{
-    // Box-Muller 变换生成正态分布
-    double u1 = QRandomGenerator::global()->generateDouble();
-    while (u1 <= 0.0)
-        u1 = QRandomGenerator::global()->generateDouble();
-
-    double u2 = QRandomGenerator::global()->generateDouble();
-    double randStd = std::sqrt(-2.0 * std::log(u1)) * std::cos(2.0 * M_PI * u2);
-
-    // 调整均值和标准差 (假设均值5，标准差2)
-    int val = std::round(5.0 + 2.0 * randStd);
-    if (val < min)
-        val = min;
-    if (val > max)
-        val = max;
-    return val;
-}
-
-void Test3::handleClockIn()
-{
-    if (latenessTimer->isActive())
-    {
-        latenessTimer->stop();
-    }
-
-    if (isLate)
-    {
-        errorLog.lateClockIn = true;
-        QMessageBox::warning(this, "通知", "打卡成功，但你迟到了！");
-        emit logMessage("上班打卡 (迟到)");
-    }
-    else
-    {
-        QMessageBox::information(this, "通知", "上班打卡成功!");
-        emit logMessage("上班打卡 (正常)");
-    }
-
-    gameState.hasClockedIn = true;
-    renderScene();
-}
-
-void Test3::handleClockOut()
-{
-    emit logMessage("已打卡下班");
-    gameState.hasClockedIn = false;
-    QMessageBox::information(this, "通知", "下班打卡成功! 请回到入口回家。");
-    renderScene();
-}
-
-void Test3::handleGetTask()
-{
-    if (gameState.hasReceivedTask)
-        return;
-
-    // 任务生成 Lambda
-    auto generateTask = [this](int floor, bool emergency) -> Task
-    {
-        Task t;
-        t.targetFloor = floor;
-        t.isEmergency = emergency;
-        t.isCompleted = false;
-
-        QStringList allTypes = {"大床单", "大被套", "小被套", "枕巾", "晚安巾", "毛巾"};
-        // Fisher-Yates 洗牌算法随机排列
-        for (int i = 0; i < allTypes.size(); ++i)
-        {
-            int j = QRandomGenerator::global()->bounded(allTypes.size());
-            allTypes.swapItemsAt(i, j);
-        }
-
-        int typesCount = QRandomGenerator::global()->bounded(4, Config::Test3::Logic::MAX_TASK_ITEM_TYPES + 1);
-        for (int i = 0; i < typesCount; ++i)
-        {
-            int count = getNormalRandom(1, Config::Test3::Logic::MAX_TASK_ITEM_COUNT);
-            t.requiredItems.insert(allTypes[i], count);
-        }
-        return t;
-    };
-
-    // 生成两个固定基础任务
-    gameState.tasks.append(generateTask(Config::Test3::Logic::TASK_FIXED_FLOOR_1, false));
-    gameState.tasks.append(generateTask(Config::Test3::Logic::TASK_FIXED_FLOOR_2, false));
-
-    // 突发事件逻辑
-    if (isEmergencyEnabled)
-    {
-        bool isEventB = QRandomGenerator::global()->bounded(2) == 0; // 50% 概率
-
-        if (isEventB)
-        {
-            // 事件 B: 脏布草
-            int targetFloor = (QRandomGenerator::global()->bounded(2) == 0) ? 6 : 7;
-            gameState.dirtyBagState[targetFloor] = true;
-            emit logMessage("突发事件B: 脏布草回收");
-        }
-        else
-        {
-            // 事件 A: 延迟紧急任务
-            int delay = QRandomGenerator::global()->bounded(20000, 40001); // 20-40秒
-            QTimer::singleShot(delay, this, [this, generateTask]()
-                               {
-                // 如果所有任务已完成，不再触发
-                bool allDone = true;
-                for(const auto &t : gameState.tasks) if(!t.isCompleted) allDone = false;
-                if (allDone) return;
-
-                int floorA;
-                do {
-                    floorA = QRandomGenerator::global()->bounded(2, 11);
-                } while (floorA == 6 || floorA == 7); // 避开基础层
-
-                Task t = generateTask(floorA, true);
-                gameState.tasks.append(t);
-                isEmergencyActive = true;
-
-                QString msg = QString(Config::Test3::Texts::POPUP_EMERGENCY_MANAGER).arg(floorA);
-                QMessageBox::warning(this, "突发事件", msg);
-                emit logMessage(QString("突发事件A: %1楼").arg(floorA));
-                refreshTaskList(); });
-        }
-    }
-
-    gameState.hasReceivedTask = true;
-    refreshTaskList();
-    emit logMessage("领取任务完成");
-
-    // 自动弹出申领表
-    showTaskSheet(0);
-    renderScene();
 }
 
 void Test3::handleReportWork()
 {
-    // 1. 预检查：是否所有任务都已手动标记为完成
-    for (const auto &t : gameState.tasks)
-    {
-        if (!t.isMarkedComplete)
-        {
-            QMessageBox::warning(this, "提示", Config::Test3::Texts::REPORT_BLOCK_MSG);
-            return;
+    // Removed the "Mark as Complete" blocker logic.
+    // "汇报工作那里去掉必须全部标记才能汇报的限制"
+
+    // Original blocker:
+    /*
+    for (const auto &t : gameState.tasks) {
+        if (!t.isMarkedComplete) {
+            QMessageBox::warning... return;
         }
     }
+    */
+    // Now just proceed to validation.
 
     QString msg = Config::Test3::Texts::REPORT_SUCCESS;
     QStringList errors;
 
     bool incomplete = false;
-    // 检查所有任务是否满足要求
     for (const auto &t : gameState.tasks)
     {
-        // 实时检查库存 (System Check)
         bool isMet = true;
         for (auto it = t.requiredItems.begin(); it != t.requiredItems.end(); ++it)
         {
@@ -1373,7 +909,6 @@ void Test3::handleReportWork()
         if (!isMet)
         {
             incomplete = true;
-            // 如果已标记完成但未达标，添加具体责备信息
             if (t.isMarkedComplete) {
                 errors << QString(Config::Test3::Texts::REPORT_ERR_MARKED_INCOMPLETE).arg(t.targetFloor);
             }
@@ -1382,8 +917,6 @@ void Test3::handleReportWork()
 
     if (incomplete)
     {
-        // 如果有错误，但不一定是"Missing Task"那么简单，可能是"Marked Incomplete"
-        // 只有当没有任何specific error时才添加通用错误
         bool hasSpecificError = false;
         for(const QString &err : errors) {
             if(err.contains("标记完成但未满足")) hasSpecificError = true;
@@ -1409,247 +942,4 @@ void Test3::handleReportWork()
     gameState.hasReported = true;
     emit logMessage("已汇报工作: " + msg);
     renderScene();
-}
-
-void Test3::handleGoHome()
-{
-    if (!gameState.hasReported)
-        errorLog.noReportBeforeHome = true;
-    if (gameState.hasClockedIn)
-        errorLog.noClockOutBeforeHome = true;
-
-    if (errorLog.noReportBeforeHome)
-        emit logMessage("错误: 下班前未汇报");
-    if (errorLog.noClockOutBeforeHome)
-        emit logMessage("错误: 下班前未打卡");
-
-    // --- 填充简要报表数据 ---
-    Logger::Test3BriefData data;
-
-    data.clockInStatus = errorLog.lateClockIn ? "迟到" : "正常";
-    data.clockOutStatus = errorLog.noClockOutBeforeHome ? "未打卡" : "已打卡";
-    data.isLate = errorLog.lateClockIn;
-    data.emergencyPriorityMet = !errorLog.missedEmergencyPriority;
-    data.mixedLinen = errorLog.mixedLinen;
-
-    for (const auto &t : gameState.tasks)
-    {
-        Logger::Test3BriefData::FloorStatus fs;
-        fs.floor = t.targetFloor;
-
-        // 最终检查: 实际库存 vs 需求 (忽略中间过程状态)
-        bool isCorrect = true;
-        for (auto it = t.requiredItems.begin(); it != t.requiredItems.end(); ++it)
-        {
-            int current = gameState.floorInventory[t.targetFloor].value(it.key(), 0);
-            if (current < it.value())
-            {
-                isCorrect = false;
-                break;
-            }
-        }
-
-        fs.isCorrect = isCorrect;
-        if (isCorrect)
-            fs.details = "正确完成";
-        else
-            fs.details = "未满足需求";
-        data.floorStatuses.append(fs);
-    }
-
-    Logger::instance().test3Data = data;
-    Logger::instance().generateBriefReport(); // 生成最终报表
-
-    emit levelCompleted();
-}
-
-void Test3::handleElevatorButton(int floor)
-{
-    emit logMessage(QString("电梯前往 %1 楼").arg(floor));
-    QTimer::singleShot(500, this, [this, floor]()
-                       {
-        gameState.currentFloor = floor;
-        emit logMessage(QString("抵达 %1 楼").arg(floor));
-        goToScene(GameScene::ElevatorHall); });
-}
-
-void Test3::showTaskSheet(int taskIndex)
-{
-    if (gameState.tasks.isEmpty())
-    {
-        QMessageBox::information(this, "提示", "当前没有任务。");
-        return;
-    }
-    if (taskIndex < 0 || taskIndex >= gameState.tasks.size())
-        taskIndex = 0;
-
-    Task *tPtr = &gameState.tasks[taskIndex];
-
-    QDialog *dlg = new QDialog(this);
-    dlg->setAttribute(Qt::WA_DeleteOnClose);
-    dlg->setWindowTitle(QString("物资申领表 (任务 %1)").arg(taskIndex + 1));
-    dlg->setFixedSize(Config::Test3::Geometry::SHEET_DIALOG);
-
-    installDevFilter(dlg);
-
-    QLabel *bg = new QLabel(dlg);
-    QPixmap pix = getPixmap(Config::Test3::Images::UI_TASK_SHEET);
-    if (pix.isNull())
-    {
-        pix = QPixmap(Config::Test3::Geometry::SHEET_DIALOG);
-        pix.fill(Qt::white);
-    }
-    else
-    {
-        pix = pix.scaled(Config::Test3::Geometry::SHEET_DIALOG, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    }
-
-    QPainter painter(&pix);
-    painter.setPen(QColor(0, 0, 0));
-    painter.setFont(QFont(Config::Test3::Fonts::SHEET_FONT_FAMILY,
-                          Config::Test3::Fonts::SHEET_FONT_SIZE,
-                          Config::Test3::Fonts::SHEET_FONT_WEIGHT));
-
-    auto drawCenteredText = [&](QPoint center, QString text)
-    {
-        int w = Config::Test3::Geometry::SHEET_TEXT_BOX.width();
-        int h = Config::Test3::Geometry::SHEET_TEXT_BOX.height();
-        QRect rect(center.x() - w / 2, center.y() - h / 2, w, h);
-        painter.drawText(rect, Qt::AlignCenter, text);
-    };
-
-    drawCenteredText(Config::Test3::Geometry::TXT_FLOOR, QString::number(tPtr->targetFloor));
-
-    QMap<QString, QPoint> itemCoords;
-    itemCoords["大床单"] = Config::Test3::Geometry::TXT_SHEET;
-    itemCoords["大被套"] = Config::Test3::Geometry::TXT_DUVET;
-    itemCoords["小被套"] = Config::Test3::Geometry::TXT_S_DUVET;
-    itemCoords["枕巾"] = Config::Test3::Geometry::TXT_PILLOW;
-    itemCoords["晚安巾"] = Config::Test3::Geometry::TXT_GN_TOWEL;
-    itemCoords["毛巾"] = Config::Test3::Geometry::TXT_TOWEL;
-
-    // 显示需求量 (固定)
-    for (auto it = itemCoords.begin(); it != itemCoords.end(); ++it)
-    {
-        int count = tPtr->requiredItems.value(it.key(), 0);
-        drawCenteredText(it.value(), QString::number(count));
-    }
-
-    bg->setPixmap(pix);
-    bg->setGeometry(0, 0, Config::Test3::Geometry::SHEET_DIALOG.width(), Config::Test3::Geometry::SHEET_DIALOG.height());
-
-    // --- "标记为完成" 按钮与印章 ---
-
-    // 盖章 Label (初始隐藏或显示取决于状态)
-    QLabel *stampLbl = new QLabel("✔", bg);
-    stampLbl->setStyleSheet(Config::Test3::Styles::STYLE_LBL_CHECKMARK);
-    stampLbl->adjustSize();
-    stampLbl->move(Config::Test3::Geometry::SHEET_DIALOG.width() - stampLbl->width() - 50,
-                   Config::Test3::Geometry::SHEET_DIALOG.height() - stampLbl->height() - 50);
-    stampLbl->setVisible(tPtr->isMarkedComplete);
-
-    // 标记按钮
-    QPushButton *markBtn = new QPushButton(dlg);
-    markBtn->setText(tPtr->isMarkedComplete ? "取消标记" : "标记完成");
-    markBtn->setGeometry(Config::Test3::Geometry::RECT_BTN_MARK_COMPLETE);
-    markBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_MARK_COMPLETE);
-    markBtn->setCursor(Qt::PointingHandCursor);
-
-    connect(markBtn, &QPushButton::clicked, [this, tPtr, markBtn, stampLbl]()
-            {
-        tPtr->isMarkedComplete = !tPtr->isMarkedComplete;
-        stampLbl->setVisible(tPtr->isMarkedComplete);
-        markBtn->setText(tPtr->isMarkedComplete ? "取消标记" : "标记完成");
-
-        QString msg = tPtr->isMarkedComplete ? "任务标记为完成" : "取消任务标记";
-        Logger::instance().logAction("Test3", msg);
-
-        // 实时刷新右侧任务列表状态
-        refreshTaskList();
-    });
-
-    dlg->exec();
-}
-
-void Test3::showTutorial()
-{
-    emit logMessage("显示教程: " + QString::number((int)gameState.currentScene));
-
-    if (tutorialBtn)
-        tutorialBtn->setEnabled(false);
-
-    // 使用自定义 Widget 覆盖在 Test3 (this) 上
-    TutorialOverlay *overlay = new TutorialOverlay(this);
-    overlay->setGeometry(this->rect()); // 全屏覆盖
-    overlay->setStyleSheet("background-color: rgba(0, 0, 0, 0.5);");
-    // 监听 destroyed 信号以恢复按钮状态
-    connect(overlay, &QObject::destroyed, [this]()
-            {
-        if (tutorialBtn) tutorialBtn->setEnabled(true); });
-
-    // 使用布局使内容框垂直居中
-    QVBoxLayout *layout = new QVBoxLayout(overlay);
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setAlignment(Qt::AlignCenter);
-
-    // 内容框
-    QWidget *contentBox = new QWidget(overlay);
-    contentBox->setFixedSize(Config::Test3::Geometry::RECT_TUTORIAL_OVERLAY.size());
-    contentBox->setStyleSheet("background-color: rgba(0, 0, 0, 0.85); border-radius: 12px; border: 2px solid white;");
-
-    layout->addWidget(contentBox);
-
-    // 确定文本内容 和 图片路径
-    QString tutorialText = Config::Test3::Texts::TUTORIAL_GENERAL;
-    QString imagePath = Config::Test3::Images::IMAGE_TUTORIAL_GENERAL;
-
-    if (gameState.currentScene == GameScene::WarehouseShelf || gameState.currentScene == GameScene::LinenRoom)
-    {
-        tutorialText = Config::Test3::Texts::TUTORIAL_SHELF;
-        imagePath = Config::Test3::Images::IMAGE_TUTORIAL_SHELF;
-    }
-    else if (gameState.currentScene == GameScene::Warehouse)
-    {
-        tutorialText = Config::Test3::Texts::TUTORIAL_WAREHOUSE_ENTRY;
-        imagePath = Config::Test3::Images::IMAGE_TUTORIAL_WAREHOUSE;
-    }
-
-    // 图片显示区域
-    QLabel *imgLbl = new QLabel(contentBox);
-    imgLbl->setGeometry(Config::Test3::Geometry::RECT_TUTORIAL_IMAGE);
-    imgLbl->setAlignment(Qt::AlignCenter);
-
-    QPixmap pix = getPixmap(imagePath);
-    if (!pix.isNull())
-    {
-        imgLbl->setPixmap(pix.scaled(imgLbl->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    }
-    else
-    {
-        imgLbl->setText("示意图 (未找到图片)");
-        imgLbl->setStyleSheet("color: #aaa; font-size: 20px; border: 2px dashed #555;");
-    }
-
-    // 文本显示区域
-    QLabel *txtLbl = new QLabel(tutorialText, contentBox);
-    txtLbl->setGeometry(Config::Test3::Geometry::RECT_TUTORIAL_TEXT);
-    txtLbl->setStyleSheet(Config::Test3::Styles::TUTORIAL_TEXT_STYLE);
-    txtLbl->setWordWrap(true);
-    txtLbl->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-
-    overlay->show();
-    overlay->raise();
-}
-
-QPixmap Test3::generatePlaceholder(QString text, QColor color, QSize size)
-{
-    // 动态生成，不缓存
-    emit logMessage("Generating Placeholder for: " + text);
-    QPixmap pixmap(size);
-    pixmap.fill(color);
-    QPainter painter(&pixmap);
-    painter.setPen(Qt::white);
-    painter.setFont(QFont("Microsoft YaHei", 20, QFont::Bold));
-    painter.drawText(pixmap.rect(), Qt::AlignCenter, text);
-    return pixmap;
 }
