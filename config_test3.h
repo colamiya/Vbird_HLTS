@@ -74,7 +74,7 @@ namespace Config
             const int TASK_FIXED_FLOOR_1 = 6;       // 基础任务楼层 1
             const int TASK_FIXED_FLOOR_2 = 7;       // 基础任务楼层 2
             const int MAX_TASK_ITEM_TYPES = 6;      // 任务物品种类最大数量
-            const int MAX_TASK_ITEM_COUNT = 7;      // 单个物品最大数量
+            const int MAX_TASK_ITEM_COUNT = 6;      // 单个物品最大数量
 
             // 物品量词映射 (Classifiers)
             static const QMap<QString, QString> &CLASSIFIERS()
