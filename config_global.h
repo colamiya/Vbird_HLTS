@@ -19,7 +19,7 @@ namespace Config
         // 应用程序标题
         constexpr const char *APP_TITLE = "XXX培训系统";
         // 窗口大小 (宽, 高)
-        const QSize WINDOW_SIZE(1440, 900);
+        const QSize WINDOW_SIZE(1750, 900);
 
         // --- 字体设置 (Fonts) ---
         // 默认字体家族 (MacOS Style)
