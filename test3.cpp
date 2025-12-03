@@ -1156,49 +1156,54 @@ void Test3::handleGetTask()
     QMessageBox::information(this, "提示", "任务已下发，请查看右侧任务列表。");
     renderScene();
 
-    // 启动随机事件计时器 (20-40秒)
-    int delay = getNormalRandom(20000, 40000);
-    emergencyTimer->start(delay);
-    emit logMessage(QString("随机事件将于 %1 秒后触发").arg(delay / 1000));
+    // 只有在勾选了紧急事件开关时才触发
+    if (isEmergencyEnabled)
+    {
+        // 50% 概率触发事件A (紧急任务) 或 事件B (脏布草)
+        bool isEventA = (QRandomGenerator::global()->bounded(2) == 0);
+
+        if (isEventA)
+        {
+            // 事件A: 延时触发
+            int delay = getNormalRandom(20000, 40000);
+            emergencyTimer->start(delay);
+            emit logMessage(QString("计划触发事件A: 紧急任务将于 %1 秒后触发").arg(delay / 1000));
+        }
+        else
+        {
+            // 事件B: 立即触发 (脏布草)
+            QVector<int> baseFloors;
+            baseFloors << Config::Test3::Logic::TASK_FIXED_FLOOR_1 << Config::Test3::Logic::TASK_FIXED_FLOOR_2;
+            int targetFloor = baseFloors[QRandomGenerator::global()->bounded(baseFloors.size())];
+
+            int dirtyCount = getNormalRandom(1, 5);
+            gameState.floorInventory[targetFloor]["DirtyLinen"] += dirtyCount;
+
+            emit logMessage(QString("触发事件B (立即): %1楼 生成 %2 件脏布草 (无弹窗)").arg(targetFloor).arg(dirtyCount));
+        }
+    }
 }
 
 void Test3::checkEmergencyTask()
 {
-    // 50% 概率触发事件A (紧急任务) 或 事件B (脏布草)
-    bool isEventA = (QRandomGenerator::global()->bounded(2) == 0);
+    // 事件A: 紧急补货任务 (由定时器触发)
+    int targetFloor = getNormalRandom(2, 10);
+    // 避免选中1楼(跳过)或0楼
+    if (targetFloor == 1) targetFloor = 2;
 
-    if (isEventA) {
-        // 事件A: 紧急补货任务
-        int targetFloor = getNormalRandom(2, 10);
-        // 避免选中1楼(跳过)或0楼
-        if (targetFloor == 1) targetFloor = 2;
+    Task t;
+    t.targetFloor = targetFloor;
+    t.isEmergency = true;
+    t.requiredItems = {{"大床单", 1}, {"毛巾", 2}}; // 简单紧急需求
+    gameState.tasks.append(t); // 实际上由于 refreshTaskList 的排序，这里 append 也行，或者 insert(0, t)
 
-        Task t;
-        t.targetFloor = targetFloor;
-        t.isEmergency = true;
-        t.requiredItems = {{"大床单", 1}, {"毛巾", 2}}; // 简单紧急需求
-        gameState.tasks.append(t); // 实际上由于 refreshTaskList 的排序，这里 append 也行，或者 insert(0, t)
+    isEmergencyActive = true;
+    refreshTaskList();
 
-        isEmergencyActive = true;
-        refreshTaskList();
-
-        // 弹出经理提示 (增加换行)
-        QString msg = QString(Config::Test3::Texts::POPUP_EMERGENCY_MANAGER).arg(targetFloor);
-        QMessageBox::warning(this, "突发事件 (经理)", msg);
-        emit logMessage("触发事件A: 紧急任务 " + QString::number(targetFloor) + "楼");
-    } else {
-        // 事件B: 在基础任务楼层随机生成脏布草
-        // 逻辑: 随机选6楼或7楼，生成1-5个脏布草
-        QVector<int> baseFloors;
-        baseFloors << Config::Test3::Logic::TASK_FIXED_FLOOR_1 << Config::Test3::Logic::TASK_FIXED_FLOOR_2;
-        int targetFloor = baseFloors[QRandomGenerator::global()->bounded(baseFloors.size())];
-
-        int dirtyCount = getNormalRandom(1, 5);
-        gameState.floorInventory[targetFloor]["DirtyLinen"] += dirtyCount;
-
-        // 无弹窗提示，仅后台生成
-        emit logMessage(QString("触发事件B: %1楼 生成 %2 件脏布草 (无弹窗)").arg(targetFloor).arg(dirtyCount));
-    }
+    // 弹出经理提示 (增加换行)
+    QString msg = QString(Config::Test3::Texts::POPUP_EMERGENCY_MANAGER).arg(targetFloor);
+    QMessageBox::warning(this, "突发事件 (经理)", msg);
+    emit logMessage("触发事件A: 紧急任务 " + QString::number(targetFloor) + "楼");
 }
 
 int Test3::getNormalRandom(int min, int max)
