@@ -22,106 +22,121 @@ namespace Config
         namespace Geometry
         {
             // 侧边栏宽度
-            const int SIDEBAR_LEFT_WIDTH = 150; // New smaller left sidebar
-            const int SIDEBAR_RIGHT_WIDTH = 330; // Expanded right sidebar
-            const int SIDEBAR_WIDTH = 240; // Deprecated, keeping for compatibility if needed, but we should switch to split ones.
-            // Actually, we should check if we can remove it. Let's keep it for now but note to use the new ones.
-            // Wait, existing code uses SIDEBAR_WIDTH. I will replace usage in code.
+            const int SIDEBAR_LEFT_WIDTH = 150;
+            const int SIDEBAR_RIGHT_WIDTH = 330;
+            const int SIDEBAR_WIDTH = 240; // 废弃，保留以兼容
 
-            // 中央游戏区域尺寸 (固定分辨率，方便背景图定位)
-            // 1440 (Total) - 150 (Left) - 330 (Right) = 960 Width
-            // Height = 900
-            const QSize CENTER_PANEL_SIZE(960, 900);
+            // 中央游戏区域尺寸 (修正后分辨率，解决背景变形问题)
+            const QSize CENTER_PANEL_SIZE(1270, 850);
+
+            // 比例缩放因子 (用于适配 1270x850)
+            // 原尺寸: 960x900
+            // X轴缩放: 1270 / 960 ≈ 1.32
+            // Y轴缩放: 850 / 900 ≈ 0.94
+            // 为了简化，我们按比例调整所有坐标。
 
             // 悬浮提示框几何 (相对于 CenterPanel)
-            const QRect RECT_HOVER_HINT(50, 800, 860, 50);
+            const QRect RECT_HOVER_HINT(66, 755, 1137, 50);
 
             // 按钮与交互区域定义 (相对于 CenterPanel)
             // 所有坐标 (x, y) 均为中心点坐标!
+            // 调整公式: NewX = OldX * 1.32, NewY = OldY * 0.94
 
             // [场景: 入口]
-            const QRect RECT_BTN_ENTRANCE_HOME(110, 840, 100, 50); // 下班回家
+            const QRect RECT_BTN_ENTRANCE_HOME(145, 790, 100, 50); // 下班回家
             const int ANGLE_BTN_ENTRANCE_HOME = 180;              // 指向左
             static inline QPolygon POLY_ENTRANCE_ENTER()          // 进入酒店 (不规则区域)
             {
                 QVector<QPoint> pts;
-                // 示例多边形 (门的位置)
-                pts << QPoint(300, 100) << QPoint(660, 100) << QPoint(660, 700) << QPoint(300, 700);
+                // 缩放后的多边形点
+                // 300,100 -> 396,94
+                // 660,100 -> 871,94
+                // 660,700 -> 871,658
+                // 300,700 -> 396,658
+                pts << QPoint(396, 94) << QPoint(871, 94) << QPoint(871, 658) << QPoint(396, 658);
                 return QPolygon(pts);
             }
 
             // [场景: 员工通道]
-            const QRect RECT_BTN_HALLWAY_EXIT(110, 840, 100, 50);       // 返回入口
+            const QRect RECT_BTN_HALLWAY_EXIT(145, 790, 100, 50);       // 返回入口
             const int ANGLE_BTN_HALLWAY_EXIT = 180;                     // 左
             static inline QPolygon POLY_HALLWAY_CLOCK()                 // 打卡机
             {
                 QVector<QPoint> pts;
-                pts << QPoint(750, 300) << QPoint(850, 300) << QPoint(850, 450) << QPoint(750, 450);
+                // 750,300 -> 990,282
+                // 850,300 -> 1122,282
+                // 850,450 -> 1122,423
+                // 750,450 -> 990,423
+                pts << QPoint(990, 282) << QPoint(1122, 282) << QPoint(1122, 423) << QPoint(990, 423);
                 return QPolygon(pts);
             }
-            const QRect RECT_BTN_HALLWAY_OFFICE(200, 450, 100, 50);     // 去办公室 (左侧门)
+            const QRect RECT_BTN_HALLWAY_OFFICE(264, 423, 100, 50);     // 去办公室 (左侧门)
             const int ANGLE_BTN_HALLWAY_OFFICE = 180;
-            const QRect RECT_BTN_HALLWAY_WAREHOUSE(480, 450, 100, 50);  // 去仓库 (中间门)
+            const QRect RECT_BTN_HALLWAY_WAREHOUSE(633, 423, 100, 50);  // 去仓库 (中间门)
             const int ANGLE_BTN_HALLWAY_WAREHOUSE = 90;                 // 向内/上
-            const QRect RECT_BTN_HALLWAY_ELEVATOR(760, 450, 100, 50);   // 去电梯厅 (右侧通道)
+            const QRect RECT_BTN_HALLWAY_ELEVATOR(1003, 423, 100, 50);   // 去电梯厅 (右侧通道)
             const int ANGLE_BTN_HALLWAY_ELEVATOR = 0;
 
             // [场景: 办公室]
-            const QRect RECT_BTN_OFFICE_ACTION(480, 500, 160, 50);      // 领任务/汇报
-            const QRect RECT_BTN_OFFICE_BACK(100, 840, 100, 50);        // 返回
+            const QRect RECT_BTN_OFFICE_ACTION(633, 470, 160, 50);      // 领任务/汇报
+            const QRect RECT_BTN_OFFICE_BACK(132, 790, 100, 50);        // 返回
             const int ANGLE_BTN_OFFICE_BACK = 180;
-            const QRect RECT_LBL_OFFICE_MSG(480, 300, 300, 50);         // 汇报成功提示
+            const QRect RECT_LBL_OFFICE_MSG(633, 282, 300, 50);         // 汇报成功提示
 
             // [场景: 仓库入口]
-            const QRect RECT_WAREHOUSE_BIN(200, 600, 120, 160);         // 脏布草回收桶 (旧矩形区域，保留防错)
+            const QRect RECT_WAREHOUSE_BIN(264, 564, 120, 160);         // 脏布草回收桶 (旧矩形区域，保留防错)
             // 新的不规则回收区域 (集成在背景中)
             static inline QPolygon POLY_WAREHOUSE_BIN()
             {
                 QVector<QPoint> pts;
-                pts << QPoint(50, 500) << QPoint(300, 500) << QPoint(300, 850) << QPoint(50, 850);
+                // 50,500 -> 66,470
+                // 300,500 -> 396,470
+                // 300,850 -> 396,799
+                // 50,850 -> 66,799
+                pts << QPoint(66, 470) << QPoint(396, 470) << QPoint(396, 799) << QPoint(66, 799);
                 return QPolygon(pts);
             }
-            const QRect RECT_BTN_WAREHOUSE_TAKE(700, 400, 150, 150);    // 拿布草 (进入货架)
-            const QRect RECT_BTN_WAREHOUSE_BACK(100, 840, 100, 50);     // 返回
+            const QRect RECT_BTN_WAREHOUSE_TAKE(924, 376, 150, 150);    // 拿布草 (进入货架)
+            const QRect RECT_BTN_WAREHOUSE_BACK(132, 790, 100, 50);     // 返回
             const int ANGLE_BTN_WAREHOUSE_BACK = 180;
 
             // [场景: 仓库货架]
-            const QRect RECT_BTN_SHELF_BACK(100, 840, 100, 50);
+            const QRect RECT_BTN_SHELF_BACK(132, 790, 100, 50);
             const int ANGLE_BTN_SHELF_BACK = 180;
             // 货架格子区域 (中心点 + 尺寸)
             const QSize SIZE_SHELF_SLOT(140, 140);
-            const QRect AREA_SHEET(250, 250, 140, 140);     // 大床单
-            const QRect AREA_DUVET(480, 250, 140, 140);     // 大被套
-            const QRect AREA_S_DUVET(710, 250, 140, 140);   // 小被套
-            const QRect AREA_PILLOW(250, 550, 140, 140);    // 枕巾
-            const QRect AREA_GN_TOWEL(480, 550, 140, 140);  // 晚安巾
-            const QRect AREA_TOWEL(710, 550, 140, 140);     // 毛巾
+            const QRect AREA_SHEET(330, 235, 140, 140);     // 大床单
+            const QRect AREA_DUVET(633, 235, 140, 140);     // 大被套
+            const QRect AREA_S_DUVET(937, 235, 140, 140);   // 小被套
+            const QRect AREA_PILLOW(330, 517, 140, 140);    // 枕巾
+            const QRect AREA_GN_TOWEL(633, 517, 140, 140);  // 晚安巾
+            const QRect AREA_TOWEL(937, 517, 140, 140);     // 毛巾
 
             // [场景: 电梯厅]
-            const QRect RECT_BTN_ELEVATOR_ENTER(480, 450, 120, 200);    // 进入电梯
-            const QRect RECT_BTN_ELEVATOR_BACK(100, 840, 100, 50);
+            const QRect RECT_BTN_ELEVATOR_ENTER(633, 423, 120, 200);    // 进入电梯
+            const QRect RECT_BTN_ELEVATOR_BACK(132, 790, 100, 50);
             const int ANGLE_BTN_ELEVATOR_BACK = 180;
 
             // [场景: 电梯内部]
-            const QRect RECT_BTN_ELEVATOR_EXIT(480, 800, 150, 50);      // 出电梯按钮
+            const QRect RECT_BTN_ELEVATOR_EXIT(633, 752, 150, 50);      // 出电梯按钮
 
             // [场景: 楼层走廊]
-            const QRect RECT_BTN_CORRIDOR_LINEN(200, 450, 150, 150);    // 进布草间
+            const QRect RECT_BTN_CORRIDOR_LINEN(264, 423, 150, 150);    // 进布草间
             const int ANGLE_BTN_CORRIDOR_LINEN = 180;
-            const QRect RECT_BTN_CORRIDOR_ELEVATOR(760, 450, 150, 150); // 去电梯厅
+            const QRect RECT_BTN_CORRIDOR_ELEVATOR(1003, 423, 150, 150); // 去电梯厅
             const int ANGLE_BTN_CORRIDOR_ELEVATOR = 0;
 
             // [场景: 布草间]
-            const QRect RECT_BTN_LINEN_BACK(100, 840, 100, 50);
+            const QRect RECT_BTN_LINEN_BACK(132, 790, 100, 50);
             const int ANGLE_BTN_LINEN_BACK = 180;
             // 布草间货架布局 (与仓库一致)
-            const QRect AREA_LINEN_SHEET(250, 250, 140, 140);
-            const QRect AREA_LINEN_DUVET(480, 250, 140, 140);
-            const QRect AREA_LINEN_S_DUVET(710, 250, 140, 140);
-            const QRect AREA_LINEN_PILLOW(250, 550, 140, 140);
-            const QRect AREA_LINEN_GN_TOWEL(480, 550, 140, 140);
-            const QRect AREA_LINEN_TOWEL(710, 550, 140, 140);
-            const QRect RECT_EVENT_DIRTY_LINEN(850, 750, 120, 120);     // 脏布草生成位置
+            const QRect AREA_LINEN_SHEET(330, 235, 140, 140);
+            const QRect AREA_LINEN_DUVET(633, 235, 140, 140);
+            const QRect AREA_LINEN_S_DUVET(937, 235, 140, 140);
+            const QRect AREA_LINEN_PILLOW(330, 517, 140, 140);
+            const QRect AREA_LINEN_GN_TOWEL(633, 517, 140, 140);
+            const QRect AREA_LINEN_TOWEL(937, 517, 140, 140);
+            const QRect RECT_EVENT_DIRTY_LINEN(1122, 705, 120, 120);     // 脏布草生成位置
 
             // [UI元素]
             const QSize RETURN_BTN_SIZE(100, 40);
@@ -152,7 +167,6 @@ namespace Config
             const QRect RECT_TUTORIAL_OVERLAY(0, 0, 800, 600); // 相对全屏居中
             const QRect RECT_TUTORIAL_IMAGE(50, 50, 700, 350);
             const QRect RECT_TUTORIAL_TEXT(50, 420, 700, 100);
-            // const QRect RECT_BTN_TUTORIAL_CLOSE(350, 530, 100, 40); // Removed standard close button
         }
 
         // --- 文本内容 (Texts) ---
@@ -212,9 +226,7 @@ namespace Config
             // 教程文本 (Updated for Speech Bubbles)
             constexpr const char *TUTORIAL_GENERAL = "点击蓝色箭头可以切换场景，但还有其他可点击的区域等待你探索。";
             constexpr const char *TUTORIAL_SHELF = "1、拖动物品栏需要补充的布草 2、拖至对应的柜子中 3.在右上角上点击圆圈标记完成进度";
-            // Note: The third point "click circle" refers to the task sidebar check action, not the shelf itself.
             constexpr const char *TUTORIAL_WAREHOUSE_ENTRY = "可将脏布草拖到脏布草槽进行回收。";
-            // For Warehouse Shelf specific tip (Drag from shelf to cart)
             constexpr const char *TUTORIAL_WAREHOUSE_SHELF_ACTION = "可通过拖动，将货架上的物品拖到右侧的物品栏里。";
         }
 
@@ -227,7 +239,6 @@ namespace Config
 
             // 标签样式
             constexpr const char *LBL_TITLE = "color: white; font-weight: bold; font-size: 16px; margin: 10px;";
-            // Note: Right sidebar uses dark text now because bg is light
             constexpr const char *LBL_TITLE_RIGHT = "color: #2c3e50; font-weight: bold; font-size: 16px; margin: 10px;";
 
             constexpr const char *LBL_HOVER_HINT = "background-color: rgba(0,0,0,180); color: white; border-radius: 5px; padding: 5px; font-size: 14px;";
@@ -239,15 +250,9 @@ namespace Config
             constexpr const char *BTN_VIEW_TASK_SHEET = "padding: 8px; margin: 5px;";
             constexpr const char *BTN_ORANGE = "background-color: #e67e22; color: white; border-radius: 4px;";
 
-            constexpr const char *STYLE_BTN_OFFICE_ACTION = "QPushButton { background-color: #3498db; color: white; font-size: 16px; border-radius: 8px; } QPushButton:hover { background-color: #2980b9; }";
-            constexpr const char *STYLE_BTN_WAREHOUSE_TAKE = "QPushButton { background-color: rgba(46, 204, 113, 0.8); color: white; font-size: 18px; border-radius: 75px; border: 2px solid white; } QPushButton:hover { background-color: rgba(39, 174, 96, 0.9); }";
-
-            constexpr const char *STYLE_BTN_ELEVATOR_ENTER = "QPushButton { background-color: rgba(0,0,0,0.3); border: 2px dashed rgba(255,255,255,0.7); color: white; font-weight: bold; } QPushButton:hover { background-color: rgba(0,0,0,0.5); }";
-            constexpr const char *STYLE_BTN_ELEVATOR_EXIT = "QPushButton { background-color: #e74c3c; color: white; border-radius: 10px; font-size: 16px; }";
-            constexpr const char *STYLE_BTN_ELEVATOR_FLOOR = "QPushButton { background-color: #444444; color: white; border: 1px solid #666; border-radius: 5px; font-weight: bold; } QPushButton:hover { background-color: #666; } QPushButton:pressed { background-color: #222; }";
-
-            constexpr const char *STYLE_BTN_MARK_COMPLETE = "QPushButton { background-color: #27ae60; color: white; border-radius: 5px; font-size: 14px; } QPushButton:hover { background-color: #2ecc71; }";
-            constexpr const char *STYLE_LBL_CHECKMARK = "color: green; font-size: 120px; font-weight: bold; background: transparent;";
+            // 统一玻璃风格按钮 (Unified Glass Style)
+            // 蓝色边框，白色半透明背景，蓝色字体
+            constexpr const char *STYLE_BTN_UNIFIED = "QPushButton { border: 2px solid #3498db; background-color: rgba(255, 255, 255, 0.8); color: #3498db; border-radius: 10px; font-weight: bold; font-size: 16px; } QPushButton:hover { background-color: rgba(255, 255, 255, 0.95); } QPushButton:disabled { color: gray; border-color: gray; }";
 
             // 列表样式
             constexpr const char *LIST_WIDGET = "QTreeWidget { background: transparent; border: none; font-size: 14px; } QTreeWidget::item { padding: 5px; }";
@@ -255,8 +260,8 @@ namespace Config
             // 货架区域样式
             constexpr const char *SHELF_AREA = "background-color: rgba(255, 255, 255, 0.2); border: 1px dashed rgba(0,0,0,0.3); border-radius: 10px;";
 
-            // 箭头样式 (Custom Widget uses these colors)
-            constexpr const char *ARROW_TEXT_COLOR = "#0000FF"; // Blue Solid (Replaces previous logic)
+            // 箭头样式
+            constexpr const char *ARROW_TEXT_COLOR = "#0000FF"; // 蓝色
             const int ARROW_TEXT_SIZE = 14;
 
             // 教程
@@ -302,7 +307,7 @@ namespace Config
             constexpr const char *SCENE_HALLWAY_LATE = ":/source/Test3/走廊-状态2（迟到打卡）.jpg";
             constexpr const char *SCENE_HALLWAY_CLOCKED_OUT = ":/source/Test3/走廊-状态3（下班打卡）.jpg";
             constexpr const char *SCENE_OFFICE = ":/source/Test3/办公室.png";
-            // Updated Warehouse Image
+            // 更新仓库入口背景图
             constexpr const char *SCENE_WAREHOUSE_ENTRY = ":/source/Test3/仓库1(集成脏布草回收桶).png";
             constexpr const char *SCENE_WAREHOUSE_SHELF = ":/source/Test3/取布草的货架.jpg";
             constexpr const char *SCENE_ELEVATOR_HALL = ":/source/Test3/电梯厅.jpg";
@@ -314,7 +319,7 @@ namespace Config
             constexpr const char *UI_CART_EMPTY = ":/source/Test3/推车-空.png";
             constexpr const char *UI_CART_CLEAN = ":/source/Test3/推车-布草.png";
             constexpr const char *UI_CART_DIRTY = ":/source/Test3/推车-脏布草.png";
-            constexpr const char *UI_DIRTY_BIN = ":/source/Test3/脏布草回收.png"; // Kept for Drag Image if needed, or removed from scene
+            constexpr const char *UI_DIRTY_BIN = ":/source/Test3/脏布草回收.png";
             constexpr const char *UI_DIRTY_LINEN = ":/source/Test3/脏布草.png";
             constexpr const char *UI_TASK_SHEET = ":/source/Test3/申领表.png";
 
