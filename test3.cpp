@@ -24,16 +24,19 @@ public:
         layout->setContentsMargins(5, 5, 5, 5);
         layout->setSpacing(5);
 
-        // Header
+        // Header (Clickable)
         QString status = m_task->isMarkedComplete ? Config::Test3::Texts::STATUS_MARKED_COMPLETE : Config::Test3::Texts::STATUS_IN_PROGRESS;
         QString titleText = QString("任务%1: %2层 %3 %4")
                                 .arg(taskIndex + 1)
                                 .arg(m_task->targetFloor)
                                 .arg(m_task->isEmergency ? "[紧急]" : "")
                                 .arg(status);
-        QLabel *title = new QLabel(titleText, this);
-        title->setStyleSheet("font-weight: bold; color: #2c3e50; font-size: 14px;");
-        layout->addWidget(title);
+
+        m_headerBtn = new QPushButton(titleText, this);
+        m_headerBtn->setStyleSheet("text-align: left; font-weight: bold; color: #2c3e50; font-size: 14px; border: none; background: transparent; padding: 5px;");
+        m_headerBtn->setCursor(Qt::PointingHandCursor);
+        connect(m_headerBtn, &QPushButton::clicked, this, &TaskItemWidget::headerClicked);
+        layout->addWidget(m_headerBtn);
 
         // Table
         int rows = 0;
@@ -49,11 +52,8 @@ public:
         m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
         m_table->setStyleSheet("background: rgba(255,255,255,0.8); border: 1px solid #bdc3c7; border-radius: 4px;");
 
-        // Calculate height
-        int rowHeight = 25;
-        m_table->verticalHeader()->setDefaultSectionSize(rowHeight);
-        int h = m_table->horizontalHeader()->height() + (rows * rowHeight) + 4;
-        m_table->setFixedHeight(h);
+        // Enable scroll
+        m_table->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
         int row = 0;
         for(auto it = m_task->requiredItems.begin(); it != m_task->requiredItems.end(); ++it) {
@@ -90,11 +90,27 @@ public:
 
         // Background for the task card
         setStyleSheet("TaskItemWidget { background-color: rgba(255,255,255,0.5); border: 1px solid #95a5a6; border-radius: 8px; }");
+
+        // Default collapsed
+        setExpanded(false);
     }
+
+    void setExpanded(bool expanded) {
+        m_table->setVisible(expanded);
+        if (expanded) {
+            m_table->setFixedHeight(Config::Test3::Geometry::HEIGHT_TASK_TABLE_EXPANDED);
+        } else {
+             m_table->setFixedHeight(0);
+        }
+    }
+
+signals:
+    void headerClicked();
 
 private:
     Task *m_task;
     QTableWidget *m_table;
+    QPushButton *m_headerBtn;
 };
 
 Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode(isDevMode)
@@ -186,10 +202,10 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     rightPanel->setStyleSheet(Config::Test3::Styles::SIDEBAR_RIGHT);
     QVBoxLayout *rightLayout = new QVBoxLayout(rightPanel);
 
-    // 1. 任务标题
-    QLabel *taskTitle = new QLabel(Config::Test3::Texts::LBL_TASK_TITLE);
-    taskTitle->setStyleSheet(Config::Test3::Styles::LBL_TITLE_RIGHT);
-    rightLayout->addWidget(taskTitle);
+    // 1. 任务标题 (已移除)
+    // QLabel *taskTitle = new QLabel(Config::Test3::Texts::LBL_TASK_TITLE);
+    // taskTitle->setStyleSheet(Config::Test3::Styles::LBL_TITLE_RIGHT);
+    // rightLayout->addWidget(taskTitle);
 
     // 2. 任务列表 (QListWidget with Custom Items) - 占 50%
     taskListWidget = new QListWidget();
@@ -476,10 +492,39 @@ void Test3::refreshTaskList()
         // 创建任务项 Widget
         TaskItemWidget *widget = new TaskItemWidget(i, &gameState.tasks[i]);
 
+        // 设置初始状态
+        bool isExpanded = (i == gameState.expandedTaskIndex);
+        widget->setExpanded(isExpanded);
+
         QListWidgetItem *item = new QListWidgetItem(taskListWidget);
         item->setSizeHint(widget->sizeHint()); // 重要：设置 Item 大小以适应 Widget
         taskListWidget->addItem(item);
         taskListWidget->setItemWidget(item, widget);
+
+        // 连接点击信号
+        connect(widget, &TaskItemWidget::headerClicked, [this, i](){
+            // 更新展开索引
+            if (gameState.expandedTaskIndex == i) {
+                gameState.expandedTaskIndex = -1; // Toggle off
+            } else {
+                gameState.expandedTaskIndex = i;
+            }
+
+            // 原地更新列表项状态，避免重建导致崩溃和滚动丢失
+            for (int j = 0; j < taskListWidget->count(); ++j) {
+                QListWidgetItem *it = taskListWidget->item(j);
+                TaskItemWidget *w = qobject_cast<TaskItemWidget*>(taskListWidget->itemWidget(it));
+                if (w) {
+                    bool expand = (j == gameState.expandedTaskIndex);
+                    w->setExpanded(expand);
+                    it->setSizeHint(w->sizeHint()); // 更新尺寸提示
+                }
+            }
+            // 强制重新布局
+            // taskListWidget->updateGeometries(); // Usually handled by setSizeHint if item is visible?
+            // Calling doItemsLayout() is protected.
+            // setSizeHint on items usually triggers layout update automatically in QListWidget.
+        });
     }
 }
 
