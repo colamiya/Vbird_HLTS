@@ -110,7 +110,8 @@ namespace Config
             const QRect AREA_LINEN_PILLOW(489, 217, 140, 140); // 枕巾
             const QRect AREA_LINEN_GN_TOWEL(489, 435, 140, 140); // 晚安巾
             const QRect AREA_LINEN_TOWEL(855, 227, 140, 140);  // 毛巾
-            const QRect RECT_EVENT_DIRTY_LINEN(260, 717, 120, 120);     // 脏布草生成位置
+            // 脏布草生成位置
+            const QRect RECT_EVENT_DIRTY_LINEN(260, 717, 120, 120);
 
             // [UI元素]
             const QSize RETURN_BTN_SIZE(100, 40);
@@ -199,14 +200,14 @@ namespace Config
             constexpr const char *STATUS_MARKED_COMPLETE = "[标记完成]";
 
             // 消息/弹窗文本
-            constexpr const char *POPUP_EMERGENCY_MANAGER = "经理: %1楼客人急需布草，请立即优先处理！";
+            constexpr const char *POPUP_EMERGENCY_MANAGER = "经理: \n\n%1楼客人急需布草，请立即优先处理！";
             constexpr const char *REPORT_BLOCK_MSG = "请先在任务列表或申领表中将所有任务标记为“完成”后再汇报。";
             constexpr const char *REPORT_SUCCESS = "工作汇报完毕。";
-            constexpr const char *REPORT_ERR_MARKED_INCOMPLETE = "警告: 你标记了%1楼完成，但实际并未满足需求。";
-            constexpr const char *REPORT_ERR_MISSING_TASK = "错误: 有任务未完成。";
+            constexpr const char *REPORT_ERR_MARKED_INCOMPLETE = "警告: \n你标记了%1楼完成，但实际并未满足需求。";
+            constexpr const char *REPORT_ERR_MISSING_TASK = "错误: \n有任务未完成。";
             constexpr const char *REPORT_ERR_LATE = "考勤: 迟到";
-            constexpr const char *REPORT_ERR_PRIORITY = "错误: 未优先处理紧急任务";
-            constexpr const char *ERR_LOG_MIXED_LINEN = "错误: 脏净布草混装";
+            constexpr const char *REPORT_ERR_PRIORITY = "错误: \n未优先处理紧急任务";
+            constexpr const char *ERR_LOG_MIXED_LINEN = "错误: \n脏净布草混装";
 
             // 教程文本 (Updated for Speech Bubbles)
             constexpr const char *TUTORIAL_GENERAL = "点击蓝色箭头可以切换场景，还有其他可点击的隐藏交互区域吼";

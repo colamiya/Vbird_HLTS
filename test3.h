@@ -149,6 +149,7 @@ private:
 
     // 右侧侧边栏元素
     QLabel *inventoryTitleLabel;
+    QLabel *cartCountLabel;                   // 推车数量显示
     DraggableListWidget *inventoryListWidget; // 可拖拽的库存列表
     QWidget *elevatorPanelContainer;          // 电梯楼层面板
 
@@ -191,7 +192,7 @@ private:
     void tryShowTip(GameScene scene); // 尝试显示气泡提示
 
     // 交互处理
-    void handleInventoryDrop(QString itemName, const QMimeData *mimeData = nullptr); // 处理物品放入推车
+    void handleInventoryDrop(QString itemName, const QMimeData *mimeData);           // 处理物品放入推车
     void handleSceneDrop(QString itemName, bool isWarehouse);                        // 处理物品从推车取出放置 (到货架或仓库)
 
     // 新手教程 (Deprecated but kept for compatibility or manual trigger)
