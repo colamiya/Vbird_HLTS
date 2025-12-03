@@ -739,7 +739,7 @@ void Test3::renderWarehouseShelf()
                         Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
     bg->show();
 
-    auto createShelfArea = [&](const QString &name, const QRect &rect)
+    auto createShelfArea = [&](const QString &name, const QRect &rect, const QPoint &lblPos)
     {
         ShelfArea *area = new ShelfArea(name, rpgCenterPanel);
         setGeometryCentered(area, rect);
@@ -763,13 +763,13 @@ void Test3::renderWarehouseShelf()
             }
         }
 
-        // 标签显示在下方
+        // 标签显示
         QLabel *lbl = new QLabel(name, rpgCenterPanel);
         lbl->setStyleSheet("color: white; font-weight: bold; font-size: 16px; background-color: rgba(0,0,0,0.5); padding: 2px; border-radius: 4px;");
         lbl->adjustSize();
-        // 放置位置使用配置的偏移量 (X同中心，Y相对中心偏移)
-        int lx = rect.center().x() - lbl->width() / 2;
-        int ly = rect.center().y() + Config::Test3::Geometry::SHELF_LABEL_OFFSET_Y;
+        // 放置位置使用配置的坐标 (居中显示)
+        int lx = lblPos.x() - lbl->width() / 2;
+        int ly = lblPos.y() - lbl->height() / 2;
         lbl->move(lx, ly);
         lbl->show();
 
@@ -785,12 +785,12 @@ void Test3::renderWarehouseShelf()
         area->show();
     };
 
-    createShelfArea("大床单", Config::Test3::Geometry::AREA_SHEET);
-    createShelfArea("大被套", Config::Test3::Geometry::AREA_DUVET);
-    createShelfArea("小被套", Config::Test3::Geometry::AREA_S_DUVET);
-    createShelfArea("枕巾", Config::Test3::Geometry::AREA_PILLOW);
-    createShelfArea("晚安巾", Config::Test3::Geometry::AREA_GN_TOWEL);
-    createShelfArea("毛巾", Config::Test3::Geometry::AREA_TOWEL);
+    createShelfArea("大床单", Config::Test3::Geometry::AREA_SHEET, Config::Test3::Geometry::POS_LBL_SHEET);
+    createShelfArea("大被套", Config::Test3::Geometry::AREA_DUVET, Config::Test3::Geometry::POS_LBL_DUVET);
+    createShelfArea("小被套", Config::Test3::Geometry::AREA_S_DUVET, Config::Test3::Geometry::POS_LBL_S_DUVET);
+    createShelfArea("枕巾", Config::Test3::Geometry::AREA_PILLOW, Config::Test3::Geometry::POS_LBL_PILLOW);
+    createShelfArea("晚安巾", Config::Test3::Geometry::AREA_GN_TOWEL, Config::Test3::Geometry::POS_LBL_GN_TOWEL);
+    createShelfArea("毛巾", Config::Test3::Geometry::AREA_TOWEL, Config::Test3::Geometry::POS_LBL_TOWEL);
 
     ArrowButton *backBtn = new ArrowButton(rpgCenterPanel);
     setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_SHELF_BACK);
