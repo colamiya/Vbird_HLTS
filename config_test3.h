@@ -146,10 +146,10 @@ namespace Config
             const QRect RECT_TUTORIAL_TEXT(50, 420, 700, 100);
 
             // 货架标签坐标 (默认: 区域中心 X, 区域中心 Y + 30)
-            const QPoint POS_LBL_SHEET(481, 475);
-            const QPoint POS_LBL_DUVET(696, 475);
-            const QPoint POS_LBL_S_DUVET(1077, 475);
-            const QPoint POS_LBL_PILLOW(481, 771);
+            const QPoint POS_LBL_SHEET(481, 410);// 大床单
+            const QPoint POS_LBL_DUVET(696, 410);
+            const QPoint POS_LBL_S_DUVET(1077, 410);
+            const QPoint POS_LBL_PILLOW(481, 771);// 枕巾
             const QPoint POS_LBL_GN_TOWEL(696, 771);
             const QPoint POS_LBL_TOWEL(1077, 771);
         }
