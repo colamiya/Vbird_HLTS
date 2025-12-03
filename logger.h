@@ -24,6 +24,37 @@ public:
     void setStudentInfo(const StudentInfo &info)
     {
         m_student = info;
+        // initLogs() is now called in startNewSession()
+    }
+
+    // Start a new session with timestamped log files
+    void startNewSession()
+    {
+        QString timestamp = QDateTime::currentDateTime().toString("yyyyMMddHHmmss");
+
+        // Helper to insert timestamp before extension
+        auto insertTimestamp = [&](const char *filename) -> QString
+        {
+            QString fn = QString(filename);
+            int dotIndex = fn.lastIndexOf('.');
+            if (dotIndex != -1)
+            {
+                return fn.left(dotIndex) + "_" + timestamp + fn.mid(dotIndex);
+            }
+            return fn + "_" + timestamp;
+        };
+
+        if (Config::Csv::ENABLE_OUTPUT_CN)
+        {
+            m_detailedFnCn = insertTimestamp(Config::Csv::FILENAME_DETAILED_CN);
+            m_briefFnCn = insertTimestamp(Config::Csv::FILENAME_BRIEF_CN);
+        }
+        if (Config::Csv::ENABLE_OUTPUT_EN)
+        {
+            m_detailedFnEn = insertTimestamp(Config::Csv::FILENAME_DETAILED_EN);
+            m_briefFnEn = insertTimestamp(Config::Csv::FILENAME_BRIEF_EN);
+        }
+
         initLogs();
     }
 
@@ -35,10 +66,10 @@ public:
         QString timestamp = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss");
 
         // Write to CN Log
-        if (Config::Csv::ENABLE_OUTPUT_CN)
+        if (Config::Csv::ENABLE_OUTPUT_CN && !m_detailedFnCn.isEmpty())
         {
             QString line = QString("%1,%2,%3").arg(timestamp, module, action);
-            QFile file(Config::Csv::FILENAME_DETAILED_CN);
+            QFile file(m_detailedFnCn);
             if (file.open(QIODevice::Append | QIODevice::Text))
             {
                 QTextStream out(&file);
@@ -48,14 +79,14 @@ public:
         }
 
         // Write to EN Log
-        if (Config::Csv::ENABLE_OUTPUT_EN)
+        if (Config::Csv::ENABLE_OUTPUT_EN && !m_detailedFnEn.isEmpty())
         {
             // Translating basic action log structure is hard dynamically,
             // but we will keep the content as passed (often mixed) or
             // assume caller handles localization if needed.
             // For now, we log the same content to both, just ensuring files exist.
             QString line = QString("%1,%2,%3").arg(timestamp, module, action);
-            QFile file(Config::Csv::FILENAME_DETAILED_EN);
+            QFile file(m_detailedFnEn);
             if (file.open(QIODevice::Append | QIODevice::Text))
             {
                 QTextStream out(&file);
@@ -107,13 +138,13 @@ public:
         if (!m_initialized)
             return;
 
-        if (Config::Csv::ENABLE_OUTPUT_CN)
+        if (Config::Csv::ENABLE_OUTPUT_CN && !m_briefFnCn.isEmpty())
         {
-            writeBriefReport(Config::Csv::FILENAME_BRIEF_CN, true);
+            writeBriefReport(m_briefFnCn, true);
         }
-        if (Config::Csv::ENABLE_OUTPUT_EN)
+        if (Config::Csv::ENABLE_OUTPUT_EN && !m_briefFnEn.isEmpty())
         {
-            writeBriefReport(Config::Csv::FILENAME_BRIEF_EN, false);
+            writeBriefReport(m_briefFnEn, false);
         }
     }
 
@@ -125,17 +156,23 @@ private:
     StudentInfo m_student;
     bool m_initialized = false;
 
+    // Dynamic filenames
+    QString m_detailedFnCn;
+    QString m_detailedFnEn;
+    QString m_briefFnCn;
+    QString m_briefFnEn;
+
     void initLogs()
     {
         m_initialized = true;
 
-        if (Config::Csv::ENABLE_OUTPUT_CN)
+        if (Config::Csv::ENABLE_OUTPUT_CN && !m_detailedFnCn.isEmpty())
         {
-            initDetailedLog(Config::Csv::FILENAME_DETAILED_CN, true);
+            initDetailedLog(m_detailedFnCn, true);
         }
-        if (Config::Csv::ENABLE_OUTPUT_EN)
+        if (Config::Csv::ENABLE_OUTPUT_EN && !m_detailedFnEn.isEmpty())
         {
-            initDetailedLog(Config::Csv::FILENAME_DETAILED_EN, false);
+            initDetailedLog(m_detailedFnEn, false);
         }
     }
 
