@@ -33,7 +33,8 @@ public:
                                 .arg(status);
 
         m_headerBtn = new QPushButton(titleText, this);
-        m_headerBtn->setStyleSheet("text-align: left; font-weight: bold; color: #2c3e50; font-size: 14px; border: none; background: transparent; padding: 5px;");
+        // 增强可见性：添加背景色和深色字体
+        m_headerBtn->setStyleSheet("text-align: left; font-weight: bold; color: #000000; font-size: 14px; background-color: #d6eaf8; border-radius: 4px; padding: 6px;");
         m_headerBtn->setCursor(Qt::PointingHandCursor);
         connect(m_headerBtn, &QPushButton::clicked, this, &TaskItemWidget::headerClicked);
         layout->addWidget(m_headerBtn);
@@ -44,9 +45,14 @@ public:
 
         m_table = new QTableWidget(rows, 3, this);
         m_table->setHorizontalHeaderLabels(QStringList() << "物品" << "需" << "验");
+
+        // 调整列宽比例 50% : 25% : 25% (近似值: 侧边栏宽330 -> 可用约300 -> 160:70:70)
         m_table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-        m_table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-        m_table->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+        m_table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
+        m_table->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Fixed);
+        m_table->setColumnWidth(1, 70);
+        m_table->setColumnWidth(2, 70);
+
         m_table->verticalHeader()->setVisible(false);
         m_table->setSelectionMode(QAbstractItemView::NoSelection);
         m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -88,8 +94,8 @@ public:
 
         layout->addWidget(m_table);
 
-        // Background for the task card
-        setStyleSheet("TaskItemWidget { background-color: rgba(255,255,255,0.5); border: 1px solid #95a5a6; border-radius: 8px; }");
+        // Background for the task card (Increase opacity for better contrast)
+        setStyleSheet("TaskItemWidget { background-color: rgba(255,255,255,0.95); border: 1px solid #95a5a6; border-radius: 8px; }");
 
         // Default collapsed
         setExpanded(false);
