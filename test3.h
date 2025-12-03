@@ -73,6 +73,9 @@ struct GameState
     // 脏布草袋状态 (楼层 -> 是否有脏布草需要回收)
     QMap<int, bool> dirtyBagState;
 
+    // 当前展开的任务索引 (用于手风琴效果)
+    int expandedTaskIndex = -1;
+
     // Tip Flags (Ensure bubbles only show once per session)
     bool hasShownTipEntrance = false;
     bool hasShownTipWarehouse = false;

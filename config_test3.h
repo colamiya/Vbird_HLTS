@@ -137,6 +137,9 @@ namespace Config
 
             const QRect RECT_BTN_MARK_COMPLETE(450, 720, 100, 40);
 
+            // 任务列表表格展开高度
+            const int HEIGHT_TASK_TABLE_EXPANDED = 250;
+
             // 教程弹窗
             const QRect RECT_TUTORIAL_OVERLAY(0, 0, 800, 600); // 相对全屏居中
             const QRect RECT_TUTORIAL_IMAGE(50, 50, 700, 350);
