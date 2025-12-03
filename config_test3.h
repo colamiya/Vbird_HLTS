@@ -142,8 +142,13 @@ namespace Config
             const QRect RECT_TUTORIAL_IMAGE(50, 50, 700, 350);
             const QRect RECT_TUTORIAL_TEXT(50, 420, 700, 100);
 
-            // 货架标签垂直偏移 (相对于格子中心)
-            const int SHELF_LABEL_OFFSET_Y = 85;
+            // 货架标签坐标 (默认: 区域中心 X, 区域中心 Y + 30)
+            const QPoint POS_LBL_SHEET(481, 345);
+            const QPoint POS_LBL_DUVET(696, 345);
+            const QPoint POS_LBL_S_DUVET(1077, 345);
+            const QPoint POS_LBL_PILLOW(481, 706);
+            const QPoint POS_LBL_GN_TOWEL(696, 706);
+            const QPoint POS_LBL_TOWEL(1077, 706);
         }
 
         // --- 文本内容 (Texts) ---
