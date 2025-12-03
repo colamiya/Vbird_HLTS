@@ -57,16 +57,12 @@ void Logger::startNewSession()
 {
     QString timestamp = QDateTime::currentDateTime().toString("yyyyMMddHHmmss");
 
-    // Helper to insert timestamp before extension
+    // Helper to insert timestamp and name before filename
     auto insertTimestamp = [&](const char *filename) -> QString
     {
         QString fn = QString(filename);
-        int dotIndex = fn.lastIndexOf('.');
-        if (dotIndex != -1)
-        {
-            return fn.left(dotIndex) + "_" + timestamp + fn.mid(dotIndex);
-        }
-        return fn + "_" + timestamp;
+        QString prefix = timestamp + "_" + m_student.name; // Format: Time_Name
+        return prefix + "_" + fn;
     };
 
     if (Config::Csv::ENABLE_OUTPUT_CN)

@@ -1,4 +1,4 @@
-﻿#ifndef CONFIG_TEST1_H
+#ifndef CONFIG_TEST1_H
 #define CONFIG_TEST1_H
 
 #include <QString>
@@ -49,7 +49,7 @@ namespace Config
         // 幻灯片显示区域大小 (宽, 高)
         const QSize DISPLAY_SIZE(1200, 675);
         // 总结页缩略图大小 (宽, 高)
-        const QSize THUMBNAIL_SIZE(240, 180);
+        const QSize THUMBNAIL_SIZE(300, 225); // Increased size
         // 返回按钮尺寸
         const QSize RETURN_BTN_SIZE(120, 40);
 
