@@ -135,7 +135,7 @@ void DraggableListWidget::dropEvent(QDropEvent *event)
         QString text = event->mimeData()->text();
         if (onItemDroppedIn)
         {
-            onItemDroppedIn(text);
+            onItemDroppedIn(text, event->mimeData());
         }
         event->acceptProposedAction();
     }

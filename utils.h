@@ -65,7 +65,7 @@ class DraggableListWidget : public QListWidget
     Q_OBJECT
 public:
     DraggableListWidget(QWidget *parent = nullptr);
-    std::function<void(QString)> onItemDroppedIn;
+    std::function<void(QString, const QMimeData*)> onItemDroppedIn;
 
 protected:
     void startDrag(Qt::DropActions supportedActions) override;
