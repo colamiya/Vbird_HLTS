@@ -5,7 +5,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QListWidget>
-#include <QTreeWidget>
+#include <QTableWidget>
 #include <QStackedWidget>
 #include <QMap>
 #include <QVector>
@@ -127,6 +127,7 @@ private:
 
     // 逻辑计时器与标志
     QTimer *latenessTimer;          // 迟到判定计时器
+    QTimer *emergencyTimer;         // 紧急事件计时器
     QTimer *heartbeatTimer;         // 心跳日志计时器 (调试用)
     bool isLate = false;            // 是否已迟到
     bool isTimerTriggered = false;  // 计时器是否已触发过
@@ -141,7 +142,7 @@ private:
     QLabel *locationLabel;       // 位置显示标签
     QLabel *hoverHintLabel;      // 悬浮提示标签
     QLabel *cartStatusLabel;     // 推车状态图标
-    QTreeWidget *taskListWidget; // 任务列表控件
+    QListWidget *taskListWidget; // 任务列表控件
 
     // 右侧侧边栏元素
     QLabel *inventoryTitleLabel;
