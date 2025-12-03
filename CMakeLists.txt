@@ -14,6 +14,7 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
 set(PROJECT_SOURCES
     logger.h
+    logger.cpp
     main.cpp
     mainwindow.cpp
     mainwindow.h
