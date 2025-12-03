@@ -15,6 +15,88 @@
 #include "utils.h"
 #include "logger.h"
 
+// --- Helper Widget: Task Item ---
+class TaskItemWidget : public QWidget {
+    Q_OBJECT
+public:
+    TaskItemWidget(int taskIndex, Task *task, QWidget *parent = nullptr) : QWidget(parent), m_task(task) {
+        QVBoxLayout *layout = new QVBoxLayout(this);
+        layout->setContentsMargins(5, 5, 5, 5);
+        layout->setSpacing(5);
+
+        // Header
+        QString status = m_task->isMarkedComplete ? Config::Test3::Texts::STATUS_MARKED_COMPLETE : Config::Test3::Texts::STATUS_IN_PROGRESS;
+        QString titleText = QString("任务%1: %2层 %3 %4")
+                                .arg(taskIndex + 1)
+                                .arg(m_task->targetFloor)
+                                .arg(m_task->isEmergency ? "[紧急]" : "")
+                                .arg(status);
+        QLabel *title = new QLabel(titleText, this);
+        title->setStyleSheet("font-weight: bold; color: #2c3e50; font-size: 14px;");
+        layout->addWidget(title);
+
+        // Table
+        int rows = 0;
+        for(auto v : m_task->requiredItems) if(v > 0) rows++;
+
+        m_table = new QTableWidget(rows, 3, this);
+        m_table->setHorizontalHeaderLabels(QStringList() << "物品" << "需" << "验");
+        m_table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+        m_table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+        m_table->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+        m_table->verticalHeader()->setVisible(false);
+        m_table->setSelectionMode(QAbstractItemView::NoSelection);
+        m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        m_table->setStyleSheet("background: rgba(255,255,255,0.8); border: 1px solid #bdc3c7; border-radius: 4px;");
+
+        // Calculate height
+        int rowHeight = 25;
+        m_table->verticalHeader()->setDefaultSectionSize(rowHeight);
+        int h = m_table->horizontalHeader()->height() + (rows * rowHeight) + 4;
+        m_table->setFixedHeight(h);
+
+        int row = 0;
+        for(auto it = m_task->requiredItems.begin(); it != m_task->requiredItems.end(); ++it) {
+            if(it.value() > 0) {
+                QString name = it.key();
+                m_table->setItem(row, 0, new QTableWidgetItem(name));
+                m_table->setItem(row, 1, new QTableWidgetItem(QString::number(it.value())));
+
+                QTableWidgetItem *checkItem = new QTableWidgetItem();
+                bool checked = m_task->itemCompletionStatus.value(name, false);
+                checkItem->setText(checked ? "●" : "○");
+                checkItem->setForeground(checked ? QBrush(Qt::green) : QBrush(Qt::gray));
+                checkItem->setTextAlignment(Qt::AlignCenter);
+                checkItem->setData(Qt::UserRole, name); // Store name
+                m_table->setItem(row, 2, checkItem);
+                row++;
+            }
+        }
+
+        connect(m_table, &QTableWidget::cellClicked, [this](int r, int c){
+            if(c == 2) {
+                QTableWidgetItem *item = m_table->item(r, c);
+                QString name = item->data(Qt::UserRole).toString();
+                bool current = m_task->itemCompletionStatus.value(name, false);
+                m_task->itemCompletionStatus[name] = !current;
+
+                // Update UI
+                item->setText(!current ? "●" : "○");
+                item->setForeground(!current ? QBrush(Qt::green) : QBrush(Qt::gray));
+            }
+        });
+
+        layout->addWidget(m_table);
+
+        // Background for the task card
+        setStyleSheet("TaskItemWidget { background-color: rgba(255,255,255,0.5); border: 1px solid #95a5a6; border-radius: 8px; }");
+    }
+
+private:
+    Task *m_task;
+    QTableWidget *m_table;
+};
+
 Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode(isDevMode)
 {
     // 主布局 (网格布局)
@@ -109,41 +191,11 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     taskTitle->setStyleSheet(Config::Test3::Styles::LBL_TITLE_RIGHT);
     rightLayout->addWidget(taskTitle);
 
-    // 2. 任务列表 (TreeWidget) - 占 50%
-    taskListWidget = new QTreeWidget();
-    taskListWidget->setStyleSheet(Config::Test3::Styles::LIST_WIDGET);
-    taskListWidget->setRootIsDecorated(true);
-    // 设置列头: 物品, 需求量, 完成标记
-    taskListWidget->setHeaderLabels(QStringList() << "物品" << "需求" << "完成");
-    taskListWidget->setHeaderHidden(false);
-    // 调整列宽 (70%, 15%, 15% of 330px)
-    // 330 * 0.7 = 231, 330 * 0.15 = 49.5 ~ 50
-    taskListWidget->header()->resizeSection(0, 230);
-    taskListWidget->header()->resizeSection(1, 50);
-    taskListWidget->header()->resizeSection(2, 50);
-    // 禁止拖动表头(禁止列重排)，防止标题“跟着跑”
-    taskListWidget->header()->setSectionsMovable(false);
-
-    // 点击事件处理 (用于切换完成状态)
-    connect(taskListWidget, &QTreeWidget::itemClicked, [this](QTreeWidgetItem *item, int column) {
-        // 只处理第3列 (Index 2) 且该项是子项 (有父节点)
-        if (column == 2 && item->parent()) {
-            QString itemName = item->text(0);
-            QTreeWidgetItem *parent = item->parent();
-            int taskIdx = taskListWidget->indexOfTopLevelItem(parent);
-
-            if (taskIdx >= 0 && taskIdx < gameState.tasks.size()) {
-                Task &t = gameState.tasks[taskIdx];
-                // 切换状态
-                bool current = t.itemCompletionStatus.value(itemName, false);
-                t.itemCompletionStatus[itemName] = !current;
-
-                // 更新UI显示
-                item->setText(2, !current ? "●" : "○");
-                item->setForeground(2, !current ? QBrush(Qt::green) : QBrush(Qt::gray));
-            }
-        }
-    });
+    // 2. 任务列表 (QListWidget with Custom Items) - 占 50%
+    taskListWidget = new QListWidget();
+    taskListWidget->setStyleSheet("background: transparent; border: none;");
+    taskListWidget->setSelectionMode(QAbstractItemView::NoSelection);
+    taskListWidget->setSpacing(5);
 
     rightLayout->addWidget(taskListWidget, 5);
 
@@ -221,6 +273,11 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
             renderStaffHallway();
         } });
 
+    // 紧急事件计时器
+    emergencyTimer = new QTimer(this);
+    emergencyTimer->setSingleShot(true);
+    connect(emergencyTimer, &QTimer::timeout, this, &Test3::checkEmergencyTask);
+
     heartbeatTimer = new QTimer(this);
     heartbeatTimer->setInterval(1000);
     connect(heartbeatTimer, &QTimer::timeout, [this]()
@@ -275,6 +332,7 @@ void Test3::reset()
     isTimerTriggered = false;
     isEmergencyActive = false;
     latenessTimer->stop();
+    emergencyTimer->stop();
     errorLog = ErrorLog();
 
     taskListWidget->clear();
@@ -408,59 +466,21 @@ void Test3::refreshInventoryList()
     updateRPGStatusLabels();
 }
 
-// 刷新任务列表 (三列布局: 物品 | 需求 | 完成)
+// 刷新任务列表 (Updated to use Custom Widget)
 void Test3::refreshTaskList()
 {
     taskListWidget->clear();
 
     for (int i = 0; i < gameState.tasks.size(); ++i)
     {
-        Task &t = gameState.tasks[i]; // 引用修改
+        // 创建任务项 Widget
+        TaskItemWidget *widget = new TaskItemWidget(i, &gameState.tasks[i]);
 
-        // 顶级项 (任务头)
-        QString status = Config::Test3::Texts::STATUS_IN_PROGRESS;
-        if (t.isMarkedComplete) {
-            status = Config::Test3::Texts::STATUS_MARKED_COMPLETE;
-        }
-
-        QString headerText = QString("任务%1: %2楼 %3 %4")
-                                 .arg(i + 1)
-                                 .arg(t.targetFloor)
-                                 .arg(t.isEmergency ? "[紧急]" : "")
-                                 .arg(status);
-
-        QTreeWidgetItem *topItem = new QTreeWidgetItem(taskListWidget);
-        topItem->setText(0, headerText);
-        // 合并单元格效果可以通过不设置1,2列实现，或者留空
-
-        // 子项 (需求物品)
-        for (auto it = t.requiredItems.begin(); it != t.requiredItems.end(); ++it)
-        {
-            if (it.value() > 0)
-            {
-                QString itemName = it.key();
-                int qty = it.value();
-
-                QTreeWidgetItem *subItem = new QTreeWidgetItem(topItem);
-
-                // 列0: 物品名
-                subItem->setText(0, itemName);
-
-                // 列1: 需求量
-                subItem->setText(1, QString::number(qty));
-
-                // 列2: 完成状态 (圆圈)
-                bool isChecked = t.itemCompletionStatus.value(itemName, false);
-                subItem->setText(2, isChecked ? "●" : "○");
-                subItem->setForeground(2, isChecked ? QBrush(Qt::green) : QBrush(Qt::gray));
-                subItem->setTextAlignment(2, Qt::AlignCenter);
-
-                // 存储物品名以便点击时识别
-                // (不需要SetData，直接取Text(0)即可)
-            }
-        }
+        QListWidgetItem *item = new QListWidgetItem(taskListWidget);
+        item->setSizeHint(widget->sizeHint()); // 重要：设置 Item 大小以适应 Widget
+        taskListWidget->addItem(item);
+        taskListWidget->setItemWidget(item, widget);
     }
-    taskListWidget->expandAll();
 }
 
 // --- 场景渲染 (Scene Rendering) ---
@@ -859,58 +879,85 @@ void Test3::handleInventoryDrop(QString itemName, const QMimeData *mimeData)
 
 void Test3::handleReportWork()
 {
-    QString msg = Config::Test3::Texts::REPORT_SUCCESS;
-    QStringList errors;
+    QStringList feedback;
+    bool perfect = true;
 
-    bool incomplete = false;
-    for (const auto &t : gameState.tasks)
-    {
+    // 1. Check Emergency Priority First
+    // (Logic: If emergency task exists, was it done first? or done at all?)
+    // Simplified: Just check if done.
+    for (const auto &t : gameState.tasks) {
+        if (t.isEmergency) {
+            // Check if satisfied
+            bool isMet = true;
+            for (auto it = t.requiredItems.begin(); it != t.requiredItems.end(); ++it) {
+                if (gameState.floorInventory[t.targetFloor].value(it.key(), 0) < it.value()) {
+                    isMet = false; break;
+                }
+            }
+            if (!isMet) {
+                feedback << "【严重】紧急任务未完成！经理非常生气。";
+                perfect = false;
+                errorLog.missedEmergencyPriority = true;
+            }
+        }
+    }
+
+    // 2. Check All Tasks
+    QStringList incompleteDetails;
+    for (int i = 0; i < gameState.tasks.size(); ++i) {
+        const Task &t = gameState.tasks[i];
         bool isMet = true;
-        for (auto it = t.requiredItems.begin(); it != t.requiredItems.end(); ++it)
-        {
-            int current = gameState.floorInventory[t.targetFloor].value(it.key(), 0);
-            if (current < it.value())
-            {
-                isMet = false;
-                break;
-            }
+        for (auto it = t.requiredItems.begin(); it != t.requiredItems.end(); ++it) {
+             if (gameState.floorInventory[t.targetFloor].value(it.key(), 0) < it.value()) {
+                 isMet = false; break;
+             }
         }
 
-        if (!isMet)
-        {
-            incomplete = true;
+        if (!isMet) {
+            perfect = false;
+            QString taskName = t.isEmergency ? "紧急任务" : QString("任务%1").arg(i+1);
             if (t.isMarkedComplete) {
-                errors << QString(Config::Test3::Texts::REPORT_ERR_MARKED_INCOMPLETE).arg(t.targetFloor);
+                incompleteDetails << QString("%1(%2楼) 虚假标记完成").arg(taskName).arg(t.targetFloor);
+            } else {
+                incompleteDetails << QString("%1(%2楼) 未完成").arg(taskName).arg(t.targetFloor);
             }
         }
     }
 
-    if (incomplete)
-    {
-        bool hasSpecificError = false;
-        for(const QString &err : errors) {
-            if(err.contains("标记完成但未满足")) hasSpecificError = true;
-        }
-        if(!hasSpecificError) {
-             errors << Config::Test3::Texts::REPORT_ERR_MISSING_TASK;
-        }
+    if (!incompleteDetails.isEmpty()) {
+        feedback << "任务完成情况不佳：";
+        feedback.append(incompleteDetails);
+    } else if (perfect) {
+        feedback << "所有任务均已达标。";
     }
 
-    if (errorLog.lateClockIn)
-        errors << Config::Test3::Texts::REPORT_ERR_LATE;
-    if (errorLog.missedEmergencyPriority)
-        errors << Config::Test3::Texts::REPORT_ERR_PRIORITY;
-    if (errorLog.mixedLinen)
-        errors << Config::Test3::Texts::ERR_LOG_MIXED_LINEN;
-
-    if (!errors.isEmpty())
-    {
-        msg = errors.join("\n");
+    // 3. Other Errors
+    if (errorLog.lateClockIn) {
+        feedback << "考勤问题：上班迟到。";
+        perfect = false;
+    }
+    if (errorLog.mixedLinen) {
+        feedback << "操作失误：曾出现脏净布草混装。";
+        perfect = false;
     }
 
-    QMessageBox::information(this, "汇报结果", msg);
+    // Final Message Construction
+    QString title = "汇报结果 (经理反馈)";
+    QString finalMsg;
+
+    if (perfect) {
+        finalMsg = "经理：\n\n“干得漂亮！所有任务都完美完成了，流程也很规范。继续保持！”";
+    } else {
+        finalMsg = "经理：\n\n“你今天的工作有一些问题：\n";
+        for (const QString &s : feedback) {
+            finalMsg += "- " + s + "\n";
+        }
+        finalMsg += "\n下次注意改进。”";
+    }
+
+    QMessageBox::information(this, title, finalMsg);
     gameState.hasReported = true;
-    emit logMessage("已汇报工作: " + msg);
+    emit logMessage("已汇报工作: " + finalMsg.replace("\n", " "));
     renderScene();
 }
 
@@ -936,11 +983,77 @@ void Test3::handleGetTask()
     emit logMessage("任务已下发: 6楼, 7楼");
     QMessageBox::information(this, "提示", "任务已下发，请查看右侧任务列表。");
     renderScene();
+
+    // 启动随机事件计时器 (20-40秒)
+    int delay = getNormalRandom(20000, 40000);
+    emergencyTimer->start(delay);
+    emit logMessage(QString("随机事件将于 %1 秒后触发").arg(delay / 1000));
 }
 
 void Test3::checkEmergencyTask()
 {
-    // 随机事件逻辑
+    // 50% 概率触发事件A (紧急任务) 或 事件B (脏布草)
+    bool isEventA = (QRandomGenerator::global()->bounded(2) == 0);
+
+    if (isEventA) {
+        // 事件A: 紧急补货任务
+        int targetFloor = getNormalRandom(2, 10);
+        // 避免选中1楼(跳过)或0楼
+        if (targetFloor == 1) targetFloor = 2;
+
+        Task t;
+        t.targetFloor = targetFloor;
+        t.isEmergency = true;
+        t.requiredItems = {{"大床单", 1}, {"毛巾", 2}}; // 简单紧急需求
+        gameState.tasks.append(t);
+
+        isEmergencyActive = true;
+        refreshTaskList();
+
+        // 弹出经理提示
+        QString msg = QString(Config::Test3::Texts::POPUP_EMERGENCY_MANAGER).arg(targetFloor);
+        QMessageBox::warning(this, "突发事件 (经理)", msg);
+        emit logMessage("触发事件A: 紧急任务 " + QString::number(targetFloor) + "楼");
+    } else {
+        // 事件B: 发现脏布草
+        // 逻辑: 某个楼层突然出现脏布草需要回收
+        int targetFloor = getNormalRandom(2, 10);
+        if (targetFloor == 1) targetFloor = 2;
+
+        // 模拟: 直接在布草间生成脏布草?
+        // 这里的逻辑简化为: 弹窗通知，并在该楼层记录一个状态，或者直接给予任务
+        // 既然是脏布草回收，我们可以增加一个“DirtyLinen”到该楼层的 inventory,
+        // 但目前的 floorInventory 只记录干净布草。
+        // 所以我们用一种变通方式: 强制要求去该楼层。
+        // 为了简化且符合"User Requirement: All items dragged into cart",
+        // 我们假设经理打电话说某楼层有脏布草，让学生去收。
+        // 但如果没有任务条目，学生可能会忘。
+        // 让我们加一个“回收任务”。
+
+        Task t;
+        t.targetFloor = targetFloor;
+        t.isEmergency = true; // 紧急回收
+        // 特殊: 需求是负数? 或者 需求是 "脏布草"
+        // 目前 Task 结构只支持 item completion status.
+        // 让我们简化为: 仅仅是通知，不强制生成 Task 结构体，或者生成一个不需要物品的任务?
+        // 更好的方案: 生成一个任务，需要 "0" 个物品，但是 title 是 "回收脏布草"?
+        // 还是回退到最简单的 Event B: 只是弹窗通知，增加沉浸感，或者给推车加一个脏布草?
+        // User Requirement: "推车上的物品拖到仓库...都是所选的全部拖入" (Requirement 1 context).
+        // Let's just spawn some dirty linen in the cart directly as "You picked up dirty linen on the way".
+
+        // 更好的实现: 弹窗 "某楼层客人退房，产生大量脏布草，请前往回收"。
+        // 并在该楼层布草间显示脏布草? (需要修改渲染逻辑)
+        // 鉴于时间，我选择: 弹窗 + 自动在推车里增加 5 件脏布草 (模拟已收集)。
+
+        if (gameState.inventory.dirtyItemsCount + 5 <= Config::Test3::Logic::MAX_CART_ITEMS) {
+            gameState.inventory.dirtyItemsCount += 5;
+            refreshInventoryList();
+            QMessageBox::warning(this, "突发事件", QString("客房部通知: %1楼客人退房。\n你顺路回收了 5 件脏布草，请及时送到仓库。").arg(targetFloor));
+             emit logMessage("触发事件B: 自动回收脏布草");
+        } else {
+             QMessageBox::warning(this, "突发事件", QString("客房部通知: %1楼客人退房，但你的推车已满，无法回收。").arg(targetFloor));
+        }
+    }
 }
 
 int Test3::getNormalRandom(int min, int max)
@@ -1015,17 +1128,19 @@ void Test3::handleElevatorButton(int floor)
 
 void Test3::handleSceneDrop(QString itemName, bool isWarehouse)
 {
-    if (gameState.inventory.cleanItems.value(itemName) <= 0) return;
+    int count = gameState.inventory.cleanItems.value(itemName);
+    if (count <= 0) return;
 
-    // 从推车移除
-    gameState.inventory.cleanItems[itemName]--;
+    // Requirement: "Everything dragged in" (Move all items of this type)
+    // 从推车移除全部
+    gameState.inventory.cleanItems[itemName] = 0;
 
     if (isWarehouse) {
-        emit logMessage("归还物品到仓库: " + itemName);
+        emit logMessage(QString("归还物品到仓库: %1 (数量: %2)").arg(itemName).arg(count));
     } else {
         // 布草间
-        gameState.floorInventory[gameState.currentFloor][itemName]++;
-        emit logMessage(QString("放置物品到 %1楼 布草间: %2").arg(gameState.currentFloor).arg(itemName));
+        gameState.floorInventory[gameState.currentFloor][itemName] += count;
+        emit logMessage(QString("放置物品到 %1楼 布草间: %2 (数量: %3)").arg(gameState.currentFloor).arg(itemName).arg(count));
     }
 
     refreshInventoryList();
