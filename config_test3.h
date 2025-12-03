@@ -141,6 +141,9 @@ namespace Config
             const QRect RECT_TUTORIAL_OVERLAY(0, 0, 800, 600); // 相对全屏居中
             const QRect RECT_TUTORIAL_IMAGE(50, 50, 700, 350);
             const QRect RECT_TUTORIAL_TEXT(50, 420, 700, 100);
+
+            // 货架标签垂直偏移 (相对于格子中心)
+            const int SHELF_LABEL_OFFSET_Y = 85;
         }
 
         // --- 文本内容 (Texts) ---
@@ -231,8 +234,8 @@ namespace Config
             // 列表样式
             constexpr const char *LIST_WIDGET = "QTreeWidget { background: transparent; border: none; font-size: 14px; } QTreeWidget::item { padding: 5px; }";
 
-            // 货架区域样式
-            constexpr const char *SHELF_AREA = "background-color: rgba(255, 255, 255, 0.2); border: 1px dashed rgba(0,0,0,0.3); border-radius: 10px;";
+            // 货架区域样式 (白色底，灰色边框)
+            constexpr const char *SHELF_AREA = "background-color: white; border: 1px solid #7f8c8d; border-radius: 4px;";
 
             // 箭头样式
             constexpr const char *ARROW_TEXT_COLOR = "#0000FF"; // 蓝色

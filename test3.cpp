@@ -116,10 +116,13 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     // 设置列头: 物品, 需求量, 完成标记
     taskListWidget->setHeaderLabels(QStringList() << "物品" << "需求" << "完成");
     taskListWidget->setHeaderHidden(false);
-    // 调整列宽
-    taskListWidget->header()->resizeSection(0, 130);
-    taskListWidget->header()->resizeSection(1, 60);
-    taskListWidget->header()->resizeSection(2, 60);
+    // 调整列宽 (70%, 15%, 15% of 330px)
+    // 330 * 0.7 = 231, 330 * 0.15 = 49.5 ~ 50
+    taskListWidget->header()->resizeSection(0, 230);
+    taskListWidget->header()->resizeSection(1, 50);
+    taskListWidget->header()->resizeSection(2, 50);
+    // 禁止拖动表头(禁止列重排)，防止标题“跟着跑”
+    taskListWidget->header()->setSectionsMovable(false);
 
     // 点击事件处理 (用于切换完成状态)
     connect(taskListWidget, &QTreeWidget::itemClicked, [this](QTreeWidgetItem *item, int column) {
@@ -764,9 +767,9 @@ void Test3::renderWarehouseShelf()
         QLabel *lbl = new QLabel(name, rpgCenterPanel);
         lbl->setStyleSheet("color: white; font-weight: bold; font-size: 16px; background-color: rgba(0,0,0,0.5); padding: 2px; border-radius: 4px;");
         lbl->adjustSize();
-        // 放置在矩形下方
+        // 放置位置使用配置的偏移量 (X同中心，Y相对中心偏移)
         int lx = rect.center().x() - lbl->width() / 2;
-        int ly = rect.bottom() + 5;
+        int ly = rect.center().y() + Config::Test3::Geometry::SHELF_LABEL_OFFSET_Y;
         lbl->move(lx, ly);
         lbl->show();
 
