@@ -1372,3 +1372,4 @@ void Test3::renderLinenRoom()
     });
     backBtn->show();
 }
+#include "test3.moc"
