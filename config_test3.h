@@ -92,7 +92,7 @@ namespace Config
             const int ANGLE_BTN_ELEVATOR_BACK = 180;
 
             // [场景: 电梯内部]
-            const QRect RECT_BTN_ELEVATOR_EXIT(633, 752, 160, 50);      // 出电梯按钮
+            const QRect RECT_BTN_ELEVATOR_EXIT(633, 400, 160, 50);      // 出电梯按钮
 
             // [场景: 楼层走廊]
             const QRect RECT_BTN_CORRIDOR_LINEN(662, 581, 100, 50);    // 进布草间
@@ -104,12 +104,12 @@ namespace Config
             const QRect RECT_BTN_LINEN_BACK(624, 799, 100, 50);
             const int ANGLE_BTN_LINEN_BACK = 110;
             // 布草间货架布局
-            const QRect AREA_LINEN_SHEET(855, 430, 140, 140); // 大床单
-            const QRect AREA_LINEN_DUVET(489, 650, 140, 140);  // 大被套
+            const QRect AREA_LINEN_SHEET(855, 440, 140, 140); // 大床单
+            const QRect AREA_LINEN_DUVET(489, 660, 140, 140);  // 大被套
             const QRect AREA_LINEN_S_DUVET(855, 650, 140, 140); // 小被套
             const QRect AREA_LINEN_PILLOW(489, 217, 140, 140); // 枕巾
-            const QRect AREA_LINEN_GN_TOWEL(489, 430, 140, 140); // 晚安巾
-            const QRect AREA_LINEN_TOWEL(855, 217, 140, 140);  // 毛巾
+            const QRect AREA_LINEN_GN_TOWEL(489, 435, 140, 140); // 晚安巾
+            const QRect AREA_LINEN_TOWEL(855, 227, 140, 140);  // 毛巾
             const QRect RECT_EVENT_DIRTY_LINEN(260, 717, 120, 120);     // 脏布草生成位置
 
             // [UI元素]
@@ -143,19 +143,19 @@ namespace Config
             const QRect RECT_TUTORIAL_TEXT(50, 420, 700, 100);
 
             // 货架标签坐标 (默认: 区域中心 X, 区域中心 Y + 30)
-            const QPoint POS_LBL_SHEET(481, 345);
-            const QPoint POS_LBL_DUVET(696, 345);
-            const QPoint POS_LBL_S_DUVET(1077, 345);
-            const QPoint POS_LBL_PILLOW(481, 706);
-            const QPoint POS_LBL_GN_TOWEL(696, 706);
-            const QPoint POS_LBL_TOWEL(1077, 706);
+            const QPoint POS_LBL_SHEET(481, 475);
+            const QPoint POS_LBL_DUVET(696, 475);
+            const QPoint POS_LBL_S_DUVET(1077, 475);
+            const QPoint POS_LBL_PILLOW(481, 771);
+            const QPoint POS_LBL_GN_TOWEL(696, 771);
+            const QPoint POS_LBL_TOWEL(1077, 771);
         }
 
         // --- 文本内容 (Texts) ---
         namespace Texts
         {
             // 按钮文本
-            constexpr const char *BTN_TEXT_BACK_TO_MENU = "返回主菜单";
+            constexpr const char *BTN_TEXT_BACK_TO_MENU = "退出";
             constexpr const char *BTN_TUTORIAL = "小技巧";
             constexpr const char *BTN_CLOCK_IN = "上班打卡";
             constexpr const char *BTN_CLOCK_OUT = "下班打卡";
