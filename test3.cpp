@@ -34,7 +34,20 @@ public:
 
         m_headerBtn = new QPushButton(titleText, this);
         // 增强可见性：添加背景色和深色字体
-        m_headerBtn->setStyleSheet("text-align: left; font-weight: bold; color: #000000; font-size: 14px; background-color: #d6eaf8; border-radius: 4px; padding: 6px; min-height: 40px;");
+        QString baseStyle = "text-align: left; font-weight: bold; font-size: 14px; border-radius: 4px; padding: 6px; min-height: 40px;";
+        if (m_task->isEmergency) {
+            // 紧急任务：黄色背景，红色字体
+            baseStyle += "background-color: yellow; color: red;";
+        } else {
+             // 普通任务：原有样式
+            baseStyle += "background-color: #d6eaf8; color: #000000;";
+        }
+
+        // 上下居中 - QPushButton 默认是 vertically centered，这里确保 padding 不会影响它
+        // 用户要求“上下居中”，QPushButon 默认就是居中的，只要不设置 top/bottom align。
+        // 为了保险，我们去掉可能影响的 margin。
+
+        m_headerBtn->setStyleSheet(baseStyle);
         m_headerBtn->setCursor(Qt::PointingHandCursor);
         connect(m_headerBtn, &QPushButton::clicked, this, &TaskItemWidget::headerClicked);
         layout->addWidget(m_headerBtn);
@@ -223,18 +236,30 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
 
     // 原“查看申领表”按钮已移除
 
-    // 3. 库存标题
+    // 3. 库存标题区域 (HBox for Title + Count)
+    QWidget *inventoryHeader = new QWidget();
+    QHBoxLayout *invHeaderLayout = new QHBoxLayout(inventoryHeader);
+    invHeaderLayout->setContentsMargins(0, 0, 0, 0);
+
     inventoryTitleLabel = new QLabel(Config::Test3::Texts::LBL_INVENTORY_TITLE);
     inventoryTitleLabel->setStyleSheet(Config::Test3::Styles::LBL_TITLE_RIGHT);
-    rightLayout->addWidget(inventoryTitleLabel);
+
+    cartCountLabel = new QLabel("0/40");
+    cartCountLabel->setStyleSheet(Config::Test3::Styles::LBL_TITLE_RIGHT);
+
+    invHeaderLayout->addWidget(inventoryTitleLabel);
+    invHeaderLayout->addWidget(cartCountLabel);
+    invHeaderLayout->addStretch(); // Title on left
+
+    rightLayout->addWidget(inventoryHeader);
 
     // 4. 库存列表 - 占 50%
     inventoryListWidget = new DraggableListWidget();
     inventoryListWidget->setIconSize(Config::Test3::Geometry::ICON_INVENTORY);
     inventoryListWidget->setStyleSheet("color: black; background: white;");
-    inventoryListWidget->onItemDroppedIn = [this](QString itemName)
+    inventoryListWidget->onItemDroppedIn = [this](QString itemName, const QMimeData *mimeData)
     {
-        handleInventoryDrop(itemName);
+        handleInventoryDrop(itemName, mimeData);
     };
     rightLayout->addWidget(inventoryListWidget, 5);
 
@@ -430,7 +455,7 @@ void Test3::updateRPGStatusLabels()
     case GameScene::FloorCorridor: locStr = QString("%1楼 走廊").arg(gameState.currentFloor); break;
     case GameScene::LinenRoom: locStr = QString("%1楼 布草间").arg(gameState.currentFloor); break;
     }
-    locationLabel->setText(QString(Config::Test3::Texts::LBL_LOCATION_PREFIX) + locStr);
+    locationLabel->setText(QString(Config::Test3::Texts::LBL_LOCATION_PREFIX) + "\n" + locStr);
 
     QString statusImg;
     int cleanCount = 0;
@@ -460,10 +485,12 @@ void Test3::updateRPGStatusLabels()
 void Test3::refreshInventoryList()
 {
     inventoryListWidget->clear();
+    int totalCount = 0;
     for (auto it = gameState.inventory.cleanItems.begin(); it != gameState.inventory.cleanItems.end(); ++it)
     {
         if (it.value() > 0)
         {
+            totalCount += it.value();
             QListWidgetItem *item = new QListWidgetItem();
             QString classifier = Config::Test3::Logic::CLASSIFIERS().value(it.key(), "个");
             item->setText(QString("%1%2 %3").arg(it.value()).arg(classifier).arg(it.key()));
@@ -477,6 +504,7 @@ void Test3::refreshInventoryList()
 
     if (gameState.inventory.dirtyItemsCount > 0)
     {
+        totalCount += gameState.inventory.dirtyItemsCount;
         QListWidgetItem *item = new QListWidgetItem();
         QString classifier = Config::Test3::Logic::CLASSIFIERS().value("脏布草", "件");
         item->setText(QString("%1%2 脏布草").arg(gameState.inventory.dirtyItemsCount).arg(classifier));
@@ -485,6 +513,12 @@ void Test3::refreshInventoryList()
         item->setData(Qt::UserRole, "DirtyLinen");
         inventoryListWidget->addItem(item);
     }
+
+    // 更新数量标签
+    if (cartCountLabel) {
+        cartCountLabel->setText(QString("%1/%2").arg(totalCount).arg(Config::Test3::Logic::MAX_CART_ITEMS));
+    }
+
     updateRPGStatusLabels();
 }
 
@@ -493,7 +527,27 @@ void Test3::refreshTaskList()
 {
     taskListWidget->clear();
 
-    for (int i = 0; i < gameState.tasks.size(); ++i)
+    // 排序任务：紧急任务置顶 (Sort logic: Emergency first)
+    // 注意：我们不改变 gameState.tasks 的实际顺序（因为 index 用于其他逻辑），
+    // 而是建立一个索引映射列表来渲染。
+    // 但是这里为了简化 logic，我们简单地按顺序渲染，前提是 tasks 列表已经被正确排序或插入。
+    // 为了满足“紧急任务置顶”且不破坏 index 逻辑 (TaskItemWidget 用 index 显示 "任务X")，
+    // 我们最好是在插入任务时就保证顺序，或者在这里仅仅是视觉上的置顶。
+    // 但 TaskItemWidget 构造函数用了 `i` 作为任务编号。
+    // 如果我们改变了渲染顺序，`i` 就不再对应 `gameState.tasks` 的索引了。
+    // 让我们先把紧急任务排在前面吧。
+
+    QList<int> sortedIndices;
+    // 1. Emergency
+    for(int i=0; i<gameState.tasks.size(); ++i) {
+        if(gameState.tasks[i].isEmergency) sortedIndices.append(i);
+    }
+    // 2. Normal
+    for(int i=0; i<gameState.tasks.size(); ++i) {
+        if(!gameState.tasks[i].isEmergency) sortedIndices.append(i);
+    }
+
+    for (int i : sortedIndices)
     {
         // 创建任务项 Widget
         TaskItemWidget *widget = new TaskItemWidget(i, &gameState.tasks[i]);
@@ -553,7 +607,7 @@ void Test3::renderScene()
     if (gameState.currentScene == GameScene::ElevatorInside)
     {
         inventoryListWidget->hide();
-        inventoryTitleLabel->hide();
+        inventoryTitleLabel->parentWidget()->hide(); // Hide the container (Title + Count)
         elevatorPanelContainer->show();
 
         if (rightLayout)
@@ -565,7 +619,7 @@ void Test3::renderScene()
     else
     {
         elevatorPanelContainer->hide();
-        inventoryTitleLabel->show();
+        inventoryTitleLabel->parentWidget()->show();
         inventoryListWidget->show();
 
         if (rightLayout)
@@ -884,7 +938,7 @@ void Test3::handleInventoryDrop(QString itemName, const QMimeData *mimeData)
     for (auto c : gameState.inventory.cleanItems) totalItems += c;
     totalItems += gameState.inventory.dirtyItemsCount;
 
-    if (itemName == "脏布草")
+    if (itemName == "脏布草" || itemName == "DirtyLinen")
     {
         if (totalItems + 1 > Config::Test3::Logic::MAX_CART_ITEMS) {
             QMessageBox::warning(this, "推车已满", "推车已满，无法再装入物品！(上限40件)");
@@ -896,9 +950,56 @@ void Test3::handleInventoryDrop(QString itemName, const QMimeData *mimeData)
         for (auto c : gameState.inventory.cleanItems) cleanCount += c;
         if (cleanCount > 0) errorLog.mixedLinen = true;
 
-        gameState.inventory.dirtyItemsCount++;
-        gameState.dirtyBagState[gameState.currentFloor] = false;
-        emit logMessage("回收脏布草");
+        // 处理来源：从地板 (LinenRoomDirty) 还是其他
+        // 验证拖拽来源 (Source) 必须是 "LinenRoomDirty" 才能减少 floorInventory
+        // 防止从推车自身拖拽导致无限刷物品
+        bool fromFloor = false;
+        if (mimeData && mimeData->hasFormat("application/x-source")) {
+            QString source = QString::fromUtf8(mimeData->data("application/x-source"));
+            if (source == "LinenRoomDirty") {
+                fromFloor = true;
+            }
+        }
+
+        // 如果是从布草间生成的脏布草
+        if (fromFloor && gameState.currentScene == GameScene::LinenRoom &&
+            gameState.floorInventory[gameState.currentFloor].value("DirtyLinen", 0) > 0) {
+             gameState.floorInventory[gameState.currentFloor]["DirtyLinen"]--;
+             gameState.inventory.dirtyItemsCount++;
+             emit logMessage("回收脏布草");
+        }
+        else if (!fromFloor) {
+             // 如果不是从地板来的（例如从车里拖回车里），不增加计数，也不减少地板计数
+             // 但这里是 dropEvent，如果源不是 ListWidget，通常意味着从外部拖入。
+             // 如果从 ListWidget 拖入，通常 dropEvent 会被 ListWidget 自身处理 (internal move)
+             // 但是 DraggableListWidget 的 dropEvent 处理外部拖入。
+             // 此处逻辑是 Test3::handleInventoryDrop 被 DraggableListWidget::onItemDroppedIn 调用
+             // 我们需要确保 onItemDroppedIn 只在 source != this 时触发，或者在这里判断。
+             // DraggableListWidget::dropEvent 已经有了 if (event->source() != this) check.
+             // 所以从 ListWidget 拖回 ListWidget 不会触发这里。
+             // 唯一风险是其他不相关的源。
+             // 安全起见，如果是脏布草，且不是从地板来的（那可能是哪里？），我们假设是合法的？
+             // 不，脏布草只能从地板来。
+             // 所以如果 !fromFloor，我们应该拒绝吗？
+             // 考虑到 Test3::handleSceneDrop 处理从车到场景， handleInventoryDrop 处理场景到车。
+             // 唯一的场景源是 ShelfArea (setSourceType).
+             // 所以强制检查 source 是安全的。
+
+             // 如果 source为空，可能是旧代码的 ShelfArea（Clean Linen）
+             // 干净布草 logic 下面 else 分支处理。
+             // 这里是 itemName == "脏布草"。
+             // 如果 !fromFloor，说明可能代码有误或未知来源，不处理为妙。
+             // 但为了兼容性（万一 mimeData 丢失），我们保持谨慎。
+             // 现有的 Clean Linen 逻辑也没检查 source。
+             // 但 Dirty Linen 有刷分风险，且我们明确设置了 source。
+             // 所以这里仅处理 fromFloor = true 的情况。
+        }
+
+        // 注意：上面的 if (fromFloor) 块已经做了 inventory++。
+        // 如果 !fromFloor，什么都不做（防止刷分）。
+        // 除了 dirtyItemsCount++ 移到了 inside if。
+
+        // gameState.dirtyBagState[gameState.currentFloor] = false; // 已废弃，使用 count 控制
         renderScene();
     }
     else
@@ -1021,12 +1122,32 @@ void Test3::handleGetTask()
 
     gameState.hasReceivedTask = true;
 
-    // 分配固定任务 (6楼 和 7楼)
-    Task t1; t1.targetFloor = 6; t1.requiredItems = {{"大床单", 2}, {"枕巾", 2}};
+    // 分配基础任务 (6楼 和 7楼) - 随机生成
+    // 规则: 随机选4-6种布草，每个最大6个
+    auto generateRandomReqs = [this]() -> QMap<QString, int> {
+        QMap<QString, int> reqs;
+        QStringList allItems = Config::Test3::Images::ITEMS().keys();
+        // 随机选择 4-6 种
+        int typeCount = getNormalRandom(4, 6);
+        // Fisher-Yates shuffle variant or just random pick unique
+        while (reqs.size() < typeCount && !allItems.isEmpty()) {
+            int idx = QRandomGenerator::global()->bounded(allItems.size());
+            QString item = allItems.takeAt(idx);
+            int count = getNormalRandom(1, 6);
+            reqs.insert(item, count);
+        }
+        return reqs;
+    };
+
+    Task t1;
+    t1.targetFloor = Config::Test3::Logic::TASK_FIXED_FLOOR_1; // 6
+    t1.requiredItems = generateRandomReqs();
     t1.isEmergency = false;
     gameState.tasks.append(t1);
 
-    Task t2; t2.targetFloor = 7; t2.requiredItems = {{"大被套", 1}, {"毛巾", 2}};
+    Task t2;
+    t2.targetFloor = Config::Test3::Logic::TASK_FIXED_FLOOR_2; // 7
+    t2.requiredItems = generateRandomReqs();
     t2.isEmergency = false;
     gameState.tasks.append(t2);
 
@@ -1056,54 +1177,27 @@ void Test3::checkEmergencyTask()
         t.targetFloor = targetFloor;
         t.isEmergency = true;
         t.requiredItems = {{"大床单", 1}, {"毛巾", 2}}; // 简单紧急需求
-        gameState.tasks.append(t);
+        gameState.tasks.append(t); // 实际上由于 refreshTaskList 的排序，这里 append 也行，或者 insert(0, t)
 
         isEmergencyActive = true;
         refreshTaskList();
 
-        // 弹出经理提示
+        // 弹出经理提示 (增加换行)
         QString msg = QString(Config::Test3::Texts::POPUP_EMERGENCY_MANAGER).arg(targetFloor);
         QMessageBox::warning(this, "突发事件 (经理)", msg);
         emit logMessage("触发事件A: 紧急任务 " + QString::number(targetFloor) + "楼");
     } else {
-        // 事件B: 发现脏布草
-        // 逻辑: 某个楼层突然出现脏布草需要回收
-        int targetFloor = getNormalRandom(2, 10);
-        if (targetFloor == 1) targetFloor = 2;
+        // 事件B: 在基础任务楼层随机生成脏布草
+        // 逻辑: 随机选6楼或7楼，生成1-5个脏布草
+        QVector<int> baseFloors;
+        baseFloors << Config::Test3::Logic::TASK_FIXED_FLOOR_1 << Config::Test3::Logic::TASK_FIXED_FLOOR_2;
+        int targetFloor = baseFloors[QRandomGenerator::global()->bounded(baseFloors.size())];
 
-        // 模拟: 直接在布草间生成脏布草?
-        // 这里的逻辑简化为: 弹窗通知，并在该楼层记录一个状态，或者直接给予任务
-        // 既然是脏布草回收，我们可以增加一个“DirtyLinen”到该楼层的 inventory,
-        // 但目前的 floorInventory 只记录干净布草。
-        // 所以我们用一种变通方式: 强制要求去该楼层。
-        // 为了简化且符合"User Requirement: All items dragged into cart",
-        // 我们假设经理打电话说某楼层有脏布草，让学生去收。
-        // 但如果没有任务条目，学生可能会忘。
-        // 让我们加一个“回收任务”。
+        int dirtyCount = getNormalRandom(1, 5);
+        gameState.floorInventory[targetFloor]["DirtyLinen"] += dirtyCount;
 
-        Task t;
-        t.targetFloor = targetFloor;
-        t.isEmergency = true; // 紧急回收
-        // 特殊: 需求是负数? 或者 需求是 "脏布草"
-        // 目前 Task 结构只支持 item completion status.
-        // 让我们简化为: 仅仅是通知，不强制生成 Task 结构体，或者生成一个不需要物品的任务?
-        // 更好的方案: 生成一个任务，需要 "0" 个物品，但是 title 是 "回收脏布草"?
-        // 还是回退到最简单的 Event B: 只是弹窗通知，增加沉浸感，或者给推车加一个脏布草?
-        // User Requirement: "推车上的物品拖到仓库...都是所选的全部拖入" (Requirement 1 context).
-        // Let's just spawn some dirty linen in the cart directly as "You picked up dirty linen on the way".
-
-        // 更好的实现: 弹窗 "某楼层客人退房，产生大量脏布草，请前往回收"。
-        // 并在该楼层布草间显示脏布草? (需要修改渲染逻辑)
-        // 鉴于时间，我选择: 弹窗 + 自动在推车里增加 5 件脏布草 (模拟已收集)。
-
-        if (gameState.inventory.dirtyItemsCount + 5 <= Config::Test3::Logic::MAX_CART_ITEMS) {
-            gameState.inventory.dirtyItemsCount += 5;
-            refreshInventoryList();
-            QMessageBox::warning(this, "突发事件", QString("客房部通知: %1楼客人退房。\n你顺路回收了 5 件脏布草，请及时送到仓库。").arg(targetFloor));
-             emit logMessage("触发事件B: 自动回收脏布草");
-        } else {
-             QMessageBox::warning(this, "突发事件", QString("客房部通知: %1楼客人退房，但你的推车已满，无法回收。").arg(targetFloor));
-        }
+        // 无弹窗提示，仅后台生成
+        emit logMessage(QString("触发事件B: %1楼 生成 %2 件脏布草 (无弹窗)").arg(targetFloor).arg(dirtyCount));
     }
 }
 
@@ -1410,6 +1504,36 @@ void Test3::renderLinenRoom()
     createLinenShelf("枕巾", Config::Test3::Geometry::AREA_LINEN_PILLOW);
     createLinenShelf("晚安巾", Config::Test3::Geometry::AREA_LINEN_GN_TOWEL);
     createLinenShelf("毛巾", Config::Test3::Geometry::AREA_LINEN_TOWEL);
+
+    // 检查并渲染脏布草 (Event B)
+    int dirtyCount = gameState.floorInventory[gameState.currentFloor].value("DirtyLinen", 0);
+    if (dirtyCount > 0) {
+        ShelfArea *dirtyArea = new ShelfArea("脏布草", rpgCenterPanel);
+        setGeometryCentered(dirtyArea, Config::Test3::Geometry::RECT_EVENT_DIRTY_LINEN);
+        dirtyArea->setDraggable(true);
+        dirtyArea->setSourceType("LinenRoomDirty"); // Special type for drop handling
+
+        // Load dirty linen image
+        QPixmap dirtyPix = getPixmap(Config::Test3::Images::UI_DIRTY_LINEN);
+        if (!dirtyPix.isNull()) {
+             dirtyArea->setPixmap(dirtyPix.scaled(Config::Test3::Geometry::ICON_SHELF_ITEM, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+             dirtyArea->setAlignment(Qt::AlignCenter);
+        } else {
+             dirtyArea->setText("脏布草");
+        }
+
+        // Display Count
+        if (dirtyCount > 1) {
+            QLabel *cntLbl = new QLabel(QString::number(dirtyCount), rpgCenterPanel);
+            cntLbl->setStyleSheet(QString("color: red; font-size: %1px; font-weight: bold;")
+                                  .arg(Config::Test3::Fonts::SIZE_LINEN_COUNT));
+            cntLbl->adjustSize();
+            cntLbl->move(Config::Test3::Geometry::RECT_EVENT_DIRTY_LINEN.right() - 20, Config::Test3::Geometry::RECT_EVENT_DIRTY_LINEN.bottom() - 20);
+            cntLbl->show();
+        }
+
+        dirtyArea->show();
+    }
 
     ArrowButton *backBtn = new ArrowButton(rpgCenterPanel);
     setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_LINEN_BACK);
