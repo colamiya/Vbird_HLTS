@@ -34,7 +34,7 @@ public:
 
         m_headerBtn = new QPushButton(titleText, this);
         // 增强可见性：添加背景色和深色字体
-        m_headerBtn->setStyleSheet("text-align: left; font-weight: bold; color: #000000; font-size: 14px; background-color: #d6eaf8; border-radius: 4px; padding: 6px;");
+        m_headerBtn->setStyleSheet("text-align: left; font-weight: bold; color: #000000; font-size: 14px; background-color: #d6eaf8; border-radius: 4px; padding: 6px; min-height: 40px;");
         m_headerBtn->setCursor(Qt::PointingHandCursor);
         connect(m_headerBtn, &QPushButton::clicked, this, &TaskItemWidget::headerClicked);
         layout->addWidget(m_headerBtn);
