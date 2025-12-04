@@ -14,6 +14,7 @@
 #include <QMessageBox>
 #include <QDebug>
 #include <QPoint>
+#include <QDateTime>
 
 #include "utils.h"
 #include "config.h"
@@ -137,6 +138,7 @@ private:
     bool isTimerTriggered = false;  // 计时器是否已触发过
     bool isEmergencyActive = false; // 当前是否有未完成的紧急任务
     int m_roundCount = 1;           // 轮次计数
+    QDateTime m_startTime;          // 开始时间
 
     // 资源缓存
     QMap<QString, QPixmap> m_sceneCache; // 场景与UI图片缓存
