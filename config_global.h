@@ -17,7 +17,7 @@ namespace Config
 
         // --- 窗口设置 (Window Settings) ---
         // 应用程序标题
-        constexpr const char *APP_TITLE = "XXX培训系统";
+        constexpr const char *APP_TITLE = "酒店布草员模拟实训系统";
         // 窗口大小 (宽, 高)
         const QSize WINDOW_SIZE(1750, 900);
 
