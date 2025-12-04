@@ -72,6 +72,7 @@ private:
     QCheckBox *emergencyToggle; // 突发事件开关
 
     void onStartTraining();              // 开始实训
+    void onEndTraining();                // 结束实训
     void toggleDeveloperMode(int state); // 切换开发者模式
 };
 

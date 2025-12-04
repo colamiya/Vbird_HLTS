@@ -32,6 +32,9 @@ public:
     // Write to Detailed Log (Action history)
     void logAction(const QString &module, const QString &action);
 
+    // Write raw system message to Detailed Log (for qDebug redirection)
+    void logSystemMessage(const QString &msg);
+
     // Data structure for Test 3 Brief Report
     struct Test3BriefData
     {
@@ -39,15 +42,18 @@ public:
         QString clockOutStatus = "未打卡";
         bool isLate = false;
 
+        // Task Results
         struct FloorStatus
         {
             int floor;
             bool isCorrect;
-            QString details; // e.g. "Missing Items" or "Correct"
+            QString details;
         };
         QList<FloorStatus> floorStatuses;
 
-        bool emergencyPriorityMet = true; // Default true unless failed
+        QString taskList;            // Assigned tasks summary
+        QString timeUsed;            // Duration string
+        bool emergencyPriorityMet = true;
         bool mixedLinen = false;
     };
 
@@ -56,6 +62,7 @@ public:
     {
         int score = 0;
         int total = 0;
+        QString timeUsed; // Duration string
         struct QuestionResult
         {
             int id;
@@ -81,13 +88,11 @@ private:
 
     // Dynamic filenames
     QString m_detailedFnCn;
-    QString m_detailedFnEn;
     QString m_briefFnCn;
-    QString m_briefFnEn;
 
     void initLogs();
-    void initDetailedLog(const QString &filename, bool isCn);
-    void writeBriefReport(const QString &filename, bool isCn);
+    void initDetailedLog(const QString &filename);
+    void writeBriefReport(const QString &filename);
 };
 
 #endif // LOGGER_H
