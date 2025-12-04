@@ -67,6 +67,7 @@ struct GameState
     QMap<int, QMap<QString, int>> floorInventory;
 
     bool hasClockedIn;    // 是否已签到
+    bool hasEverClockedIn = false; // 是否曾经签到过 (用于判定忘记打卡)
     bool hasReceivedTask; // 是否已领任务
     bool hasReported;     // 是否已汇报工作
 
@@ -163,6 +164,9 @@ private:
 
     // 获取图片 (带缓存)
     QPixmap getPixmap(const QString &path);
+
+    // 格式化任务清单字符串
+    QString formatTaskList() const;
 
     // 开发者模式过滤器
     void installDevFilter(QWidget *widget);

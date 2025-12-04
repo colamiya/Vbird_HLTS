@@ -1,4 +1,4 @@
-﻿#ifndef CONFIG_GLOBAL_H
+#ifndef CONFIG_GLOBAL_H
 #define CONFIG_GLOBAL_H
 
 #include <QString>
@@ -130,18 +130,12 @@ namespace Config
         // --- 输出控制 (Output Control) ---
         // 是否生成中文报表 (带BOM, 适合Excel打开不乱码)
         const bool ENABLE_OUTPUT_CN = true;
-        // 是否生成英文报表 (通用UTF-8)
-        const bool ENABLE_OUTPUT_EN = false;
 
         // --- 文件名配置 (Filenames) ---
         // 中文简报文件名
-        constexpr const char *FILENAME_BRIEF_CN = "brief_report_cn.csv";
-        // 英文简报文件名
-        constexpr const char *FILENAME_BRIEF_EN = "brief_report_en.csv";
+        constexpr const char *FILENAME_BRIEF_CN = "brief_report.csv";
         // 中文详细日志文件名
-        constexpr const char *FILENAME_DETAILED_CN = "detailed_report_cn.csv";
-        // 英文详细日志文件名
-        constexpr const char *FILENAME_DETAILED_EN = "detailed_report_en.csv";
+        constexpr const char *FILENAME_DETAILED_CN = "detailed_report.csv";
 
         // --- 字段开关 (Field Toggles) ---
         // 学生基础信息
@@ -149,16 +143,20 @@ namespace Config
         const bool LOG_STUDENT_AGE = true;      // 年龄
         const bool LOG_STUDENT_GENDER = true;   // 性别
         const bool LOG_STUDENT_CLASS = true;    // 班级
-        const bool LOG_SESSION_DURATION = true; // 时长
+        const bool LOG_SESSION_DURATION = true; // 时长 (总体)
 
         // 测试2 (知识测验)
-        const bool LOG_TEST2_SCORE = true;   // 总分
-        const bool LOG_TEST2_DETAILS = true; // 题目详情
+        const bool LOG_TEST2_SCORE = true;       // 总分
+        const bool LOG_TEST2_DETAILS = true;     // 题目详情
+        const bool LOG_TEST2_TIME_USED = true;   // 测试2耗时 (新增)
 
         // 测试3 (实训考核)
-        const bool LOG_TEST3_CLOCK = true;        // 打卡时间
-        const bool LOG_TEST3_FLOOR_STATUS = true; // 楼层状态
-        const bool LOG_TEST3_EVENTS = true;       // 突发事件/错误
+        const bool LOG_TEST3_CLOCK = true;          // 打卡状态 (是否正常/迟到/忘记打卡)
+        const bool LOG_TEST3_TASK_STATUS = true;    // 任务完成情况 (是否完成)
+        const bool LOG_TEST3_TASK_LIST = true;      // 任务清单 (具体分配的物品) (新增)
+        const bool LOG_TEST3_MIXED_LINEN = true;    // 是否有脏布草混装 (新增细化)
+        const bool LOG_TEST3_EMERGENCY = true;      // 紧急任务是否优先完成 (新增细化)
+        const bool LOG_TEST3_TIME_USED = true;      // 测试3总用时 (新增)
     }
 }
 

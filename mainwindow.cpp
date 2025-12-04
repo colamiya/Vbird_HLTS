@@ -155,6 +155,13 @@ void MainWindow::onStartTraining()
     mainStack->setCurrentIndex(1);
 }
 
+void MainWindow::onEndTraining()
+{
+    Logger::instance().generateBriefReport();
+    QMessageBox::information(this, "实训结束", "报表已生成。");
+    close();
+}
+
 // --- 主菜单 (Main Menu) ---
 QWidget *MainWindow::createMainMenu()
 {
@@ -187,7 +194,7 @@ QWidget *MainWindow::createMainMenu()
     QPushButton *exitBtn = new QPushButton("结束训练");
     exitBtn->setFixedSize(Config::Global::SIZE_MENU_BTN);
     exitBtn->setStyleSheet("background-color: #e74c3c; font-size: 18px;");
-    connect(exitBtn, &QPushButton::clicked, this, &QWidget::close);
+    connect(exitBtn, &QPushButton::clicked, this, &MainWindow::onEndTraining);
     layout->addWidget(exitBtn, 0, Qt::AlignCenter);
 
     return page;
@@ -224,7 +231,8 @@ void MainWindow::onLogMessage(QString msg)
     // 记录详细日志
     Logger::instance().logAction("Main/System", msg);
 
-    qDebug() << fullMsg;
+    // 已通过 Logger 记录，不再调用 qDebug 以避免文件日志重复
+    // (qDebug output is redirected to the log file via qInstallMessageHandler)
 }
 
 void MainWindow::onLevelCompleted(int level)

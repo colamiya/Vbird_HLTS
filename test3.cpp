@@ -342,6 +342,8 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
 void Test3::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
+    m_startTime = QDateTime::currentDateTime();
+    emit logMessage("Test 3 Session Started at " + m_startTime.toString("HH:mm:ss"));
 }
 
 // 缓存获取辅助函数
@@ -365,6 +367,7 @@ void Test3::reset()
     gameState.currentScene = GameScene::Entrance;
     gameState.currentFloor = 0;
     gameState.hasClockedIn = false;
+    gameState.hasEverClockedIn = false;
     gameState.hasReceivedTask = false;
     gameState.hasReported = false;
     gameState.tasks.clear();
@@ -391,6 +394,9 @@ void Test3::reset()
 
     // 增加轮次计数
     m_roundCount++;
+
+    // 记录开始时间
+    m_startTime = QDateTime::currentDateTime();
 
     emit logMessage(QString("--- 开始第 %1 轮实训 ---").arg(m_roundCount));
     emit logMessage("测试3: 重置状态");
@@ -1238,6 +1244,7 @@ void Test3::handleClockIn()
 {
     if (gameState.hasClockedIn) return;
     gameState.hasClockedIn = true;
+    gameState.hasEverClockedIn = true;
     emit logMessage("上班打卡成功");
     QMessageBox::information(this, "提示", "上班打卡成功！请前往办公室领取任务。");
     renderScene();
@@ -1268,10 +1275,66 @@ void Test3::handleGoHome()
     if (errorLog.hasErrors()) {
          QString msg = "本次实训存在以下问题: " + report.join("; ");
          emit logMessage("实训结束 (有瑕疵): " + msg);
-         // QMessageBox 已移除
     } else {
          emit logMessage("实训结束: 恭喜！流程规范，完美下班。");
-         // QMessageBox 已移除
+    }
+
+    // --- 更新日志数据 ---
+    Logger::Test3BriefData &data = Logger::instance().test3Data;
+
+    // 考勤状态判断
+    data.isLate = errorLog.lateClockIn;
+
+    // 上班打卡状态
+    if (!gameState.hasEverClockedIn) {
+        data.clockInStatus = "忘记上班打卡";
+    } else if (errorLog.lateClockIn) {
+        data.clockInStatus = "迟到";
+    } else {
+        data.clockInStatus = "正常";
+    }
+
+    // 下班打卡状态
+    if (errorLog.noClockOutBeforeHome) {
+        data.clockOutStatus = "忘记下班打卡";
+    } else {
+        data.clockOutStatus = "正常";
+    }
+
+    // Emergency & Mixed Linen
+    data.emergencyPriorityMet = !errorLog.missedEmergencyPriority;
+    data.mixedLinen = errorLog.mixedLinen;
+
+    // Time Used
+    qint64 secs = m_startTime.secsTo(QDateTime::currentDateTime());
+    int mins = secs / 60;
+    int s = secs % 60;
+    data.timeUsed = QString("%1分%2秒").arg(mins).arg(s);
+
+    // Task List
+    data.taskList = formatTaskList();
+
+    // Floor Statuses (Task Completion)
+    data.floorStatuses.clear();
+    for (int i = 0; i < gameState.tasks.size(); ++i) {
+        const Task &t = gameState.tasks[i];
+        Logger::Test3BriefData::FloorStatus fs;
+        fs.floor = t.targetFloor;
+
+        // Check completion logic again locally or trust some flag?
+        // Let's re-verify completion against inventory
+        bool isMet = true;
+        for (auto it = t.requiredItems.begin(); it != t.requiredItems.end(); ++it) {
+             if (gameState.floorInventory[t.targetFloor].value(it.key(), 0) < it.value()) {
+                 isMet = false; break;
+             }
+        }
+
+        fs.isCorrect = isMet;
+        if (t.isEmergency) fs.details = "紧急任务";
+        else fs.details = "普通任务";
+
+        data.floorStatuses.append(fs);
     }
 
     // 重置状态以备下一次开始
@@ -1279,6 +1342,23 @@ void Test3::handleGoHome()
 
     // 退出到主菜单 (使用 levelCancelled 返回菜单，不触发 MainWindow 的成功弹窗)
     emit levelCancelled();
+}
+
+QString Test3::formatTaskList() const
+{
+    QStringList result;
+    for (int i = 0; i < gameState.tasks.size(); ++i) {
+        const Task &t = gameState.tasks[i];
+        QString header = QString("[%1] %2层: ").arg(t.isEmergency ? "紧急" : "任务").arg(t.targetFloor);
+        QStringList items;
+        for (auto it = t.requiredItems.begin(); it != t.requiredItems.end(); ++it) {
+            if (it.value() > 0) {
+                items << QString("%1x%2").arg(it.key()).arg(it.value());
+            }
+        }
+        result << (header + items.join(", "));
+    }
+    return result.join("; ");
 }
 
 void Test3::handleElevatorButton(int floor)
