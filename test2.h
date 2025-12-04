@@ -14,6 +14,7 @@
 #include <QTextEdit>
 #include <QDialog>
 #include <QScrollArea>
+#include <QDateTime>
 
 // 问题结构体
 struct Question
