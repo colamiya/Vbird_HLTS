@@ -134,6 +134,13 @@ Test2::Test2(QWidget *parent) : QWidget(parent)
     loadQuestion();
 }
 
+void Test2::showEvent(QShowEvent *event)
+{
+    QWidget::showEvent(event);
+    m_startTime = QDateTime::currentDateTime();
+    emit logMessage("Test 2 started at " + m_startTime.toString("HH:mm:ss"));
+}
+
 void Test2::loadQuestion()
 {
     Question &q = questions[currentQuestionIndex];
@@ -235,6 +242,12 @@ void Test2::showQuizSummary()
     Logger::Test2BriefData data;
     data.score = quizScore;
     data.total = questions.size();
+
+    // Calculate Duration
+    qint64 secs = m_startTime.secsTo(QDateTime::currentDateTime());
+    int mins = secs / 60;
+    int s = secs % 60;
+    data.timeUsed = QString("%1分%2秒").arg(mins).arg(s);
 
     char optionChars[] = {'A', 'B', 'C', 'D'};
 

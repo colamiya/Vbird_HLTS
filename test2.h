@@ -55,6 +55,12 @@ private:
     void handleNextOrSubmit();                                      // 处理下一题或提交
     void showQuizSummary();                                         // 显示测验总结
     void showImagePreview(QString imagePath, const QString &title); // 显示图片大图预览 (Lightbox)
+
+protected:
+    void showEvent(QShowEvent *event) override;
+
+private:
+    QDateTime m_startTime;
 };
 
 #endif // TEST2_H
