@@ -1,4 +1,4 @@
-#include "test3.h"
+﻿#include "test3.h"
 #include "tutorial_overlay.h"
 #include <QBoxLayout>
 #include <QPainter>
@@ -1158,7 +1158,7 @@ void Test3::handleGetTask()
 
     refreshTaskList();
     emit logMessage("任务已下发: 6楼, 7楼");
-    QMessageBox::information(this, "提示", "任务已下发，请查看右侧任务列表。");
+    QMessageBox::information(this, "提示", "任务已下发，请查看右侧上方任务列表。\n 点击任务可展开具体需求");
     renderScene();
 
     // 只有在勾选了紧急事件开关时才触发

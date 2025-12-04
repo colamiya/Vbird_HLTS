@@ -125,17 +125,6 @@ namespace Config
             const int GRID_SPACING_ELEVATOR = 10;
             const QSize SIZE_ELEVATOR_BTN_SIDEBAR(80, 60);
 
-            // 申领表弹窗
-            //const QSize SHEET_DIALOG(600, 800);
-            //const QSize SHEET_TEXT_BOX(80, 30); // 填数字的格
-            //const QPoint TXT_FLOOR(135, 145);   // 楼层填空位置
-            //const QPoint TXT_SHEET(460, 240);
-            //const QPoint TXT_DUVET(460, 290);
-            //const QPoint TXT_S_DUVET(460, 340);
-            //const QPoint TXT_PILLOW(460, 390);
-            //const QPoint TXT_GN_TOWEL(460, 440);
-            //const QPoint TXT_TOWEL(460, 490);
-
             const QRect RECT_BTN_MARK_COMPLETE(450, 720, 100, 40);
 
             // 任务列表表格展开高度
@@ -172,17 +161,17 @@ namespace Config
 
             // 场景交互提示 (Tooltip)
             constexpr const char *BTN_ENTER_HOTEL = "进入酒店";
-            constexpr const char *BTN_RETURN_ENTRANCE = "返回入口";
-            constexpr const char *BTN_GO_OFFICE = "去办公室";
-            constexpr const char *BTN_GO_WAREHOUSE = "去仓库";
-            constexpr const char *BTN_GO_ELEVATOR = "去电梯厅";
-            constexpr const char *BTN_RETURN_HALLWAY = "返回员工通道";
-            constexpr const char *BTN_GO_LINEN_ROOM = "进入布草间";
-            constexpr const char *BTN_GO_ELEVATOR_HALL = "去电梯厅";
+            constexpr const char *BTN_RETURN_ENTRANCE = "入口";
+            constexpr const char *BTN_GO_OFFICE = "办公室";
+            constexpr const char *BTN_GO_WAREHOUSE = "仓库";
+            constexpr const char *BTN_GO_ELEVATOR = "电梯厅";
+            constexpr const char *BTN_RETURN_HALLWAY = "员工通道";
+            constexpr const char *BTN_GO_LINEN_ROOM = "布草间";
+            constexpr const char *BTN_GO_ELEVATOR_HALL = "电梯厅";
             constexpr const char *BTN_RETURN_BACK = "返回";
-            constexpr const char *BTN_RETURN_CORRIDOR = "返回走廊";
-            constexpr const char *BTN_RETURN_WAREHOUSE_ENTRY = "返回仓库入口";
-            constexpr const char *TEXT_BTN_ENTRANCE_HOME = "下班回家";
+            constexpr const char *BTN_RETURN_CORRIDOR = "走廊";
+            constexpr const char *BTN_RETURN_WAREHOUSE_ENTRY = "仓库入口";
+            constexpr const char *TEXT_BTN_ENTRANCE_HOME = "回家";
 
             // 标题文本
             constexpr const char *LBL_LOCATION_PREFIX = "当前位置: ";
@@ -193,7 +182,7 @@ namespace Config
             constexpr const char *LBL_INVENTORY_TITLE = "物品推车";
             constexpr const char *LBL_ELEVATOR_PANEL_TITLE = "电梯面板";
             constexpr const char *LBL_WORK_REPORTED = "工作已汇报";
-            constexpr const char *LBL_DIRTY_BIN_TIP = "脏布草回收处 (拖入)";
+            constexpr const char *LBL_DIRTY_BIN_TIP = "脏布草回收处 (可拖入)";
 
             // 状态文本
             constexpr const char *STATUS_IN_PROGRESS = "[进行中]";
@@ -210,10 +199,10 @@ namespace Config
             constexpr const char *ERR_LOG_MIXED_LINEN = "错误: \n脏净布草混装";
 
             // 教程文本 (Updated for Speech Bubbles)
-            constexpr const char *TUTORIAL_GENERAL = "点击蓝色箭头可以切换场景，还有其他可点击的隐藏交互区域吼";
-            constexpr const char *TUTORIAL_SHELF = "1、拖动物品栏需要补充的布草 2、拖至对应的柜子中 3.在右上角上点击圆圈标记完成进度";
-            constexpr const char *TUTORIAL_WAREHOUSE_ENTRY = "可将脏布草拖到脏布草槽进行回收。";
-            constexpr const char *TUTORIAL_WAREHOUSE_SHELF_ACTION = "可通过拖动，将货架上的物品拖到右侧的物品栏里。";
+            constexpr const char *TUTORIAL_GENERAL = "1、点击蓝色箭头可以切换场景\n 2、还有其他可点击的隐藏交互区域吼";
+            constexpr const char *TUTORIAL_SHELF = "1、拖动物品栏中需要补充的布草\n 2、可拖至到对应的柜子中\n 3.可以在右上角上点击圆圈标记完成进度";
+            constexpr const char *TUTORIAL_WAREHOUSE_ENTRY = "可将脏布草(或多余布草)拖到脏布草框进行回收。";
+            constexpr const char *TUTORIAL_WAREHOUSE_SHELF_ACTION = "1、通过鼠标拖动，将货架上的布草拖到右侧的物品栏里\n 2、也可将物品栏拖动到货架上";
         }
 
         // --- 样式 (Styles) ---
