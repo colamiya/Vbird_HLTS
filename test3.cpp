@@ -15,16 +15,17 @@
 #include "utils.h"
 #include "logger.h"
 
-// --- Helper Widget: Task Item ---
+// --- 辅助控件：任务项 (Task Item Widget) ---
+// 用于在任务列表中显示单个任务的详情（手风琴风格）
 class TaskItemWidget : public QWidget {
     Q_OBJECT
 public:
-    TaskItemWidget(int taskIndex, Task *task, QWidget *parent = nullptr) : QWidget(parent), m_task(task) {
+    TaskItemWidget(int taskIndex, Task *task, QWidget *parent = nullptr) : QWidget(parent), m_task(task), m_taskIndex(taskIndex) {
         QVBoxLayout *layout = new QVBoxLayout(this);
         layout->setContentsMargins(5, 5, 5, 5);
         layout->setSpacing(5);
 
-        // Header (Clickable)
+        // 标题栏按钮 (可点击展开/折叠)
         QString status = m_task->isMarkedComplete ? Config::Test3::Texts::STATUS_MARKED_COMPLETE : Config::Test3::Texts::STATUS_IN_PROGRESS;
         QString titleText = QString("任务%1: %2层 %3 %4")
                                 .arg(taskIndex + 1)
@@ -43,21 +44,18 @@ public:
             baseStyle += "background-color: #d6eaf8; color: #000000;";
         }
 
-        // 上下居中 - QPushButton 默认是 vertically centered，这里确保 padding 不会影响它
-        // 用户要求“上下居中”，QPushButon 默认就是居中的，只要不设置 top/bottom align。
-        // 为了保险，我们去掉可能影响的 margin。
-
         m_headerBtn->setStyleSheet(baseStyle);
         m_headerBtn->setCursor(Qt::PointingHandCursor);
         connect(m_headerBtn, &QPushButton::clicked, this, &TaskItemWidget::headerClicked);
         layout->addWidget(m_headerBtn);
 
-        // Table
+        // 表格
         int rows = 0;
         for(auto v : m_task->requiredItems) if(v > 0) rows++;
 
         m_table = new QTableWidget(rows, 3, this);
-        m_table->setHorizontalHeaderLabels(QStringList() << "物品" << "需" << "验");
+        // 更新表头：物品、需求量、标记
+        m_table->setHorizontalHeaderLabels(QStringList() << "物品" << "需求量" << "标记");
 
         // 调整列宽比例 50% : 25% : 25% (近似值: 侧边栏宽330 -> 可用约300 -> 160:70:70)
         m_table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
@@ -71,7 +69,7 @@ public:
         m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
         m_table->setStyleSheet("background: rgba(255,255,255,0.8); border: 1px solid #bdc3c7; border-radius: 4px;");
 
-        // Enable scroll
+        // 启用滚动
         m_table->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
         int row = 0;
@@ -99,7 +97,7 @@ public:
                 bool current = m_task->itemCompletionStatus.value(name, false);
                 m_task->itemCompletionStatus[name] = !current;
 
-                // Update UI
+                // 更新 UI
                 item->setText(!current ? "●" : "○");
                 item->setForeground(!current ? QBrush(Qt::green) : QBrush(Qt::gray));
             }
@@ -107,10 +105,10 @@ public:
 
         layout->addWidget(m_table);
 
-        // Background for the task card (Increase opacity for better contrast)
+        // 任务卡片背景 (增加不透明度以提高对比度)
         setStyleSheet("TaskItemWidget { background-color: rgba(255,255,255,0.95); border: 1px solid #95a5a6; border-radius: 8px; }");
 
-        // Default collapsed
+        // 默认状态为折叠
         setExpanded(false);
     }
 
@@ -122,6 +120,12 @@ public:
              m_table->setFixedHeight(0);
         }
     }
+
+    // 获取任务索引
+    int getTaskIndex() const { return m_taskIndex; }
+
+    // 公有成员
+    int m_taskIndex;
 
 signals:
     void headerClicked();
@@ -385,6 +389,10 @@ void Test3::reset()
     taskListWidget->clear();
     inventoryListWidget->clear();
 
+    // 增加轮次计数
+    m_roundCount++;
+
+    emit logMessage(QString("--- 开始第 %1 轮实训 ---").arg(m_roundCount));
     emit logMessage("测试3: 重置状态");
     renderScene();
 }
@@ -575,15 +583,12 @@ void Test3::refreshTaskList()
                 QListWidgetItem *it = taskListWidget->item(j);
                 TaskItemWidget *w = qobject_cast<TaskItemWidget*>(taskListWidget->itemWidget(it));
                 if (w) {
-                    bool expand = (j == gameState.expandedTaskIndex);
+                    // 修复Bug: 使用任务自身的ID (w->getTaskIndex()) 而不是视觉索引 j 来判断是否展开
+                    bool expand = (w->getTaskIndex() == gameState.expandedTaskIndex);
                     w->setExpanded(expand);
                     it->setSizeHint(w->sizeHint()); // 更新尺寸提示
                 }
             }
-            // 强制重新布局
-            // taskListWidget->updateGeometries(); // Usually handled by setSizeHint if item is visible?
-            // Calling doItemsLayout() is protected.
-            // setSizeHint on items usually triggers layout update automatically in QListWidget.
         });
     }
 }
@@ -1259,13 +1264,21 @@ void Test3::handleGoHome()
         report << "错误: 下班前未打卡";
     }
 
+    // 记录结果日志而非弹窗
     if (errorLog.hasErrors()) {
-         QString msg = "本次实训存在以下问题:\n" + report.join("\n");
-         QMessageBox::warning(this, "实训结束 (有瑕疵)", msg);
+         QString msg = "本次实训存在以下问题: " + report.join("; ");
+         emit logMessage("实训结束 (有瑕疵): " + msg);
+         // QMessageBox 已移除
     } else {
-         QMessageBox::information(this, "实训结束", "恭喜！流程规范，完美下班。");
+         emit logMessage("实训结束: 恭喜！流程规范，完美下班。");
+         // QMessageBox 已移除
     }
-    emit levelCompleted();
+
+    // 重置状态以备下一次开始
+    reset();
+
+    // 退出到主菜单 (使用 levelCancelled 返回菜单，不触发 MainWindow 的成功弹窗)
+    emit levelCancelled();
 }
 
 void Test3::handleElevatorButton(int floor)
@@ -1473,13 +1486,19 @@ void Test3::renderLinenRoom()
                 area->setAlignment(Qt::AlignCenter);
             }
 
-            // Count Label
-            QLabel *cntLbl = new QLabel(QString::number(count), rpgCenterPanel);
-            cntLbl->setStyleSheet(QString("color: %1; font-size: %2px; font-weight: bold;")
-                                  .arg(Config::Test3::Fonts::COL_LINEN_COUNT)
+            // 数量标签 (Count Label) - 修改显示格式和位置
+            // 格式: (X5)
+            // 位置: 每个格子图片的前面 (解释为左上角或显眼位置，这里使用左上角叠加)
+            QLabel *cntLbl = new QLabel(QString("(X%1)").arg(count), rpgCenterPanel);
+
+            // 使用高对比度样式: 白色文字带黑色描边效果(模拟)或深色阴影，这里使用红色粗体配合白色背景
+            // 用户要求"在前面显示", 这里的 Z-Order 已经是最后创建(最上层)
+            cntLbl->setStyleSheet(QString("color: white; font-size: %1px; font-weight: bold; background-color: rgba(0,0,0,0.6); padding: 2px; border-radius: 4px;")
                                   .arg(Config::Test3::Fonts::SIZE_LINEN_COUNT));
             cntLbl->adjustSize();
-            cntLbl->move(rect.right() - 20, rect.bottom() - 20);
+
+            // 放置在格子左上角 (Left-Top)
+            cntLbl->move(rect.x() + 5, rect.y() + 5);
             cntLbl->show();
         } else {
             // Empty
