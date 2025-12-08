@@ -398,12 +398,24 @@ void ArrowButton::paintEvent(QPaintEvent *)
         double tx = cx - tailDist * qCos(radians);
         double ty = cy - tailDist * qSin(radians);
 
-        QRect txtRect(tx - 100, ty - 25, 200, 50);
+        // Dynamically calculate text rectangle
+        // Center the text around (tx, ty) with enough space
+        // Using a fixed size rect 200x50 might be too small or fixed height.
+        // We use QFontMetrics to ensure it fits, or at least scale the rect.
+        // For simplicity and fixing the "middle strip" issue, we expand height
+        // and rely on AlignCenter.
+        int txtW = 300;
+        int txtH = 100;
+        QRect txtRect(tx - txtW/2, ty - txtH/2, txtW, txtH);
 
         p.setPen(m_color);
         QFont f = font();
         f.setBold(true);
-        f.setPointSize(m_textSize);
+        // Use the font size set on the widget (scaled by updateGameLayout)
+        // instead of internal m_textSize unless m_textSize is explicitly managed.
+        // We prefer standard font scaling.
+        // But previously m_textSize was used. To support existing code, we fallback.
+        if (f.pointSize() <= 0) f.setPointSize(m_textSize);
         p.setFont(f);
         p.drawText(txtRect, Qt::AlignCenter, m_text);
     }
