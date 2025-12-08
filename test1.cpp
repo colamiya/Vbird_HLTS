@@ -9,7 +9,7 @@ Test1::Test1(QWidget *parent) : QWidget(parent)
     mainGrid->setAlignment(Qt::AlignCenter);
 
     // 返回按钮 (右上角)
-    QPushButton *returnBtn = new QPushButton(Config::Test1::BTN_TEXT_BACK_TO_MENU);
+    returnBtn = new QPushButton(Config::Test1::BTN_TEXT_BACK_TO_MENU);
     returnBtn->setFixedSize(Config::Test1::RETURN_BTN_SIZE);
     returnBtn->setStyleSheet(Config::Test1::BTN_RETURN_STYLE);
     connect(returnBtn, &QPushButton::clicked, [this]()
@@ -41,8 +41,8 @@ Test1::Test1(QWidget *parent) : QWidget(parent)
 
     // 导航按钮
     QHBoxLayout *navLayout = new QHBoxLayout();
-    QPushButton *prevBtn = new QPushButton(Config::Test1::BTN_TEXT_PREV);
-    QPushButton *nextBtn = new QPushButton(Config::Test1::BTN_TEXT_NEXT);
+    prevBtn = new QPushButton(Config::Test1::BTN_TEXT_PREV);
+    nextBtn = new QPushButton(Config::Test1::BTN_TEXT_NEXT);
     navLayout->addWidget(prevBtn);
     navLayout->addWidget(nextBtn);
     slideLayout->addLayout(navLayout);
@@ -170,4 +170,59 @@ QPixmap Test1::generatePlaceholder(QString text, QColor color, QSize size)
     painter.setFont(QFont("Microsoft YaHei", Config::Test1::FONT_SIZE_PLACEHOLDER, QFont::Bold));
     painter.drawText(pixmap.rect(), Qt::AlignCenter, text);
     return pixmap;
+}
+
+void Test1::resizeEvent(QResizeEvent *event)
+{
+    QWidget::resizeEvent(event);
+    updateLayoutScale();
+}
+
+void Test1::updateLayoutScale()
+{
+    // Calculate scale based on current size vs reference size
+    float scaleX = (float)width() / REF_SIZE.width();
+    float scaleY = (float)height() / REF_SIZE.height();
+    float scale = qMin(scaleX, scaleY); // Maintain aspect ratio for content elements generally
+
+    // Scale Slide Image
+    // Use currentSlideIndex to reload and scale the image
+    // Note: updateSlide() uses Config::Test1::DISPLAY_SIZE.
+    // We should scale that display size.
+    QSize scaledDisplaySize = Config::Test1::DISPLAY_SIZE * scale;
+    if (slideImageLabel->pixmap() && !slideImageLabel->pixmap()->isNull()) {
+        // Reload current image to prevent degradation from repeated scaling of cached pixmap
+        if (currentSlideIndex >= 0 && currentSlideIndex < Config::Test1::SLIDE_IMAGES().size()) {
+             QString path = Config::Test1::SLIDE_IMAGES()[currentSlideIndex];
+             QPixmap p = getPixmap(path);
+             if(!p.isNull()) {
+                 slideImageLabel->setPixmap(p.scaled(scaledDisplaySize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+             }
+        }
+    }
+
+    // Scale Buttons (Prev/Next)
+    int btnW = 100 * scale; // Approx initial width
+    int btnH = 30 * scale;
+    if (btnW < 60) btnW = 60;
+    if (btnH < 20) btnH = 20;
+
+    QFont btnFont = font();
+    btnFont.setPointSize(static_cast<int>(ORIG_FONT_SIZE_BTN * scale));
+    if (btnFont.pointSize() < 8) btnFont.setPointSize(8);
+
+    if(prevBtn) {
+        // prevBtn->setFixedSize(btnW, btnH); // Let layout handle size, just set min/max if needed or rely on font size
+        prevBtn->setFont(btnFont);
+    }
+    if(nextBtn) {
+        nextBtn->setFont(btnFont);
+    }
+
+    // Scale Return Button
+    QSize scaledRetBtn = Config::Test1::RETURN_BTN_SIZE * scale;
+    if(returnBtn) {
+        returnBtn->setFixedSize(scaledRetBtn);
+        returnBtn->setFont(btnFont);
+    }
 }
