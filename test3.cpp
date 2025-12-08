@@ -791,6 +791,7 @@ void Test3::renderEntrance()
 
     ArrowButton *btnHome = new ArrowButton(rpgCenterPanel);
     setGeometryCentered(btnHome, Config::Test3::Geometry::RECT_BTN_ENTRANCE_HOME);
+    btnHome->setProperty("originalFontSize", Config::Test3::Styles::ARROW_TEXT_SIZE);
     btnHome->setAngle(Config::Test3::Geometry::ANGLE_BTN_ENTRANCE_HOME);
     btnHome->setArrowText("");
     btnHome->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
@@ -835,6 +836,7 @@ void Test3::renderStaffHallway()
 
     ArrowButton *exitBtn = new ArrowButton(rpgCenterPanel);
     setGeometryCentered(exitBtn, Config::Test3::Geometry::RECT_BTN_HALLWAY_EXIT);
+    exitBtn->setProperty("originalFontSize", Config::Test3::Styles::ARROW_TEXT_SIZE);
     exitBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_HALLWAY_EXIT);
     exitBtn->setArrowText("");
     exitBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
@@ -865,6 +867,7 @@ void Test3::renderStaffHallway()
     {
         ArrowButton *btn = new ArrowButton(rpgCenterPanel);
         setGeometryCentered(btn, rect);
+        btn->setProperty("originalFontSize", Config::Test3::Styles::ARROW_TEXT_SIZE);
         btn->setAngle(angle);
         btn->setArrowText("");
         btn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
@@ -924,6 +927,7 @@ void Test3::renderWarehouse()
 
     QPushButton *takeBtn = new QPushButton(Config::Test3::Texts::BTN_TAKE_LINEN, rpgCenterPanel);
     setGeometryCentered(takeBtn, Config::Test3::Geometry::RECT_BTN_WAREHOUSE_TAKE);
+    takeBtn->setProperty("originalFontSize", 16);
     // 使用统一蓝色样式 (原圆环样式移除，用户要求统一)
     takeBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_UNIFIED);
     takeBtn->setCursor(Qt::PointingHandCursor);
@@ -932,6 +936,7 @@ void Test3::renderWarehouse()
 
     ArrowButton *backBtn = new ArrowButton(rpgCenterPanel);
     setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_WAREHOUSE_BACK);
+    backBtn->setProperty("originalFontSize", Config::Test3::Styles::ARROW_TEXT_SIZE);
     backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_WAREHOUSE_BACK);
     backBtn->setArrowText("");
     backBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
@@ -1017,6 +1022,7 @@ void Test3::renderWarehouseShelf()
 
     ArrowButton *backBtn = new ArrowButton(rpgCenterPanel);
     setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_SHELF_BACK);
+    backBtn->setProperty("originalFontSize", Config::Test3::Styles::ARROW_TEXT_SIZE);
     backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_SHELF_BACK);
     backBtn->setArrowText("");
     backBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
@@ -1499,6 +1505,7 @@ void Test3::renderOffice()
     QPushButton *actionBtn = new QPushButton(gameState.hasReported ? Config::Test3::Texts::LBL_WORK_REPORTED :
                                             (gameState.hasReceivedTask ? Config::Test3::Texts::BTN_REPORT_WORK : Config::Test3::Texts::BTN_GET_TASK), rpgCenterPanel);
     setGeometryCentered(actionBtn, Config::Test3::Geometry::RECT_BTN_OFFICE_ACTION);
+    actionBtn->setProperty("originalFontSize", 16);
     // 统一蓝色样式
     actionBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_UNIFIED);
     actionBtn->setCursor(Qt::PointingHandCursor);
@@ -1516,6 +1523,7 @@ void Test3::renderOffice()
     // Back Button
     ArrowButton *backBtn = new ArrowButton(rpgCenterPanel);
     setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_OFFICE_BACK);
+    backBtn->setProperty("originalFontSize", Config::Test3::Styles::ARROW_TEXT_SIZE);
     backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_OFFICE_BACK);
     backBtn->setArrowText("");
     backBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
@@ -1542,6 +1550,7 @@ void Test3::renderElevatorHall()
     // 进入电梯按钮
     QPushButton *enterBtn = new QPushButton(Config::Test3::Texts::BTN_ENTER_ELEVATOR, rpgCenterPanel);
     setGeometryCentered(enterBtn, Config::Test3::Geometry::RECT_BTN_ELEVATOR_ENTER);
+    enterBtn->setProperty("originalFontSize", 16);
     // 统一蓝色样式
     enterBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_UNIFIED);
     enterBtn->setCursor(Qt::PointingHandCursor);
@@ -1550,6 +1559,7 @@ void Test3::renderElevatorHall()
 
     ArrowButton *backBtn = new ArrowButton(rpgCenterPanel);
     setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_ELEVATOR_BACK);
+    backBtn->setProperty("originalFontSize", Config::Test3::Styles::ARROW_TEXT_SIZE);
     backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_ELEVATOR_BACK);
     backBtn->setArrowText("");
     backBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
@@ -1583,6 +1593,7 @@ void Test3::renderElevatorInside()
     // 出电梯按钮
     QPushButton *exitBtn = new QPushButton(Config::Test3::Texts::BTN_EXIT_ELEVATOR, rpgCenterPanel);
     setGeometryCentered(exitBtn, Config::Test3::Geometry::RECT_BTN_ELEVATOR_EXIT);
+    exitBtn->setProperty("originalFontSize", 16);
     // 统一蓝色样式
     exitBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_UNIFIED);
     exitBtn->setCursor(Qt::PointingHandCursor);
@@ -1606,6 +1617,7 @@ void Test3::renderFloorCorridor()
     // 去布草间
     ArrowButton *linenBtn = new ArrowButton(rpgCenterPanel);
     setGeometryCentered(linenBtn, Config::Test3::Geometry::RECT_BTN_CORRIDOR_LINEN);
+    linenBtn->setProperty("originalFontSize", Config::Test3::Styles::ARROW_TEXT_SIZE);
     linenBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_CORRIDOR_LINEN);
     linenBtn->setArrowText("");
     linenBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
@@ -1619,6 +1631,7 @@ void Test3::renderFloorCorridor()
     // 去电梯厅
     ArrowButton *eleBtn = new ArrowButton(rpgCenterPanel);
     setGeometryCentered(eleBtn, Config::Test3::Geometry::RECT_BTN_CORRIDOR_ELEVATOR);
+    eleBtn->setProperty("originalFontSize", Config::Test3::Styles::ARROW_TEXT_SIZE);
     eleBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_CORRIDOR_ELEVATOR);
     eleBtn->setArrowText("");
     eleBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
@@ -1733,6 +1746,7 @@ void Test3::renderLinenRoom()
 
     ArrowButton *backBtn = new ArrowButton(rpgCenterPanel);
     setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_LINEN_BACK);
+    backBtn->setProperty("originalFontSize", Config::Test3::Styles::ARROW_TEXT_SIZE);
     backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_LINEN_BACK);
     backBtn->setArrowText("");
     backBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);

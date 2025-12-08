@@ -313,6 +313,8 @@ void Test2::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
     updateLayoutScale();
+    // Force immediate update
+    this->update();
 }
 
 void Test2::updateLayoutScale()
