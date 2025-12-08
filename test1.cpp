@@ -190,7 +190,7 @@ void Test1::updateLayoutScale()
     // Note: updateSlide() uses Config::Test1::DISPLAY_SIZE.
     // We should scale that display size.
     QSize scaledDisplaySize = Config::Test1::DISPLAY_SIZE * scale;
-    if (slideImageLabel->pixmap() && !slideImageLabel->pixmap()->isNull()) {
+    if (!slideImageLabel->pixmap().isNull()) {
         // Reload current image to prevent degradation from repeated scaling of cached pixmap
         if (currentSlideIndex >= 0 && currentSlideIndex < Config::Test1::SLIDE_IMAGES().size()) {
              QString path = Config::Test1::SLIDE_IMAGES()[currentSlideIndex];
