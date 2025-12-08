@@ -156,7 +156,22 @@ ClickableArea::ClickableArea(QWidget *parent) : QWidget(parent)
 void ClickableArea::setPolygon(const QPolygon &poly)
 {
     m_poly = poly;
+    // 存储原始多边形 (如果是第一次设置)
+    if (m_originalPoly.isEmpty()) {
+        m_originalPoly = poly;
+    }
     setMask(m_poly);
+}
+
+void ClickableArea::rescale(float scaleX, float scaleY)
+{
+    if (m_originalPoly.isEmpty()) return;
+
+    QPolygon scaledPoly;
+    for (const QPoint &pt : m_originalPoly) {
+        scaledPoly << QPoint(pt.x() * scaleX, pt.y() * scaleY);
+    }
+    setPolygon(scaledPoly);
 }
 
 void ClickableArea::mousePressEvent(QMouseEvent *event)
