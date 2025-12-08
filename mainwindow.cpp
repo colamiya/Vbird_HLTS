@@ -7,7 +7,8 @@ MainWindow::MainWindow(QWidget *parent, bool devModeDefault)
     : QMainWindow(parent)
 {
     isDeveloperMode = devModeDefault;
-    setFixedSize(Config::Global::WINDOW_SIZE);
+    resize(Config::Global::WINDOW_SIZE);
+    setMinimumSize(800, 600); // 设置最小窗口大小
     setWindowTitle(Config::Global::APP_TITLE);
     setupStyle();
     setupUI();

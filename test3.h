@@ -170,6 +170,9 @@ private:
     // 格式化任务清单字符串
     QString formatTaskList() const;
 
+    // 自适应布局更新
+    void updateGameLayout();
+
     // 开发者模式过滤器
     void installDevFilter(QWidget *widget);
 

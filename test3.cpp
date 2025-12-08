@@ -207,7 +207,9 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
 
     // --- 中间面板 (游戏主画面) ---
     rpgCenterPanel = new QWidget();
-    rpgCenterPanel->setFixedSize(Config::Test3::Geometry::CENTER_PANEL_SIZE);
+    // 移除固定尺寸，改为自适应
+    // rpgCenterPanel->setFixedSize(Config::Test3::Geometry::CENTER_PANEL_SIZE);
+    rpgCenterPanel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     rpgCenterPanel->setStyleSheet("background-color: #ecf0f1;");
     rpgCenterPanel->installEventFilter(this);
     rpgLayout->addWidget(rpgCenterPanel);
@@ -217,7 +219,9 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     hoverHintLabel->setAlignment(Qt::AlignCenter);
     hoverHintLabel->setStyleSheet(Config::Test3::Styles::LBL_HOVER_HINT);
     hoverHintLabel->hide();
-    hoverHintLabel->setGeometry(Config::Test3::Geometry::RECT_HOVER_HINT);
+    // 转换为中心坐标以适配自适应系统
+    QRect hintRect = Config::Test3::Geometry::RECT_HOVER_HINT;
+    setGeometryCentered(hoverHintLabel, hintRect.center().x(), hintRect.center().y(), hintRect.width(), hintRect.height());
 
     // --- 右侧面板 ---
     QWidget *rightPanel = new QWidget();
@@ -430,7 +434,69 @@ bool Test3::eventFilter(QObject *watched, QEvent *event)
         qDebug() << coordText;
         emit logMessage(coordText);
     }
+    else if (event->type() == QEvent::Resize && watched == rpgCenterPanel)
+    {
+        updateGameLayout();
+    }
     return QWidget::eventFilter(watched, event);
+}
+
+void Test3::updateGameLayout()
+{
+    if (!rpgCenterPanel) return;
+
+    // 计算缩放比例
+    QSize currentSize = rpgCenterPanel->size();
+    QSize refSize = Config::Test3::Geometry::CENTER_PANEL_SIZE; // 1270x850
+
+    // 使用非保持宽高比缩放 (Stretch to fill)
+    float scaleX = (float)currentSize.width() / refSize.width();
+    float scaleY = (float)currentSize.height() / refSize.height();
+
+    QList<QObject*> children = rpgCenterPanel->children();
+    for (QObject* child : children) {
+        QWidget* w = qobject_cast<QWidget*>(child);
+        if (!w) continue;
+
+        // 1. 处理通用 Widget (包括背景 Label, 按钮等)
+        QVariant varRect = w->property("originalGeometry");
+        if (varRect.isValid() && varRect.canConvert<QRect>()) {
+            QRect origRect = varRect.toRect();
+
+            // 重新计算几何
+            // 原始坐标是 Center-Based (CenterX, CenterY, W, H)
+            int cx = origRect.x() * scaleX;
+            int cy = origRect.y() * scaleY;
+            int cw = origRect.width() * scaleX;
+            int ch = origRect.height() * scaleY;
+
+            // setGeometry 需要 (Left, Top, W, H)
+            w->setGeometry(cx - cw/2, cy - ch/2, cw, ch);
+
+            // 如果是背景图 (Label with Pixmap), 需要重新缩放 Pixmap 吗?
+            // 大多数背景 Label 都使用了 scaledContents=true 或在 renderScene 中手动设置了 setPixmap(scaled...)
+            // 如果使用了 setScaledContents(true)，则 resize 会自动处理。
+            // 检查 Label
+            QLabel* lbl = qobject_cast<QLabel*>(w);
+            if (lbl) {
+                 // 如果 Label 尺寸很大（例如背景），我们希望它使用 smooth transformation
+                 // 但 Qt 的 setScaledContents 通常不是 Smooth 的。
+                 // 考虑到性能和简便性，对于背景图，如果已经是 ScaledContents(true)，则不管。
+                 // 如果没有，可能需要重新 setPixmap。
+                 // 目前 renderScene 中的代码: bg->setPixmap(pix.scaled(..., Qt::Smooth...))
+                 // 这意味着 pixmap 是被 resize 过的。如果我们只改变 label 大小，pixmap 会拉伸 (如果 scaledContents=true) 或者 不变 (如果 false).
+                 // 为了最佳效果，我们应该设置 scaledContents(true).
+                 // 让我们假设 renderScene 中创建的背景 Label 需要 setScaledContents(true).
+                 // 我会在 renderScene 中加上这个设置。
+            }
+        }
+
+        // 2. 处理 ClickableArea (Polygon)
+        ClickableArea* ca = qobject_cast<ClickableArea*>(w);
+        if (ca) {
+            ca->rescale(scaleX, scaleY);
+        }
+    }
 }
 
 // --- 逻辑处理 (Logic) ---
@@ -708,6 +774,7 @@ void Test3::renderEntrance()
     if (pix.isNull())
         pix = generatePlaceholder("酒店入口", Qt::darkGray, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+    bg->setScaledContents(true); // 允许背景随窗口缩放
     setGeometryCentered(bg, Config::Test3::Geometry::CENTER_PANEL_SIZE.width() / 2, Config::Test3::Geometry::CENTER_PANEL_SIZE.height() / 2,
                         Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
     bg->show();
@@ -751,6 +818,7 @@ void Test3::renderStaffHallway()
     QPixmap pix = getPixmap(bgPath);
     if (pix.isNull()) pix = generatePlaceholder("员工通道", Qt::lightGray, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+    bg->setScaledContents(true);
     setGeometryCentered(bg, Config::Test3::Geometry::CENTER_PANEL_SIZE.width() / 2, Config::Test3::Geometry::CENTER_PANEL_SIZE.height() / 2,
                         Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
     bg->show();
@@ -810,6 +878,7 @@ void Test3::renderWarehouse()
     QPixmap pix = getPixmap(Config::Test3::Images::SCENE_WAREHOUSE_ENTRY);
     if (pix.isNull()) pix = generatePlaceholder("仓库 (入口)", Qt::darkYellow, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+    bg->setScaledContents(true);
     setGeometryCentered(bg, Config::Test3::Geometry::CENTER_PANEL_SIZE.width() / 2, Config::Test3::Geometry::CENTER_PANEL_SIZE.height() / 2,
                         Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
     bg->show();
@@ -871,6 +940,7 @@ void Test3::renderWarehouseShelf()
     QPixmap pix = getPixmap(Config::Test3::Images::SCENE_WAREHOUSE_SHELF);
     if (pix.isNull()) pix = generatePlaceholder("货架", Qt::darkYellow, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+    bg->setScaledContents(true);
     setGeometryCentered(bg, Config::Test3::Geometry::CENTER_PANEL_SIZE.width() / 2, Config::Test3::Geometry::CENTER_PANEL_SIZE.height() / 2,
                         Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
     bg->show();
@@ -1403,6 +1473,7 @@ void Test3::renderOffice()
     QPixmap pix = getPixmap(Config::Test3::Images::SCENE_OFFICE);
     if (pix.isNull()) pix = generatePlaceholder("办公室", Qt::white, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+    bg->setScaledContents(true);
     setGeometryCentered(bg, Config::Test3::Geometry::CENTER_PANEL_SIZE.width() / 2, Config::Test3::Geometry::CENTER_PANEL_SIZE.height() / 2,
                         Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
     bg->show();
@@ -1446,6 +1517,7 @@ void Test3::renderElevatorHall()
     QPixmap pix = getPixmap(Config::Test3::Images::SCENE_ELEVATOR_HALL);
     if (pix.isNull()) pix = generatePlaceholder("电梯厅", Qt::lightGray, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+    bg->setScaledContents(true);
     setGeometryCentered(bg, Config::Test3::Geometry::CENTER_PANEL_SIZE.width() / 2, Config::Test3::Geometry::CENTER_PANEL_SIZE.height() / 2,
                         Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
     bg->show();
@@ -1486,6 +1558,7 @@ void Test3::renderElevatorInside()
     QPixmap pix = getPixmap(Config::Test3::Images::SCENE_ELEVATOR_INSIDE);
     if (pix.isNull()) pix = generatePlaceholder("电梯内部", Qt::gray, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+    bg->setScaledContents(true);
     setGeometryCentered(bg, Config::Test3::Geometry::CENTER_PANEL_SIZE.width() / 2, Config::Test3::Geometry::CENTER_PANEL_SIZE.height() / 2,
                         Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
     bg->show();
@@ -1508,6 +1581,7 @@ void Test3::renderFloorCorridor()
     QPixmap pix = getPixmap(Config::Test3::Images::SCENE_FLOOR_CORRIDOR);
     if (pix.isNull()) pix = generatePlaceholder("楼层走廊", Qt::lightGray, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+    bg->setScaledContents(true);
     setGeometryCentered(bg, Config::Test3::Geometry::CENTER_PANEL_SIZE.width() / 2, Config::Test3::Geometry::CENTER_PANEL_SIZE.height() / 2,
                         Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
     bg->show();
@@ -1545,6 +1619,7 @@ void Test3::renderLinenRoom()
     QPixmap pix = getPixmap(Config::Test3::Images::SCENE_LINEN_ROOM_EMPTY);
     if (pix.isNull()) pix = generatePlaceholder("布草间", Qt::white, rpgCenterPanel->size());
     bg->setPixmap(pix.scaled(rpgCenterPanel->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+    bg->setScaledContents(true);
     setGeometryCentered(bg, Config::Test3::Geometry::CENTER_PANEL_SIZE.width() / 2, Config::Test3::Geometry::CENTER_PANEL_SIZE.height() / 2,
                         Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
     bg->show();

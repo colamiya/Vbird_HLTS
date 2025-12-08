@@ -13,6 +13,7 @@
 #include <QPolygon>
 #include <QPushButton>
 #include <QBoxLayout>
+#include <QVariant>
 #include <functional>
 
 // --- 辅助函数 (Helper Functions) ---
@@ -21,6 +22,9 @@ inline void setGeometryCentered(QWidget *widget, const QRect &rect)
 {
     if (!widget)
         return;
+    // 存储原始几何数据以支持自适应缩放
+    widget->setProperty("originalGeometry", rect);
+
     int w = rect.width();
     int h = rect.height();
     int x = rect.x() - (w / 2);
@@ -32,6 +36,21 @@ inline void setGeometryCentered(QWidget *widget, int centerX, int centerY, int w
 {
     if (!widget)
         return;
+    // 构造 Rect 存储
+    QRect rect(centerX, centerY, w, h); // 注意：这里存储的是 CenterX/Y 和 W/H，为了统一，我们在 rescale 逻辑中需要特殊处理，或者统一存储 TopLeft
+    // 为了简化，我们统一存储 "Center Rect" (Center X, Center Y, W, H) 还是 "Geometry Rect" (Left, Top, W, H)?
+    // 上面的重载传入的是 rect，逻辑是 center based (x - w/2).
+    // 这里的参数 explicitly centerX.
+    // 让我们统一存储 "Reference Rect" 为 Center-Based 的原始定义可能比较麻烦，因为 Qt 的 QRect 是 Left-Top.
+    // 现有的 config 全是 Center Based 吗？
+    // config_test3.h: "RECT_..." 通常是中心点? 让我们再次检查。
+    // Config: "Test 3 button geometries ... apply to widget centers."
+    // 所以 config 中的 QRect 其实是 (CenterX, CenterY, Width, Height).
+    // 而 setGeometry 需要 (Left, Top, Width, Height).
+
+    // 所以，我们存储原始的 Config Rect (Center-based) 到 property 中。
+    widget->setProperty("originalGeometry", QRect(centerX, centerY, w, h));
+
     widget->setGeometry(centerX - (w / 2), centerY - (h / 2), w, h);
 }
 
@@ -85,6 +104,8 @@ public:
     ClickableArea(QWidget *parent = nullptr);
 
     void setPolygon(const QPolygon &poly);
+    // 缩放多边形
+    void rescale(float scaleX, float scaleY);
 
     // 拖放回调
     std::function<void(QString)> onDropCallback;
@@ -105,6 +126,7 @@ protected:
 
 private:
     QPolygon m_poly;
+    QPolygon m_originalPoly; // 原始多边形
 };
 
 class ShelfArea : public QLabel
