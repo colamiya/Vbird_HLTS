@@ -41,6 +41,19 @@ private:
 
     // 获取图片 (优先从缓存获取)
     QPixmap getPixmap(const QString &path);
+
+protected:
+    void resizeEvent(QResizeEvent *event) override;
+
+private:
+    void updateLayoutScale();
+    QPushButton *prevBtn;
+    QPushButton *nextBtn;
+    QPushButton *returnBtn;
+
+    // Original sizes for scaling
+    const QSize REF_SIZE = QSize(1750, 900);
+    const int ORIG_FONT_SIZE_BTN = 16;
 };
 
 #endif // TEST1_H

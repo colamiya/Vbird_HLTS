@@ -458,7 +458,13 @@ void Test3::updateGameLayout()
         QWidget* w = qobject_cast<QWidget*>(child);
         if (!w) continue;
 
-        // 1. 处理通用 Widget (包括背景 Label, 按钮等)
+        // 1. 处理 SpeechBubble (特殊处理，覆盖全屏)
+        if (qobject_cast<SpeechBubble*>(w)) {
+            w->setGeometry(0, 0, currentSize.width(), currentSize.height());
+            continue;
+        }
+
+        // 2. 处理通用 Widget (包括背景 Label, 按钮等)
         QVariant varRect = w->property("originalGeometry");
         if (varRect.isValid() && varRect.canConvert<QRect>()) {
             QRect origRect = varRect.toRect();
@@ -473,25 +479,26 @@ void Test3::updateGameLayout()
             // setGeometry 需要 (Left, Top, W, H)
             w->setGeometry(cx - cw/2, cy - ch/2, cw, ch);
 
-            // 如果是背景图 (Label with Pixmap), 需要重新缩放 Pixmap 吗?
-            // 大多数背景 Label 都使用了 scaledContents=true 或在 renderScene 中手动设置了 setPixmap(scaled...)
-            // 如果使用了 setScaledContents(true)，则 resize 会自动处理。
-            // 检查 Label
-            QLabel* lbl = qobject_cast<QLabel*>(w);
-            if (lbl) {
-                 // 如果 Label 尺寸很大（例如背景），我们希望它使用 smooth transformation
-                 // 但 Qt 的 setScaledContents 通常不是 Smooth 的。
-                 // 考虑到性能和简便性，对于背景图，如果已经是 ScaledContents(true)，则不管。
-                 // 如果没有，可能需要重新 setPixmap。
-                 // 目前 renderScene 中的代码: bg->setPixmap(pix.scaled(..., Qt::Smooth...))
-                 // 这意味着 pixmap 是被 resize 过的。如果我们只改变 label 大小，pixmap 会拉伸 (如果 scaledContents=true) 或者 不变 (如果 false).
-                 // 为了最佳效果，我们应该设置 scaledContents(true).
-                 // 让我们假设 renderScene 中创建的背景 Label 需要 setScaledContents(true).
-                 // 我会在 renderScene 中加上这个设置。
+            // 字体缩放处理 (如果有 originalFontSize 属性)
+            QVariant varFontSize = w->property("originalFontSize");
+            if (varFontSize.isValid()) {
+                int origSize = varFontSize.toInt();
+                // 简单的平均缩放比例
+                float avgScale = (scaleX + scaleY) / 2.0f;
+                int newSize = static_cast<int>(origSize * avgScale);
+                if (newSize < 8) newSize = 8; // 最小字体保护
+
+                QString baseStyle = w->property("baseStyleSheet").toString();
+                if (baseStyle.isEmpty()) {
+                    baseStyle = w->styleSheet();
+                    w->setProperty("baseStyleSheet", baseStyle);
+                }
+
+                w->setStyleSheet(baseStyle + QString("; font-size: %1px;").arg(newSize));
             }
         }
 
-        // 2. 处理 ClickableArea (Polygon)
+        // 3. 处理 ClickableArea (Polygon)
         ClickableArea* ca = qobject_cast<ClickableArea*>(w);
         if (ca) {
             ca->rescale(scaleX, scaleY);
@@ -723,6 +730,9 @@ void Test3::renderScene()
     installDevFilter(rpgCenterPanel);
     if (hoverHintLabel)
         hoverHintLabel->raise();
+
+    // Force layout update to apply scaling immediately
+    updateGameLayout();
 }
 
 void Test3::tryShowTip(GameScene scene)
@@ -971,12 +981,19 @@ void Test3::renderWarehouseShelf()
 
         // 标签显示
         QLabel *lbl = new QLabel(name, rpgCenterPanel);
-        lbl->setStyleSheet("color: white; font-weight: bold; font-size: 16px; background-color: rgba(0,0,0,0.5); padding: 2px; border-radius: 4px;");
+        QString lblStyle = "color: white; font-weight: bold; background-color: rgba(0,0,0,0.5); padding: 2px; border-radius: 4px;";
+        // 初始大小 (16px)
+        lbl->setProperty("originalFontSize", 16);
+        lbl->setStyleSheet(lblStyle + "font-size: 16px;");
         lbl->adjustSize();
-        // 放置位置使用配置的坐标 (居中显示)
-        int lx = lblPos.x() - lbl->width() / 2;
-        int ly = lblPos.y() - lbl->height() / 2;
-        lbl->move(lx, ly);
+
+        // 设置原始几何 (使用中心点和初始宽高)
+        // 注意：lblPos 是中心点，lbl->width/height 是 adjustSize 后的
+        // 我们需要记录中心点和初始尺寸，以便缩放
+        // lbl->move 逻辑是: left = cx - w/2
+        // setGeometryCentered 需要 rect(cx, cy, w, h)
+        // 我们用当前大小作为初始大小
+        setGeometryCentered(lbl, lblPos.x(), lblPos.y(), lbl->width(), lbl->height());
         lbl->show();
 
         area->onDropCallback = [this, name](QString item)

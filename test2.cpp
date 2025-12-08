@@ -10,7 +10,7 @@ Test2::Test2(QWidget *parent) : QWidget(parent)
     mainGrid->setAlignment(Qt::AlignCenter);
 
     // 返回按钮 (右上角)
-    QPushButton *returnBtn = new QPushButton(Config::Test2::BTN_TEXT_BACK_TO_MENU);
+    returnBtn = new QPushButton(Config::Test2::BTN_TEXT_BACK_TO_MENU);
     returnBtn->setFixedSize(Config::Test2::RETURN_BTN_SIZE);
     returnBtn->setStyleSheet(Config::Test2::BTN_RETURN_STYLE);
     connect(returnBtn, &QPushButton::clicked, [this]()
@@ -111,7 +111,7 @@ Test2::Test2(QWidget *parent) : QWidget(parent)
 
     // 导航按钮
     QHBoxLayout *navLayout = new QHBoxLayout();
-    QPushButton *prevQBtn = new QPushButton(Config::Test2::BTN_TEXT_PREV);
+    prevQBtn = new QPushButton(Config::Test2::BTN_TEXT_PREV);
     nextQBtn = new QPushButton(Config::Test2::BTN_TEXT_NEXT);
     navLayout->addWidget(prevQBtn);
     navLayout->addWidget(nextQBtn);
@@ -307,4 +307,100 @@ void Test2::showImagePreview(QString imagePath, const QString &title)
     layout->addWidget(scroll);
 
     dlg->exec();
+}
+
+void Test2::resizeEvent(QResizeEvent *event)
+{
+    QWidget::resizeEvent(event);
+    updateLayoutScale();
+}
+
+void Test2::updateLayoutScale()
+{
+    // Calculate scale based on current size vs reference size
+    float scaleX = (float)width() / REF_SIZE.width();
+    float scaleY = (float)height() / REF_SIZE.height();
+    float scale = qMin(scaleX, scaleY); // Maintain aspect ratio for content elements
+
+    // 1. Scale Question Label (Font)
+    if(questionLabel) {
+        QFont f = questionLabel->font();
+        int newSize = static_cast<int>(ORIG_FONT_SIZE_Q * scale);
+        if(newSize < 12) newSize = 12;
+        // The style sheet overrides font size usually, so we update stylesheet or set font.
+        // Config defines STYLE_QUESTION_LBL with font-size: 24px.
+        // We need to override it dynamically.
+        QString newStyle = QString("font-size: %1px; font-weight: bold; margin-bottom: 20px;").arg(newSize);
+        questionLabel->setStyleSheet(newStyle);
+    }
+
+    // 2. Scale Options (Images & Buttons)
+    QSize newImgSize = Config::Test2::SIZE_OPTION_IMG * scale;
+    QSize newBtnSize = Config::Test2::SIZE_OPTION_BTN * scale;
+    QSize newIconSize = Config::Test2::SIZE_OPTION_ICON * scale;
+
+    int newOptFontSize = static_cast<int>(ORIG_FONT_SIZE_OPT * scale);
+    if(newOptFontSize < 10) newOptFontSize = 10;
+
+    // We update the stylesheet for buttons to reflect new font size
+    // Base style from Config:
+    // "QPushButton { background-color: white; border: 2px solid #ccc; color: #333; font-size: 16px; } ..."
+    // We replace '16px' with new size.
+    QString baseOptStyle = Config::Test2::STYLE_OPTION_BTN;
+    // Simple replace might be risky if multiple 16px exist, but here it's specific.
+    // Or we just append the new font-size which overrides previous ones in CSS logic?
+    // Usually yes, but inside the block.
+    // Let's use string replacement for "font-size: 16px;" -> "font-size: XXpx;"
+    QString dynamicOptStyle = baseOptStyle;
+    dynamicOptStyle.replace("font-size: 16px;", QString("font-size: %1px;").arg(newOptFontSize));
+
+    for(int i=0; i<4; ++i) {
+        if(optionImages[i]) {
+            optionImages[i]->setFixedSize(newImgSize);
+            optionImages[i]->setIconSize(newIconSize);
+        }
+        if(optionButtons[i]) {
+            optionButtons[i]->setFixedSize(newBtnSize);
+            optionButtons[i]->setStyleSheet(dynamicOptStyle);
+        }
+    }
+
+    // 3. Scale Nav Buttons
+    // Since they are in a layout, we might just scale font size or min size.
+    // Their size is not fixed in constructor (default QPushButton size).
+    // Let's scale font.
+    int btnFontSize = static_cast<int>(16 * scale); // default approx 16
+    if(btnFontSize < 10) btnFontSize = 10;
+    QString navBtnStyle = QString("font-size: %1px;").arg(btnFontSize);
+
+    if(prevQBtn) prevQBtn->setStyleSheet(navBtnStyle);
+    if(nextQBtn) {
+        // nextQBtn might have background color if it's submit
+        // We should preserve existing style if possible, just append font-size.
+        // But here we can just set font directly as it doesn't have complex stylesheet initially
+        // unless it's the submit button which has background color.
+        // setStyleSheet overwrites if not careful.
+        // Let's use setFont which is safer if stylesheet doesn't enforce font-size.
+        QFont f = font();
+        f.setPixelSize(btnFontSize);
+        nextQBtn->setFont(f); // This might not work if stylesheet has font-size.
+        // Config::Test2::BTN_TEXT_SUBMIT style is "background-color: ...; color: ...;" (no font-size)
+        // Default style is empty.
+        // So setFont should work.
+    }
+    if(prevQBtn) {
+         QFont f = font();
+         f.setPixelSize(btnFontSize);
+         prevQBtn->setFont(f);
+    }
+
+    // 4. Return Button
+    if(returnBtn) {
+        returnBtn->setFixedSize(Config::Test2::RETURN_BTN_SIZE * scale);
+        // It uses BTN_RETURN_STYLE which doesn't specify size but color/font.
+        // We can scale font too.
+        QFont f = font();
+        f.setPixelSize(btnFontSize);
+        returnBtn->setFont(f);
+    }
 }

@@ -59,9 +59,18 @@ private:
 
 protected:
     void showEvent(QShowEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
 
 private:
+    void updateLayoutScale();
     QDateTime m_startTime;
+
+    // Scaling Refs
+    const QSize REF_SIZE = QSize(1750, 900);
+    const int ORIG_FONT_SIZE_Q = 24;
+    const int ORIG_FONT_SIZE_OPT = 16;
+    QPushButton *prevQBtn;
+    QPushButton *returnBtn;
 };
 
 #endif // TEST2_H
