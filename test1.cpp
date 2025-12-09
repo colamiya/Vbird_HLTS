@@ -99,22 +99,26 @@ void Test1::updateSlide()
         // 使用缓存机制获取图片
         QPixmap pixmap = getPixmap(imagePath);
 
+        // 使用当前缩放比例计算显示尺寸
+        QSize currentDisplaySize = Config::Test1::DISPLAY_SIZE * m_currentScale;
+
         if (!pixmap.isNull())
         {
-            slideImageLabel->setPixmap(pixmap.scaled(Config::Test1::DISPLAY_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+            slideImageLabel->setPixmap(pixmap.scaled(currentDisplaySize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
         }
         else
         {
             slideImageLabel->setPixmap(generatePlaceholder(
                 QString("幻灯片 %1 (缺失: %2)").arg(currentSlideIndex + 1).arg(imagePath),
                 Config::Test1::COL_PLACEHOLDER_BG,
-                Config::Test1::DISPLAY_SIZE));
+                currentDisplaySize));
         }
     }
     else
     {
         // 索引越界回退
-        slideImageLabel->setPixmap(generatePlaceholder("无效的幻灯片索引", Qt::red, Config::Test1::DISPLAY_SIZE));
+        QSize currentDisplaySize = Config::Test1::DISPLAY_SIZE * m_currentScale;
+        slideImageLabel->setPixmap(generatePlaceholder("无效的幻灯片索引", Qt::red, currentDisplaySize));
     }
 }
 
@@ -185,13 +189,13 @@ void Test1::updateLayoutScale()
     // Calculate scale based on current size vs reference size
     float scaleX = (float)width() / REF_SIZE.width();
     float scaleY = (float)height() / REF_SIZE.height();
-    float scale = qMin(scaleX, scaleY); // Maintain aspect ratio for content elements generally
+    m_currentScale = qMin(scaleX, scaleY); // Maintain aspect ratio for content elements generally
 
     // Scale Slide Image
     // Use currentSlideIndex to reload and scale the image
     // Note: updateSlide() uses Config::Test1::DISPLAY_SIZE.
     // We should scale that display size.
-    QSize scaledDisplaySize = Config::Test1::DISPLAY_SIZE * scale;
+    QSize scaledDisplaySize = Config::Test1::DISPLAY_SIZE * m_currentScale;
     if (!slideImageLabel->pixmap().isNull()) {
         // Reload current image to prevent degradation from repeated scaling of cached pixmap
         if (currentSlideIndex >= 0 && currentSlideIndex < Config::Test1::SLIDE_IMAGES().size()) {
@@ -204,13 +208,13 @@ void Test1::updateLayoutScale()
     }
 
     // Scale Buttons (Prev/Next)
-    int btnW = 100 * scale; // Approx initial width
-    int btnH = 30 * scale;
+    int btnW = 100 * m_currentScale; // Approx initial width
+    int btnH = 30 * m_currentScale;
     if (btnW < 60) btnW = 60;
     if (btnH < 20) btnH = 20;
 
     QFont btnFont = font();
-    btnFont.setPointSize(static_cast<int>(ORIG_FONT_SIZE_BTN * scale));
+    btnFont.setPointSize(static_cast<int>(ORIG_FONT_SIZE_BTN * m_currentScale));
     if (btnFont.pointSize() < 8) btnFont.setPointSize(8);
 
     if(prevBtn) {
@@ -222,9 +226,20 @@ void Test1::updateLayoutScale()
     }
 
     // Scale Return Button
-    QSize scaledRetBtn = Config::Test1::RETURN_BTN_SIZE * scale;
+    // remove fixed width constraint to allow text to fit, set min size instead
+    QSize scaledRetBtnMin = Config::Test1::RETURN_BTN_SIZE * m_currentScale;
+    if (scaledRetBtnMin.width() < 120) scaledRetBtnMin.setWidth(120); // ensure minimum readability width
+    if (scaledRetBtnMin.height() < 30) scaledRetBtnMin.setHeight(30);
+
     if(returnBtn) {
-        returnBtn->setFixedSize(scaledRetBtn);
-        returnBtn->setFont(btnFont);
+        // Reset fixed size to allow expansion if needed, set min size
+        returnBtn->setFixedSize(QSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX)); // Clear fixed size
+        returnBtn->setMinimumSize(scaledRetBtnMin);
+        returnBtn->setMaximumSize(scaledRetBtnMin.width() * 2, scaledRetBtnMin.height()); // Constrain max width a bit
+
+        // Ensure font scales but doesn't get too small
+        QFont retBtnFont = btnFont;
+        if (retBtnFont.pointSize() < 10) retBtnFont.setPointSize(10);
+        returnBtn->setFont(retBtnFont);
     }
 }

@@ -71,6 +71,8 @@ private:
     const int ORIG_FONT_SIZE_OPT = 16;
     QPushButton *prevQBtn;
     QPushButton *returnBtn;
+
+    float m_currentScale = 1.0f;
 };
 
 #endif // TEST2_H
