@@ -375,17 +375,22 @@ void Test2::updateLayoutScale()
     }
 
     // 3. Scale Nav Buttons
+    // Adopt logic from Test 1: use BTN_HEIGHT_BASE * scale for height
+    // And dynamic font size
+
+    int btnH = Config::Test1::BTN_HEIGHT_BASE * m_currentScale; // Use Test1 Base Height for consistency
+    if (btnH < 30) btnH = 30;
+
     int btnFontSize = static_cast<int>(Config::Text::SIZE_TEST2_ACTION_BTN * m_currentScale);
     if(btnFontSize < 10) btnFontSize = 10;
 
-    // For simple buttons without complex selectors, direct font-size setting works,
-    // or regex replace if using the getter style.
-    // GET_ACTION_BTN_STYLE returns "font-size: %1px; color: %2;" (no selector wrapper)
-    // So appending works fine here, or replacement.
     QString navBtnStyle = Config::Test2::GET_ACTION_BTN_STYLE();
     navBtnStyle.replace(QRegularExpression("font-size: \\d+px"), QString("font-size: %1px").arg(btnFontSize));
 
-    if(prevQBtn) prevQBtn->setStyleSheet(navBtnStyle);
+    if(prevQBtn) {
+        prevQBtn->setStyleSheet(navBtnStyle);
+        prevQBtn->setMinimumHeight(btnH);
+    }
     if(nextQBtn) {
         if(currentQuestionIndex == questions.size() - 1) {
              // Submit button style
@@ -394,8 +399,10 @@ void Test2::updateLayoutScale()
                 .arg(Config::Test2::COL_BTN_TEXT_WHITE)
                 .arg(btnFontSize);
              nextQBtn->setStyleSheet(submitStyle);
+             nextQBtn->setMinimumHeight(btnH);
         } else {
              nextQBtn->setStyleSheet(navBtnStyle);
+             nextQBtn->setMinimumHeight(btnH);
         }
     }
 
