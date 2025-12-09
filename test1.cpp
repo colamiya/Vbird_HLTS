@@ -11,7 +11,7 @@ Test1::Test1(QWidget *parent) : QWidget(parent)
     // 返回按钮 (右上角)
     returnBtn = new QPushButton(Config::Test1::BTN_TEXT_BACK_TO_MENU);
     returnBtn->setFixedSize(Config::Test1::RETURN_BTN_SIZE);
-    returnBtn->setStyleSheet(Config::Test1::BTN_RETURN_STYLE);
+    returnBtn->setStyleSheet(Config::Test1::GET_BTN_RETURN_STYLE());
     connect(returnBtn, &QPushButton::clicked, [this]()
             {
         QMessageBox::StandardButton reply;
@@ -43,6 +43,11 @@ Test1::Test1(QWidget *parent) : QWidget(parent)
     QHBoxLayout *navLayout = new QHBoxLayout();
     prevBtn = new QPushButton(Config::Test1::BTN_TEXT_PREV);
     nextBtn = new QPushButton(Config::Test1::BTN_TEXT_NEXT);
+
+    QString navBtnStyle = Config::Test1::GET_BTN_NAV_STYLE();
+    prevBtn->setStyleSheet(navBtnStyle);
+    nextBtn->setStyleSheet(navBtnStyle);
+
     navLayout->addWidget(prevBtn);
     navLayout->addWidget(nextBtn);
     slideLayout->addLayout(navLayout);
@@ -157,6 +162,10 @@ void Test1::finishSlideshow()
 
     // 完成按钮
     QPushButton *finishBtn = new QPushButton(Config::Test1::BTN_TEXT_FINISH);
+    // Apply style for finish button (similar to nav but maybe bigger?)
+    // Using nav style for simplicity as requested, or default global
+    finishBtn->setStyleSheet(Config::Test1::GET_BTN_NAV_STYLE());
+
     connect(finishBtn, &QPushButton::clicked, [this]()
             { emit levelCompleted(); });
     grid->addWidget(finishBtn, 2, 0, 1, 5, Qt::AlignCenter);
@@ -213,33 +222,35 @@ void Test1::updateLayoutScale()
     if (btnW < 60) btnW = 60;
     if (btnH < 20) btnH = 20;
 
-    QFont btnFont = font();
-    btnFont.setPointSize(static_cast<int>(ORIG_FONT_SIZE_BTN * m_currentScale));
-    if (btnFont.pointSize() < 8) btnFont.setPointSize(8);
+    int btnFontSize = static_cast<int>(Config::Text::SIZE_TEST1_NAV_BTN * m_currentScale);
+    if (btnFontSize < 8) btnFontSize = 8;
+
+    // Use regex to update font-size in existing stylesheet to preserve colors
+    QString navBtnStyle = Config::Test1::GET_BTN_NAV_STYLE();
+    navBtnStyle.replace(QRegularExpression("font-size: \\d+px"), QString("font-size: %1px").arg(btnFontSize));
 
     if(prevBtn) {
-        // prevBtn->setFixedSize(btnW, btnH); // Let layout handle size, just set min/max if needed or rely on font size
-        prevBtn->setFont(btnFont);
+        prevBtn->setStyleSheet(navBtnStyle);
     }
     if(nextBtn) {
-        nextBtn->setFont(btnFont);
+        nextBtn->setStyleSheet(navBtnStyle);
     }
 
     // Scale Return Button
-    // remove fixed width constraint to allow text to fit, set min size instead
     QSize scaledRetBtnMin = Config::Test1::RETURN_BTN_SIZE * m_currentScale;
-    if (scaledRetBtnMin.width() < 120) scaledRetBtnMin.setWidth(120); // ensure minimum readability width
+    if (scaledRetBtnMin.width() < 120) scaledRetBtnMin.setWidth(120);
     if (scaledRetBtnMin.height() < 30) scaledRetBtnMin.setHeight(30);
 
     if(returnBtn) {
-        // Reset fixed size to allow expansion if needed, set min size
         returnBtn->setFixedSize(QSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX)); // Clear fixed size
         returnBtn->setMinimumSize(scaledRetBtnMin);
-        returnBtn->setMaximumSize(scaledRetBtnMin.width() * 2, scaledRetBtnMin.height()); // Constrain max width a bit
+        returnBtn->setMaximumSize(scaledRetBtnMin.width() * 2, scaledRetBtnMin.height());
 
-        // Ensure font scales but doesn't get too small
-        QFont retBtnFont = btnFont;
-        if (retBtnFont.pointSize() < 10) retBtnFont.setPointSize(10);
-        returnBtn->setFont(retBtnFont);
+        int retBtnFontSize = static_cast<int>(Config::Text::SIZE_TEST1_RETURN_BTN * m_currentScale);
+        if (retBtnFontSize < 10) retBtnFontSize = 10;
+
+        QString retBtnStyle = Config::Test1::GET_BTN_RETURN_STYLE();
+        retBtnStyle.replace(QRegularExpression("font-size: \\d+px"), QString("font-size: %1px").arg(retBtnFontSize));
+        returnBtn->setStyleSheet(retBtnStyle);
     }
 }

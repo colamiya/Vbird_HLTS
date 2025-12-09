@@ -1,4 +1,4 @@
-﻿#ifndef CONFIG_TEST3_H
+#ifndef CONFIG_TEST3_H
 #define CONFIG_TEST3_H
 
 #include <QString>
@@ -9,6 +9,7 @@
 #include <QMap>
 #include <QPolygon>
 #include "config_global.h"
+#include "config_text.h"
 
 /**
  * @brief 测试3 (RPG模拟实训) 模块配置
@@ -212,22 +213,47 @@ namespace Config
             constexpr const char *SIDEBAR_LEFT = "background-color: rgba(52, 73, 94, 0.9); border-right: 1px solid #7f8c8d;";
             constexpr const char *SIDEBAR_RIGHT = "background-color: rgba(236, 240, 241, 0.9); border-left: 1px solid #bdc3c7;";
 
-            // 标签样式
-            constexpr const char *LBL_TITLE = "color: white; font-weight: bold; font-size: 16px; margin: 10px;";
-            constexpr const char *LBL_TITLE_RIGHT = "color: #2c3e50; font-weight: bold; font-size: 16px; margin: 10px;";
+            // 标签样式 (动态生成)
+            static inline QString GET_LBL_TITLE() {
+                return QString("color: %1; font-weight: bold; font-size: %2px; margin: 10px;")
+                    .arg(Config::Text::COLOR_TEST3_SIDEBAR_TITLE)
+                    .arg(Config::Text::SIZE_TEST3_SIDEBAR_TITLE);
+            }
 
-            constexpr const char *LBL_HOVER_HINT = "background-color: rgba(0,0,0,180); color: white; border-radius: 5px; padding: 5px; font-size: 14px;";
+            static inline QString GET_LBL_TITLE_RIGHT() {
+                return QString("color: %1; font-weight: bold; font-size: %2px; margin: 10px;")
+                    .arg(Config::Text::COLOR_TEST3_SIDEBAR_TITLE_RIGHT)
+                    .arg(Config::Text::SIZE_TEST3_SIDEBAR_TITLE); // Share size
+            }
+
+            static inline QString GET_LBL_HOVER_HINT() {
+                return QString("background-color: rgba(0,0,0,180); color: %1; border-radius: 5px; padding: 5px; font-size: %2px;")
+                    .arg(Config::Text::COLOR_TEST3_HOVER_HINT)
+                    .arg(Config::Text::SIZE_TEST3_HOVER_HINT);
+            }
+
             constexpr const char *LBL_SUCCESS_GREEN = "color: #27ae60; font-weight: bold; font-size: 18px; border: 2px solid #27ae60; padding: 10px; background: rgba(255,255,255,0.8);";
 
             // 按钮样式
-            constexpr const char *BTN_RETURN_MENU = "QPushButton { background-color: #e74c3c; color: white; border-radius: 5px; padding: 0px; margin: 0px; } QPushButton:hover { background-color: #c0392b; }";
-            constexpr const char *BTN_TUTORIAL = "QPushButton { background-color: #f1c40f; color: #ffffff; border-radius: 5px; font-weight: bold; padding: 0px; margin: 0px; } QPushButton:hover { background-color: #f39c12; }";
-            constexpr const char *BTN_VIEW_TASK_SHEET = "padding: 0px; margin: 5px;";
-            constexpr const char *BTN_ORANGE = "background-color: #e67e22; color: white; border-radius: 4px;";
+            static inline QString GET_BTN_RETURN_MENU() {
+                return QString("QPushButton { background-color: #e74c3c; color: %1; border-radius: 5px; padding: 0px; margin: 0px; font-size: %2px; } QPushButton:hover { background-color: #c0392b; }")
+                       .arg(Config::Text::COLOR_TEST3_RETURN_BTN_TEXT)
+                       .arg(Config::Text::SIZE_TEST3_RETURN_BTN);
+            }
+
+            static inline QString GET_BTN_TUTORIAL() {
+                return QString("QPushButton { background-color: #f1c40f; color: %1; border-radius: 5px; font-weight: bold; padding: 0px; margin: 0px; font-size: %2px; } QPushButton:hover { background-color: #f39c12; }")
+                       .arg(Config::Text::COLOR_TEST3_TUTORIAL_BTN_TEXT)
+                       .arg(Config::Text::SIZE_TEST3_TUTORIAL_BTN);
+            }
 
             // 统一玻璃风格按钮 (Unified Glass Style)
-            // 蓝色边框，白色半透明背景，蓝色字体
-            constexpr const char *STYLE_BTN_UNIFIED = "QPushButton { border: 2px solid #3498db; background-color: rgba(255, 255, 255, 0.8); color: #3498db; border-radius: 10px; font-weight: bold; font-size: 16px; padding: 0px; } QPushButton:hover { background-color: rgba(255, 255, 255, 0.95); } QPushButton:disabled { color: gray; border-color: gray; }";
+            // 蓝色边框，白色半透明背景，蓝色字体 (动态生成)
+            static inline QString GET_STYLE_BTN_UNIFIED() {
+                 return QString("QPushButton { border: 2px solid %1; background-color: rgba(255, 255, 255, 0.8); color: %1; border-radius: 10px; font-weight: bold; font-size: %2px; padding: 0px; } QPushButton:hover { background-color: rgba(255, 255, 255, 0.95); } QPushButton:disabled { color: gray; border-color: gray; }")
+                        .arg(Config::Text::COLOR_TEST3_ACTION_BTN_TEXT)
+                        .arg(Config::Text::SIZE_TEST3_ACTION_BTN);
+            }
 
             // 列表样式
             constexpr const char *LIST_WIDGET = "QTreeWidget { background: transparent; border: none; font-size: 14px; } QTreeWidget::item { padding: 5px; }";
@@ -235,9 +261,8 @@ namespace Config
             // 货架区域样式 (白色底，灰色边框)
             constexpr const char *SHELF_AREA = "background-color: white; border: 1px solid #7f8c8d; border-radius: 4px;";
 
-            // 箭头样式
-            constexpr const char *ARROW_TEXT_COLOR = "#0000FF"; // 蓝色
-            const int ARROW_TEXT_SIZE = 16;
+            // 箭头样式 (引用 Text Config)
+            // Note: COLOR_TEST3_ARROW_TEXT is defined in Config::Text
 
             // 教程
             constexpr const char *TUTORIAL_TEXT_STYLE = "color: white; font-size: 18px; font-weight: bold;";
@@ -310,22 +335,16 @@ namespace Config
                 m["毛巾"] = ":/source/Test3/毛巾.png";
                 return m;
             }
-
-            // 教程图
-            //constexpr const char *IMAGE_TUTORIAL_GENERAL = ":/source/Test3/入口.jpg";
-            //constexpr const char *IMAGE_TUTORIAL_SHELF = ":/source/Test3/取布草的货架.jpg";
-            //constexpr const char *IMAGE_TUTORIAL_WAREHOUSE = ":/source/Test3/仓库1.jpg";
         }
 
         // --- 字体配置 (Fonts) ---
         namespace Fonts
         {
             constexpr const char *SHEET_FONT_FAMILY = "Microsoft YaHei";
-            const int SHEET_FONT_SIZE = 16;
-            const int SHEET_FONT_WEIGHT = 75; // Bold
+            // SHEET_FONT_SIZE is now managed by Config::Text::SIZE_TEST3_SHELF_LABEL
 
-            constexpr const char *COL_LINEN_COUNT = "red";
-            const int SIZE_LINEN_COUNT = 18;
+            // COL_LINEN_COUNT managed by Config::Text::COLOR_TEST3_COUNT_LABEL_DIRTY or similar
+            // SIZE_LINEN_COUNT managed by Config::Text::SIZE_TEST3_COUNT_LABEL
         }
 
     }

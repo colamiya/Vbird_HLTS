@@ -19,7 +19,7 @@ MainWindow::~MainWindow() {}
 void MainWindow::setupStyle()
 {
     // 加载全局样式表
-    this->setStyleSheet(Config::Global::GLOBAL_STYLESHEET);
+    this->setStyleSheet(Config::Global::GET_GLOBAL_STYLESHEET());
 }
 
 void MainWindow::setupUI()
@@ -71,7 +71,7 @@ QWidget *MainWindow::createStartPage()
 
     // 标题
     QLabel *title = new QLabel(Config::Global::TITLE_START_PAGE);
-    title->setStyleSheet(QString("font-size: %1px; font-weight: bold;").arg(Config::Global::FONT_SIZE_SUBTITLE));
+    title->setStyleSheet(QString("font-size: %1px; font-weight: bold; color: %2;").arg(Config::Text::SIZE_START_TITLE).arg(Config::Text::COLOR_START_TITLE));
     title->setAlignment(Qt::AlignCenter);
     layout->addWidget(title, 0, Qt::AlignCenter);
 
@@ -93,11 +93,20 @@ QWidget *MainWindow::createStartPage()
     classInput = new QLineEdit();
     durationInput = new QLineEdit();
 
-    form->addRow("姓名:", nameInput);
-    form->addRow("年龄:", ageInput);
-    form->addRow("性别:", genderInput);
-    form->addRow("班级:", classInput);
-    form->addRow("时长:", durationInput);
+    // 使用统一标签样式
+    QString labelStyle = QString("font-size: %1px; color: %2;").arg(Config::Text::SIZE_START_LABEL).arg(Config::Text::COLOR_START_LABEL);
+
+    auto createLabel = [&](const QString &text) {
+        QLabel *lbl = new QLabel(text);
+        lbl->setStyleSheet(labelStyle);
+        return lbl;
+    };
+
+    form->addRow(createLabel("姓名:"), nameInput);
+    form->addRow(createLabel("年龄:"), ageInput);
+    form->addRow(createLabel("性别:"), genderInput);
+    form->addRow(createLabel("班级:"), classInput);
+    form->addRow(createLabel("时长:"), durationInput);
 
     QWidget *formWidget = new QWidget();
     formWidget->setLayout(form);
@@ -108,6 +117,7 @@ QWidget *MainWindow::createStartPage()
     // 开始按钮
     QPushButton *startBtn = new QPushButton(Config::Global::BTN_TEXT_START);
     startBtn->setFixedWidth(Config::Global::SIZE_START_BTN_WIDTH);
+    startBtn->setStyleSheet(QString("font-size: %1px; color: %2;").arg(Config::Text::SIZE_START_BTN).arg(Config::Text::COLOR_START_BTN_TEXT));
     connect(startBtn, &QPushButton::clicked, this, &MainWindow::onStartTraining);
     layout->addWidget(startBtn, 0, Qt::AlignCenter);
 
@@ -172,7 +182,7 @@ QWidget *MainWindow::createMainMenu()
     layout->setSpacing(30);
 
     QLabel *title = new QLabel(Config::Global::TITLE_MAIN_MENU);
-    title->setStyleSheet(QString("font-size: %1px; font-weight: bold;").arg(Config::Global::FONT_SIZE_TITLE));
+    title->setStyleSheet(QString("font-size: %1px; font-weight: bold; color: %2;").arg(Config::Text::SIZE_MENU_TITLE).arg(Config::Text::COLOR_MENU_TITLE));
     layout->addWidget(title, 0, Qt::AlignCenter);
 
     // 动态添加按钮的 Lambda
@@ -180,7 +190,7 @@ QWidget *MainWindow::createMainMenu()
     {
         QPushButton *btn = new QPushButton(text);
         btn->setFixedSize(Config::Global::SIZE_MENU_BTN);
-        btn->setStyleSheet("font-size: 18px;");
+        btn->setStyleSheet(QString("font-size: %1px; color: %2;").arg(Config::Text::SIZE_MENU_BTN).arg(Config::Text::COLOR_MENU_BTN_TEXT));
         connect(btn, &QPushButton::clicked, [this, idx]()
                 { mainStack->setCurrentIndex(idx); });
         layout->addWidget(btn, 0, Qt::AlignCenter);
@@ -194,7 +204,8 @@ QWidget *MainWindow::createMainMenu()
     // 添加结束训练按钮
     QPushButton *exitBtn = new QPushButton("结束训练");
     exitBtn->setFixedSize(Config::Global::SIZE_MENU_BTN);
-    exitBtn->setStyleSheet("background-color: #e74c3c; font-size: 18px;");
+    exitBtn->setStyleSheet(QString("background-color: #e74c3c; font-size: %1px; color: %2;")
+                           .arg(Config::Text::SIZE_MENU_EXIT_BTN).arg(Config::Text::COLOR_MENU_EXIT_BTN_TEXT));
     connect(exitBtn, &QPushButton::clicked, this, &MainWindow::onEndTraining);
     layout->addWidget(exitBtn, 0, Qt::AlignCenter);
 

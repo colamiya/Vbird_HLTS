@@ -1,8 +1,9 @@
-﻿#ifndef CONFIG_TEST2_H
+#ifndef CONFIG_TEST2_H
 #define CONFIG_TEST2_H
 
 #include <QString>
 #include <QSize>
+#include "config_text.h"
 
 /**
  * @brief 测试2 (选择题) 配置
@@ -16,7 +17,6 @@ namespace Config
 
         // --- 资源路径模板 (Path Templates) ---
         // 选项图片路径格式。 %1 会被替换为题目编号和选项字母 (如 "1A")
-        // 例如: ":/source/Test2/1A.jpg"
         constexpr const char *PATH_FMT_JPG = ":/source/Test2/%1.jpg";
 
         // --- 界面文本 (UI Texts) ---
@@ -49,23 +49,42 @@ namespace Config
         // --- 颜色与样式 (Colors & Styles) ---
         // 提交按钮背景色 (绿色)
         constexpr const char *COL_BTN_SUBMIT = "#27ae60";
-        // 白色文字
-        constexpr const char *COL_BTN_TEXT_WHITE = "white";
 
-        // 选项按钮样式表
-        // 包含默认状态、选中状态、悬停状态
-        constexpr const char *STYLE_OPTION_BTN =
-            "QPushButton { background-color: white; border: 2px solid #ccc; color: #333; font-size: 16px; }"
-            "QPushButton:checked { background-color: #3498db; border-color: #3498db; color: white; }"
-            "QPushButton:hover { border-color: #3498db; }";
+        // 选项按钮样式表 (动态生成)
+        static inline QString GET_STYLE_OPTION_BTN() {
+             return QString(
+                "QPushButton { background-color: white; border: 2px solid #ccc; color: %1; font-size: %2px; }"
+                "QPushButton:checked { background-color: #3498db; border-color: #3498db; color: %3; }"
+                "QPushButton:hover { border-color: #3498db; }")
+                .arg(Config::Text::COLOR_TEST2_OPTION)
+                .arg(Config::Text::SIZE_TEST2_OPTION)
+                .arg(Config::Text::COLOR_TEST2_OPTION_SELECTED);
+        }
 
         // 图片按钮样式 (透明背景，无边框)
         constexpr const char *STYLE_IMG_BTN = "border: none; background-color: transparent;";
 
-        // 题目文字样式
-        constexpr const char *STYLE_QUESTION_LBL = "font-size: 24px; font-weight: bold; margin-bottom: 20px;";
-        // 返回按钮样式
-        constexpr const char *BTN_RETURN_STYLE = "background-color: #c0392b; color: white; font-weight: bold;";
+        // 题目文字样式 (动态生成)
+        static inline QString GET_STYLE_QUESTION_LBL() {
+            return QString("font-size: %1px; font-weight: bold; color: %2; margin-bottom: 20px;")
+                   .arg(Config::Text::SIZE_TEST2_QUESTION)
+                   .arg(Config::Text::COLOR_TEST2_QUESTION);
+        }
+
+        // 返回按钮样式 (动态生成)
+        static inline QString GET_BTN_RETURN_STYLE() {
+            return QString("background-color: #c0392b; color: %1; font-weight: bold; font-size: %2px;")
+                   .arg(Config::Text::COLOR_TEST1_RETURN_BTN_TEXT) // Share same color config for consistency or define new
+                   .arg(Config::Text::SIZE_TEST1_RETURN_BTN);
+        }
+
+        // 操作按钮样式 (下一题/提交) (动态生成)
+        static inline QString GET_ACTION_BTN_STYLE() {
+            return QString("font-size: %1px; color: %2;")
+                   .arg(Config::Text::SIZE_TEST2_ACTION_BTN)
+                   .arg(Config::Text::COLOR_TEST2_ACTION_BTN_TEXT);
+        }
+
 
         // --- HTML 报告样式 (HTML Report) ---
         constexpr const char *HTML_TABLE_STYLE = "<style>table { border-collapse: collapse; width: 100%; font-size: 16px; } th, td { border: 1px solid #ddd; padding: 12px; text-align: center; } th { background-color: #f2f2f2; }</style>";

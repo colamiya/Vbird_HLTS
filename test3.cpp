@@ -1,4 +1,4 @@
-﻿#include "test3.h"
+#include "test3.h"
 #include "tutorial_overlay.h"
 #include <QBoxLayout>
 #include <QPainter>
@@ -36,13 +36,18 @@ public:
 
         m_headerBtn = new QPushButton(titleText, this);
         // 增强可见性：添加背景色和深色字体
-        QString baseStyle = "text-align: left; font-weight: bold; font-size: 14px; border-radius: 4px; padding: 6px; min-height: 40px;";
+        // 使用 Config::Text 中的变量
+        QString baseStyle = QString("text-align: left; font-weight: bold; font-size: %1px; border-radius: 4px; padding: 6px; min-height: 40px;")
+            .arg(Config::Text::SIZE_TEST3_TASK_HEADER);
+
         if (m_task->isEmergency) {
             // 紧急任务：黄色背景，红色字体
-            baseStyle += "background-color: yellow; color: red;";
+            baseStyle += QString("background-color: yellow; color: %1;")
+                .arg(Config::Text::COLOR_TEST3_TASK_HEADER_EMERGENCY);
         } else {
              // 普通任务：原有样式
-            baseStyle += "background-color: #d6eaf8; color: #000000;";
+            baseStyle += QString("background-color: #d6eaf8; color: %1;")
+                .arg(Config::Text::COLOR_TEST3_TASK_HEADER_NORMAL);
         }
 
         m_headerBtn->setStyleSheet(baseStyle);
@@ -68,7 +73,12 @@ public:
         m_table->verticalHeader()->setVisible(false);
         m_table->setSelectionMode(QAbstractItemView::NoSelection);
         m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
-        m_table->setStyleSheet("background: rgba(255,255,255,0.8); border: 1px solid #bdc3c7; border-radius: 4px;");
+
+        // 使用配置中的字体大小和颜色
+        QString tableStyle = QString("background: rgba(255,255,255,0.8); border: 1px solid #bdc3c7; border-radius: 4px; font-size: %1px; color: %2;")
+            .arg(Config::Text::SIZE_TEST3_TASK_TABLE)
+            .arg(Config::Text::COLOR_TEST3_TASK_TABLE_TEXT);
+        m_table->setStyleSheet(tableStyle);
 
         // 启用滚动
         m_table->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
@@ -158,7 +168,7 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     // 返回主菜单按钮
     QPushButton *returnBtn = new QPushButton(Config::Test3::Texts::BTN_TEXT_BACK_TO_MENU);
     returnBtn->setFixedSize(Config::Test3::Geometry::RETURN_BTN_SIZE);
-    returnBtn->setStyleSheet(Config::Test3::Styles::BTN_RETURN_MENU);
+    returnBtn->setStyleSheet(Config::Test3::Styles::GET_BTN_RETURN_MENU());
     returnBtn->setCursor(Qt::PointingHandCursor);
     connect(returnBtn, &QPushButton::clicked, [this]()
             {
@@ -173,13 +183,13 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     // 新手教程按钮
     tutorialBtn = new QPushButton(Config::Test3::Texts::BTN_TUTORIAL);
     tutorialBtn->setFixedSize(Config::Test3::Geometry::TUTORIAL_BTN_SIZE);
-    tutorialBtn->setStyleSheet(Config::Test3::Styles::BTN_TUTORIAL);
+    tutorialBtn->setStyleSheet(Config::Test3::Styles::GET_BTN_TUTORIAL());
     tutorialBtn->setCursor(Qt::PointingHandCursor);
     connect(tutorialBtn, &QPushButton::clicked, [this]()
             { showTutorial(); });
 
     locationLabel = new QLabel(QString(Config::Test3::Texts::LBL_LOCATION_PREFIX) + "入口");
-    locationLabel->setStyleSheet(Config::Test3::Styles::LBL_TITLE);
+    locationLabel->setStyleSheet(Config::Test3::Styles::GET_LBL_TITLE());
     locationLabel->setWordWrap(true);
 
     // 推车状态图标
@@ -218,11 +228,13 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     // 悬浮提示标签 (全局单例)
     hoverHintLabel = new QLabel(rpgCenterPanel);
     hoverHintLabel->setAlignment(Qt::AlignCenter);
-    hoverHintLabel->setStyleSheet(Config::Test3::Styles::LBL_HOVER_HINT);
+    hoverHintLabel->setStyleSheet(Config::Test3::Styles::GET_LBL_HOVER_HINT());
     hoverHintLabel->hide();
     // 转换为中心坐标以适配自适应系统
     QRect hintRect = Config::Test3::Geometry::RECT_HOVER_HINT;
     setGeometryCentered(hoverHintLabel, hintRect.center().x(), hintRect.center().y(), hintRect.width(), hintRect.height());
+    // Store original font size for scaling
+    hoverHintLabel->setProperty("originalFontSize", Config::Text::SIZE_TEST3_HOVER_HINT);
 
     // --- 右侧面板 ---
     QWidget *rightPanel = new QWidget();
@@ -251,10 +263,10 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     invHeaderLayout->setContentsMargins(0, 0, 0, 0);
 
     inventoryTitleLabel = new QLabel(Config::Test3::Texts::LBL_INVENTORY_TITLE);
-    inventoryTitleLabel->setStyleSheet(Config::Test3::Styles::LBL_TITLE_RIGHT);
+    inventoryTitleLabel->setStyleSheet(Config::Test3::Styles::GET_LBL_TITLE_RIGHT());
 
     cartCountLabel = new QLabel("0/40");
-    cartCountLabel->setStyleSheet(Config::Test3::Styles::LBL_TITLE_RIGHT);
+    cartCountLabel->setStyleSheet(Config::Test3::Styles::GET_LBL_TITLE_RIGHT());
 
     invHeaderLayout->addWidget(inventoryTitleLabel);
     invHeaderLayout->addWidget(cartCountLabel);
@@ -278,7 +290,7 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     elePanelLayout->setContentsMargins(0, 0, 0, 0);
 
     QLabel *eleTitle = new QLabel(Config::Test3::Texts::LBL_ELEVATOR_PANEL_TITLE);
-    eleTitle->setStyleSheet(Config::Test3::Styles::LBL_TITLE_RIGHT);
+    eleTitle->setStyleSheet(Config::Test3::Styles::GET_LBL_TITLE_RIGHT());
     elePanelLayout->addWidget(eleTitle);
 
     QGridLayout *btnGrid = new QGridLayout();
@@ -290,7 +302,15 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
         QPushButton *btn = new QPushButton(txt);
         btn->setFixedSize(Config::Test3::Geometry::SIZE_ELEVATOR_BTN_SIDEBAR);
         // 使用统一蓝色样式
-        btn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_UNIFIED);
+        btn->setStyleSheet(Config::Test3::Styles::GET_STYLE_BTN_UNIFIED());
+        // Override font size specifically for sidebar elevator buttons?
+        // GET_STYLE_BTN_UNIFIED uses Config::Text::SIZE_TEST3_ACTION_BTN.
+        // We might want SIZE_TEST3_ELEVATOR_SIDEBAR_BTN.
+        // Let's replace the font-size if needed.
+        QString base = Config::Test3::Styles::GET_STYLE_BTN_UNIFIED();
+        QString custom = base + QString(" font-size: %1px; color: %2;").arg(Config::Text::SIZE_TEST3_ELEVATOR_SIDEBAR_BTN).arg(Config::Text::COLOR_TEST3_ELEVATOR_SIDEBAR_BTN);
+        btn->setStyleSheet(custom);
+
         btn->setCursor(Qt::PointingHandCursor);
         connect(btn, &QPushButton::clicked, [this, floor]()
                 { handleElevatorButton(floor); });
@@ -791,6 +811,17 @@ void Test3::tryShowTip(GameScene scene)
     }
 }
 
+// Helper for ArrowButton creation to inject configs
+ArrowButton* Test3::createArrow(QWidget* parent, const QRect &rect, int angle, const QString &text, int fontSize) {
+    ArrowButton *btn = new ArrowButton(parent);
+    setGeometryCentered(btn, rect);
+    btn->setProperty("originalFontSize", fontSize); // Used for scaling
+    btn->setAngle(angle);
+    btn->setArrowText(""); // Hide default center text
+    btn->setArrowTextSize(fontSize);
+    btn->setColor(QColor(Config::Text::COLOR_TEST3_ARROW_TEXT));
+    return btn;
+}
 
 void Test3::renderEntrance()
 {
@@ -804,13 +835,7 @@ void Test3::renderEntrance()
                         Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
     bg->show();
 
-    ArrowButton *btnHome = new ArrowButton(rpgCenterPanel);
-    setGeometryCentered(btnHome, Config::Test3::Geometry::RECT_BTN_ENTRANCE_HOME);
-    btnHome->setProperty("originalFontSize", Config::Test3::Styles::ARROW_TEXT_SIZE);
-    btnHome->setAngle(Config::Test3::Geometry::ANGLE_BTN_ENTRANCE_HOME);
-    btnHome->setArrowText("");
-    btnHome->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
-    btnHome->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
+    ArrowButton *btnHome = createArrow(rpgCenterPanel, Config::Test3::Geometry::RECT_BTN_ENTRANCE_HOME, Config::Test3::Geometry::ANGLE_BTN_ENTRANCE_HOME, "", Config::Text::SIZE_TEST3_ARROW_TEXT);
     connect(btnHome, &QPushButton::clicked, this, &Test3::handleGoHome);
     connect(btnHome, &ArrowButton::hovered, [this](bool status, QString text)
             {
@@ -849,13 +874,7 @@ void Test3::renderStaffHallway()
                         Config::Test3::Geometry::CENTER_PANEL_SIZE.width(), Config::Test3::Geometry::CENTER_PANEL_SIZE.height());
     bg->show();
 
-    ArrowButton *exitBtn = new ArrowButton(rpgCenterPanel);
-    setGeometryCentered(exitBtn, Config::Test3::Geometry::RECT_BTN_HALLWAY_EXIT);
-    exitBtn->setProperty("originalFontSize", Config::Test3::Styles::ARROW_TEXT_SIZE);
-    exitBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_HALLWAY_EXIT);
-    exitBtn->setArrowText("");
-    exitBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
-    exitBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
+    ArrowButton *exitBtn = createArrow(rpgCenterPanel, Config::Test3::Geometry::RECT_BTN_HALLWAY_EXIT, Config::Test3::Geometry::ANGLE_BTN_HALLWAY_EXIT, "", Config::Text::SIZE_TEST3_ARROW_TEXT);
     connect(exitBtn, &QPushButton::clicked, [this]() { goToScene(GameScene::Entrance); });
     connect(exitBtn, &ArrowButton::hovered, [this](bool status, QString text)
             {
@@ -878,15 +897,9 @@ void Test3::renderStaffHallway()
     btnClock->setGeometry(rpgCenterPanel->rect());
     btnClock->show();
 
-    auto createArrow = [&](const QRect &rect, int angle, QString text, auto func)
+    auto createArrowHelper = [&](const QRect &rect, int angle, QString text, auto func)
     {
-        ArrowButton *btn = new ArrowButton(rpgCenterPanel);
-        setGeometryCentered(btn, rect);
-        btn->setProperty("originalFontSize", Config::Test3::Styles::ARROW_TEXT_SIZE);
-        btn->setAngle(angle);
-        btn->setArrowText("");
-        btn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
-        btn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
+        ArrowButton *btn = createArrow(rpgCenterPanel, rect, angle, "", Config::Text::SIZE_TEST3_ARROW_TEXT);
         connect(btn, &QPushButton::clicked, func);
         connect(btn, &ArrowButton::hovered, [this, text](bool status, QString t)
                 {
@@ -895,9 +908,9 @@ void Test3::renderStaffHallway()
         btn->show();
     };
 
-    createArrow(Config::Test3::Geometry::RECT_BTN_HALLWAY_OFFICE, Config::Test3::Geometry::ANGLE_BTN_HALLWAY_OFFICE, Config::Test3::Texts::BTN_GO_OFFICE, [this](){ goToScene(GameScene::Office); });
-    createArrow(Config::Test3::Geometry::RECT_BTN_HALLWAY_WAREHOUSE, Config::Test3::Geometry::ANGLE_BTN_HALLWAY_WAREHOUSE, Config::Test3::Texts::BTN_GO_WAREHOUSE, [this](){ goToScene(GameScene::Warehouse); });
-    createArrow(Config::Test3::Geometry::RECT_BTN_HALLWAY_ELEVATOR, Config::Test3::Geometry::ANGLE_BTN_HALLWAY_ELEVATOR, Config::Test3::Texts::BTN_GO_ELEVATOR, [this](){ goToScene(GameScene::ElevatorHall); });
+    createArrowHelper(Config::Test3::Geometry::RECT_BTN_HALLWAY_OFFICE, Config::Test3::Geometry::ANGLE_BTN_HALLWAY_OFFICE, Config::Test3::Texts::BTN_GO_OFFICE, [this](){ goToScene(GameScene::Office); });
+    createArrowHelper(Config::Test3::Geometry::RECT_BTN_HALLWAY_WAREHOUSE, Config::Test3::Geometry::ANGLE_BTN_HALLWAY_WAREHOUSE, Config::Test3::Texts::BTN_GO_WAREHOUSE, [this](){ goToScene(GameScene::Warehouse); });
+    createArrowHelper(Config::Test3::Geometry::RECT_BTN_HALLWAY_ELEVATOR, Config::Test3::Geometry::ANGLE_BTN_HALLWAY_ELEVATOR, Config::Test3::Texts::BTN_GO_ELEVATOR, [this](){ goToScene(GameScene::ElevatorHall); });
 }
 
 void Test3::renderWarehouse()
@@ -942,20 +955,14 @@ void Test3::renderWarehouse()
 
     QPushButton *takeBtn = new QPushButton(Config::Test3::Texts::BTN_TAKE_LINEN, rpgCenterPanel);
     setGeometryCentered(takeBtn, Config::Test3::Geometry::RECT_BTN_WAREHOUSE_TAKE);
-    takeBtn->setProperty("originalFontSize", 16);
+    takeBtn->setProperty("originalFontSize", Config::Text::SIZE_TEST3_ACTION_BTN);
     // 使用统一蓝色样式 (原圆环样式移除，用户要求统一)
-    takeBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_UNIFIED);
+    takeBtn->setStyleSheet(Config::Test3::Styles::GET_STYLE_BTN_UNIFIED());
     takeBtn->setCursor(Qt::PointingHandCursor);
     connect(takeBtn, &QPushButton::clicked, [this](){ goToScene(GameScene::WarehouseShelf); });
     takeBtn->show();
 
-    ArrowButton *backBtn = new ArrowButton(rpgCenterPanel);
-    setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_WAREHOUSE_BACK);
-    backBtn->setProperty("originalFontSize", Config::Test3::Styles::ARROW_TEXT_SIZE);
-    backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_WAREHOUSE_BACK);
-    backBtn->setArrowText("");
-    backBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
-    backBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
+    ArrowButton *backBtn = createArrow(rpgCenterPanel, Config::Test3::Geometry::RECT_BTN_WAREHOUSE_BACK, Config::Test3::Geometry::ANGLE_BTN_WAREHOUSE_BACK, "", Config::Text::SIZE_TEST3_ARROW_TEXT);
     connect(backBtn, &QPushButton::clicked, [this](){ goToScene(GameScene::StaffHallway); });
     connect(backBtn, &ArrowButton::hovered, [this](bool status, QString text)
             {
@@ -1001,10 +1008,13 @@ void Test3::renderWarehouseShelf()
 
         // 标签显示
         QLabel *lbl = new QLabel(name, rpgCenterPanel);
-        QString lblStyle = "color: white; font-weight: bold; background-color: rgba(0,0,0,0.5); padding: 2px; border-radius: 4px;";
-        // 初始大小 (16px)
-        lbl->setProperty("originalFontSize", 16);
-        lbl->setStyleSheet(lblStyle + "font-size: 16px;");
+        int fontSize = Config::Text::SIZE_TEST3_SHELF_LABEL;
+        QString lblStyle = QString("color: %1; font-weight: bold; background-color: rgba(0,0,0,0.5); padding: 2px; border-radius: 4px; font-size: %2px;")
+                .arg(Config::Text::COLOR_TEST3_SHELF_LABEL)
+                .arg(fontSize);
+
+        lbl->setProperty("originalFontSize", fontSize);
+        lbl->setStyleSheet(lblStyle);
         lbl->adjustSize();
 
         // 设置原始几何 (使用中心点和初始宽高)
@@ -1035,13 +1045,7 @@ void Test3::renderWarehouseShelf()
     createShelfArea("晚安巾", Config::Test3::Geometry::AREA_GN_TOWEL, Config::Test3::Geometry::POS_LBL_GN_TOWEL);
     createShelfArea("毛巾", Config::Test3::Geometry::AREA_TOWEL, Config::Test3::Geometry::POS_LBL_TOWEL);
 
-    ArrowButton *backBtn = new ArrowButton(rpgCenterPanel);
-    setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_SHELF_BACK);
-    backBtn->setProperty("originalFontSize", Config::Test3::Styles::ARROW_TEXT_SIZE);
-    backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_SHELF_BACK);
-    backBtn->setArrowText("");
-    backBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
-    backBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
+    ArrowButton *backBtn = createArrow(rpgCenterPanel, Config::Test3::Geometry::RECT_BTN_SHELF_BACK, Config::Test3::Geometry::ANGLE_BTN_SHELF_BACK, "", Config::Text::SIZE_TEST3_ARROW_TEXT);
     connect(backBtn, &QPushButton::clicked, [this](){ goToScene(GameScene::Warehouse); });
     connect(backBtn, &ArrowButton::hovered, [this](bool status, QString text)
             {
@@ -1520,9 +1524,8 @@ void Test3::renderOffice()
     QPushButton *actionBtn = new QPushButton(gameState.hasReported ? Config::Test3::Texts::LBL_WORK_REPORTED :
                                             (gameState.hasReceivedTask ? Config::Test3::Texts::BTN_REPORT_WORK : Config::Test3::Texts::BTN_GET_TASK), rpgCenterPanel);
     setGeometryCentered(actionBtn, Config::Test3::Geometry::RECT_BTN_OFFICE_ACTION);
-    actionBtn->setProperty("originalFontSize", 16);
-    // 统一蓝色样式
-    actionBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_UNIFIED);
+    actionBtn->setProperty("originalFontSize", Config::Text::SIZE_TEST3_ACTION_BTN);
+    actionBtn->setStyleSheet(Config::Test3::Styles::GET_STYLE_BTN_UNIFIED());
     actionBtn->setCursor(Qt::PointingHandCursor);
     if (gameState.hasReported) actionBtn->setEnabled(false);
 
@@ -1536,13 +1539,7 @@ void Test3::renderOffice()
     actionBtn->show();
 
     // Back Button
-    ArrowButton *backBtn = new ArrowButton(rpgCenterPanel);
-    setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_OFFICE_BACK);
-    backBtn->setProperty("originalFontSize", Config::Test3::Styles::ARROW_TEXT_SIZE);
-    backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_OFFICE_BACK);
-    backBtn->setArrowText("");
-    backBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
-    backBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
+    ArrowButton *backBtn = createArrow(rpgCenterPanel, Config::Test3::Geometry::RECT_BTN_OFFICE_BACK, Config::Test3::Geometry::ANGLE_BTN_OFFICE_BACK, "", Config::Text::SIZE_TEST3_ARROW_TEXT);
     connect(backBtn, &QPushButton::clicked, [this](){ goToScene(GameScene::StaffHallway); });
     connect(backBtn, &ArrowButton::hovered, [this](bool status, QString text)
             {
@@ -1565,20 +1562,13 @@ void Test3::renderElevatorHall()
     // 进入电梯按钮
     QPushButton *enterBtn = new QPushButton(Config::Test3::Texts::BTN_ENTER_ELEVATOR, rpgCenterPanel);
     setGeometryCentered(enterBtn, Config::Test3::Geometry::RECT_BTN_ELEVATOR_ENTER);
-    enterBtn->setProperty("originalFontSize", 16);
-    // 统一蓝色样式
-    enterBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_UNIFIED);
+    enterBtn->setProperty("originalFontSize", Config::Text::SIZE_TEST3_ACTION_BTN);
+    enterBtn->setStyleSheet(Config::Test3::Styles::GET_STYLE_BTN_UNIFIED());
     enterBtn->setCursor(Qt::PointingHandCursor);
     connect(enterBtn, &QPushButton::clicked, [this](){ goToScene(GameScene::ElevatorInside); });
     enterBtn->show();
 
-    ArrowButton *backBtn = new ArrowButton(rpgCenterPanel);
-    setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_ELEVATOR_BACK);
-    backBtn->setProperty("originalFontSize", Config::Test3::Styles::ARROW_TEXT_SIZE);
-    backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_ELEVATOR_BACK);
-    backBtn->setArrowText("");
-    backBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
-    backBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
+    ArrowButton *backBtn = createArrow(rpgCenterPanel, Config::Test3::Geometry::RECT_BTN_ELEVATOR_BACK, Config::Test3::Geometry::ANGLE_BTN_ELEVATOR_BACK, "", Config::Text::SIZE_TEST3_ARROW_TEXT);
 
     if (gameState.currentFloor == 0) {
         connect(backBtn, &QPushButton::clicked, [this](){ goToScene(GameScene::StaffHallway); });
@@ -1608,9 +1598,8 @@ void Test3::renderElevatorInside()
     // 出电梯按钮
     QPushButton *exitBtn = new QPushButton(Config::Test3::Texts::BTN_EXIT_ELEVATOR, rpgCenterPanel);
     setGeometryCentered(exitBtn, Config::Test3::Geometry::RECT_BTN_ELEVATOR_EXIT);
-    exitBtn->setProperty("originalFontSize", 16);
-    // 统一蓝色样式
-    exitBtn->setStyleSheet(Config::Test3::Styles::STYLE_BTN_UNIFIED);
+    exitBtn->setProperty("originalFontSize", Config::Text::SIZE_TEST3_ACTION_BTN);
+    exitBtn->setStyleSheet(Config::Test3::Styles::GET_STYLE_BTN_UNIFIED());
     exitBtn->setCursor(Qt::PointingHandCursor);
     connect(exitBtn, &QPushButton::clicked, [this](){
         goToScene(GameScene::ElevatorHall);
@@ -1630,13 +1619,7 @@ void Test3::renderFloorCorridor()
     bg->show();
 
     // 去布草间
-    ArrowButton *linenBtn = new ArrowButton(rpgCenterPanel);
-    setGeometryCentered(linenBtn, Config::Test3::Geometry::RECT_BTN_CORRIDOR_LINEN);
-    linenBtn->setProperty("originalFontSize", Config::Test3::Styles::ARROW_TEXT_SIZE);
-    linenBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_CORRIDOR_LINEN);
-    linenBtn->setArrowText("");
-    linenBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
-    linenBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
+    ArrowButton *linenBtn = createArrow(rpgCenterPanel, Config::Test3::Geometry::RECT_BTN_CORRIDOR_LINEN, Config::Test3::Geometry::ANGLE_BTN_CORRIDOR_LINEN, "", Config::Text::SIZE_TEST3_ARROW_TEXT);
     connect(linenBtn, &QPushButton::clicked, [this](){ goToScene(GameScene::LinenRoom); });
     connect(linenBtn, &ArrowButton::hovered, [this](bool status, QString text) {
              if(status) { hoverHintLabel->setText(Config::Test3::Texts::BTN_GO_LINEN_ROOM); hoverHintLabel->show(); hoverHintLabel->raise(); } else hoverHintLabel->hide();
@@ -1644,13 +1627,7 @@ void Test3::renderFloorCorridor()
     linenBtn->show();
 
     // 去电梯厅
-    ArrowButton *eleBtn = new ArrowButton(rpgCenterPanel);
-    setGeometryCentered(eleBtn, Config::Test3::Geometry::RECT_BTN_CORRIDOR_ELEVATOR);
-    eleBtn->setProperty("originalFontSize", Config::Test3::Styles::ARROW_TEXT_SIZE);
-    eleBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_CORRIDOR_ELEVATOR);
-    eleBtn->setArrowText("");
-    eleBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
-    eleBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
+    ArrowButton *eleBtn = createArrow(rpgCenterPanel, Config::Test3::Geometry::RECT_BTN_CORRIDOR_ELEVATOR, Config::Test3::Geometry::ANGLE_BTN_CORRIDOR_ELEVATOR, "", Config::Text::SIZE_TEST3_ARROW_TEXT);
     connect(eleBtn, &QPushButton::clicked, [this](){ goToScene(GameScene::ElevatorHall); });
     connect(eleBtn, &ArrowButton::hovered, [this](bool status, QString text) {
              if(status) { hoverHintLabel->setText(Config::Test3::Texts::BTN_GO_ELEVATOR_HALL); hoverHintLabel->show(); hoverHintLabel->raise(); } else hoverHintLabel->hide();
@@ -1686,32 +1663,26 @@ void Test3::renderLinenRoom()
                 area->setAlignment(Qt::AlignCenter);
             }
 
-            // 数量标签 (Count Label) - 修改显示格式和位置
-            // 格式: (X5)
-            // 位置: 每个格子图片的前面 (解释为左上角或显眼位置，这里使用左上角叠加)
+            // 数量标签 (Count Label)
             QLabel *cntLbl = new QLabel(QString("(X%1)").arg(count), rpgCenterPanel);
 
-            // 使用高对比度样式: 白色文字带黑色描边效果(模拟)或深色阴影，这里使用红色粗体配合白色背景
-            // 用户要求"在前面显示", 这里的 Z-Order 已经是最后创建(最上层)
-            cntLbl->setStyleSheet(QString("color: white; font-size: %1px; font-weight: bold; background-color: rgba(0,0,0,0.6); padding: 2px; border-radius: 4px;")
-                                  .arg(Config::Test3::Fonts::SIZE_LINEN_COUNT));
+            int fontSize = Config::Text::SIZE_TEST3_COUNT_LABEL;
+            QString style = QString("color: %1; font-size: %2px; font-weight: bold; background-color: rgba(0,0,0,0.6); padding: 2px; border-radius: 4px;")
+                    .arg(Config::Text::COLOR_TEST3_COUNT_LABEL)
+                    .arg(fontSize);
+
+            cntLbl->setStyleSheet(style);
             cntLbl->adjustSize();
 
-            // 放置在格子左上角 (Left-Top)
-            // 修复: 使用 setGeometryCentered 并设置 originalGeometry 以支持缩放
-            // rect 是中心点坐标 (cx, cy, w, h)，需转换为左上角
             int realLeft = rect.x() - rect.width() / 2;
             int realTop = rect.y() - rect.height() / 2;
-
-            // 计算目标中心点 (Label Center)
             int targetX = realLeft + 5 + cntLbl->width() / 2;
             int targetY = realTop + 5 + cntLbl->height() / 2;
 
             setGeometryCentered(cntLbl, targetX, targetY, cntLbl->width(), cntLbl->height());
-            cntLbl->setProperty("originalFontSize", Config::Test3::Fonts::SIZE_LINEN_COUNT);
+            cntLbl->setProperty("originalFontSize", fontSize);
             cntLbl->show();
         } else {
-            // Empty
             area->setDraggable(false);
         }
 
@@ -1745,9 +1716,8 @@ void Test3::renderLinenRoom()
         ShelfArea *dirtyArea = new ShelfArea("脏布草", rpgCenterPanel);
         setGeometryCentered(dirtyArea, Config::Test3::Geometry::RECT_EVENT_DIRTY_LINEN);
         dirtyArea->setDraggable(true);
-        dirtyArea->setSourceType("LinenRoomDirty"); // Special type for drop handling
+        dirtyArea->setSourceType("LinenRoomDirty");
 
-        // Load dirty linen image
         QPixmap dirtyPix = getPixmap(Config::Test3::Images::UI_DIRTY_LINEN);
         if (!dirtyPix.isNull()) {
              dirtyArea->setPixmap(dirtyPix.scaled(Config::Test3::Geometry::ICON_SHELF_ITEM, Qt::KeepAspectRatio, Qt::SmoothTransformation));
@@ -1759,39 +1729,35 @@ void Test3::renderLinenRoom()
         // Display Count
         if (dirtyCount > 1) {
             QLabel *cntLbl = new QLabel(QString::number(dirtyCount), rpgCenterPanel);
-            cntLbl->setStyleSheet(QString("color: red; font-size: %1px; font-weight: bold;")
-                                  .arg(Config::Test3::Fonts::SIZE_LINEN_COUNT));
+
+            int fontSize = Config::Text::SIZE_TEST3_COUNT_LABEL;
+            QString style = QString("color: %1; font-size: %2px; font-weight: bold;")
+                    .arg(Config::Text::COLOR_TEST3_COUNT_LABEL_DIRTY)
+                    .arg(fontSize);
+
+            cntLbl->setStyleSheet(style);
             cntLbl->adjustSize();
 
-            // 修复: 脏布草计数标签定位与缩放
             QRect dRect = Config::Test3::Geometry::RECT_EVENT_DIRTY_LINEN;
             int realRight = dRect.x() + dRect.width() / 2;
             int realBottom = dRect.y() + dRect.height() / 2;
-
-            // 放置在右下角 (Inside)
-            // Calculate Center X/Y for the label
             int targetX = realRight - cntLbl->width() / 2 - 5;
             int targetY = realBottom - cntLbl->height() / 2 - 5;
 
             setGeometryCentered(cntLbl, targetX, targetY, cntLbl->width(), cntLbl->height());
-            cntLbl->setProperty("originalFontSize", Config::Test3::Fonts::SIZE_LINEN_COUNT);
+            cntLbl->setProperty("originalFontSize", fontSize);
             cntLbl->show();
         }
 
         dirtyArea->show();
     }
 
-    ArrowButton *backBtn = new ArrowButton(rpgCenterPanel);
-    setGeometryCentered(backBtn, Config::Test3::Geometry::RECT_BTN_LINEN_BACK);
-    backBtn->setProperty("originalFontSize", Config::Test3::Styles::ARROW_TEXT_SIZE);
-    backBtn->setAngle(Config::Test3::Geometry::ANGLE_BTN_LINEN_BACK);
-    backBtn->setArrowText("");
-    backBtn->setArrowTextSize(Config::Test3::Styles::ARROW_TEXT_SIZE);
-    backBtn->setColor(QColor(Config::Test3::Styles::ARROW_TEXT_COLOR));
+    ArrowButton *backBtn = createArrow(rpgCenterPanel, Config::Test3::Geometry::RECT_BTN_LINEN_BACK, Config::Test3::Geometry::ANGLE_BTN_LINEN_BACK, "", Config::Text::SIZE_TEST3_ARROW_TEXT);
     connect(backBtn, &QPushButton::clicked, [this](){ goToScene(GameScene::FloorCorridor); });
     connect(backBtn, &ArrowButton::hovered, [this](bool status, QString text) {
              if(status) { hoverHintLabel->setText(Config::Test3::Texts::BTN_RETURN_CORRIDOR); hoverHintLabel->show(); hoverHintLabel->raise(); } else hoverHintLabel->hide();
     });
     backBtn->show();
 }
+
 #include "test3.moc"

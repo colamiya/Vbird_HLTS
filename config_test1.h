@@ -1,10 +1,11 @@
-﻿#ifndef CONFIG_TEST1_H
+#ifndef CONFIG_TEST1_H
 #define CONFIG_TEST1_H
 
 #include <QString>
 #include <QList>
 #include <QSize>
 #include <QColor>
+#include "config_text.h"
 
 /**
  * @brief 测试1 (幻灯片) 配置
@@ -18,7 +19,6 @@ namespace Config
 
         // --- 资源路径 (Image Paths) ---
         // 幻灯片图片列表
-        // 按照顺序播放。可在此处添加或移除图片路径。
         static const QList<QString> &SLIDE_IMAGES()
         {
             static const QList<QString> list = {
@@ -49,7 +49,7 @@ namespace Config
         // 幻灯片显示区域大小 (宽, 高)
         const QSize DISPLAY_SIZE(1200, 675);
         // 总结页缩略图大小 (宽, 高)
-        const QSize THUMBNAIL_SIZE(300, 225); // Increased size
+        const QSize THUMBNAIL_SIZE(300, 225);
         // 返回按钮尺寸
         const QSize RETURN_BTN_SIZE(120, 40);
 
@@ -60,8 +60,20 @@ namespace Config
         constexpr const char *STYLE_THUMBNAIL_BORDER = "border: 0px solid #ccc;";
         // 占位符文字大小
         const int FONT_SIZE_PLACEHOLDER = 20;
-        // 返回按钮样式
-        constexpr const char *BTN_RETURN_STYLE = "background-color: #c0392b; color: white; font-weight: bold;";
+
+        // 返回按钮样式 (动态生成)
+        static inline QString GET_BTN_RETURN_STYLE() {
+            return QString("background-color: #c0392b; color: %1; font-weight: bold; font-size: %2px;")
+                   .arg(Config::Text::COLOR_TEST1_RETURN_BTN_TEXT)
+                   .arg(Config::Text::SIZE_TEST1_RETURN_BTN);
+        }
+
+        // 导航按钮样式 (动态生成)
+        static inline QString GET_BTN_NAV_STYLE() {
+            return QString("font-size: %1px; color: %2;")
+                   .arg(Config::Text::SIZE_TEST1_NAV_BTN)
+                   .arg(Config::Text::COLOR_TEST1_NAV_BTN_TEXT);
+        }
     }
 }
 
