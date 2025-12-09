@@ -1,4 +1,4 @@
-#ifndef CONFIG_TEST1_H
+﻿#ifndef CONFIG_TEST1_H
 #define CONFIG_TEST1_H
 
 #include <QString>

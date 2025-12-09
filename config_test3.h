@@ -221,7 +221,7 @@ namespace Config
 
             // 按钮样式
             constexpr const char *BTN_RETURN_MENU = "QPushButton { background-color: #e74c3c; color: white; border-radius: 5px; padding: 0px; margin: 0px; } QPushButton:hover { background-color: #c0392b; }";
-            constexpr const char *BTN_TUTORIAL = "QPushButton { background-color: #f1c40f; color: #2c3e50; border-radius: 5px; font-weight: bold; padding: 0px; margin: 0px; } QPushButton:hover { background-color: #f39c12; }";
+            constexpr const char *BTN_TUTORIAL = "QPushButton { background-color: #f1c40f; color: #ffffff; border-radius: 5px; font-weight: bold; padding: 0px; margin: 0px; } QPushButton:hover { background-color: #f39c12; }";
             constexpr const char *BTN_VIEW_TASK_SHEET = "padding: 0px; margin: 5px;";
             constexpr const char *BTN_ORANGE = "background-color: #e67e22; color: white; border-radius: 4px;";
 
@@ -237,7 +237,7 @@ namespace Config
 
             // 箭头样式
             constexpr const char *ARROW_TEXT_COLOR = "#0000FF"; // 蓝色
-            const int ARROW_TEXT_SIZE = 14;
+            const int ARROW_TEXT_SIZE = 16;
 
             // 教程
             constexpr const char *TUTORIAL_TEXT_STYLE = "color: white; font-size: 18px; font-weight: bold;";
@@ -321,7 +321,7 @@ namespace Config
         namespace Fonts
         {
             constexpr const char *SHEET_FONT_FAMILY = "Microsoft YaHei";
-            const int SHEET_FONT_SIZE = 12;
+            const int SHEET_FONT_SIZE = 16;
             const int SHEET_FONT_WEIGHT = 75; // Bold
 
             constexpr const char *COL_LINEN_COUNT = "red";

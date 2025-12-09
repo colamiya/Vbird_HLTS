@@ -1,4 +1,4 @@
-#ifndef CONFIG_GLOBAL_H
+﻿#ifndef CONFIG_GLOBAL_H
 #define CONFIG_GLOBAL_H
 
 #include <QString>
@@ -60,10 +60,10 @@ namespace Config
             QPushButton {
                 background-color: #007AFF;
                 color: white;
-                border-radius: 10px;
+                border-radius: 6px;
                 padding: 0px;
                 font-weight: 600;
-                font-size: 15px;
+                font-size: 18px;
                 border: none;
             }
             QPushButton:hover { background-color: #0062cc; }
@@ -102,7 +102,7 @@ namespace Config
         // 突发事件复选框文本
         constexpr const char *CHECKBOX_TEXT_EMERGENCY = "启用突发事件";
         // 表单区域宽度 (控制输入框的整体宽度)
-        const int SIZE_FORM_WIDTH = 420;
+        const int SIZE_FORM_WIDTH = 320;
         // 开始按钮宽度
         const int SIZE_START_BTN_WIDTH = 220;
 
