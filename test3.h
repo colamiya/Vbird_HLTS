@@ -18,6 +18,7 @@
 
 #include "utils.h"
 #include "config.h"
+#include "video_tutorial_dialog.h"
 
 // --- 数据结构 (Data Structures) ---
 

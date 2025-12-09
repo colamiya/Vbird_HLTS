@@ -87,13 +87,18 @@ public:
         for(auto it = m_task->requiredItems.begin(); it != m_task->requiredItems.end(); ++it) {
             if(it.value() > 0) {
                 QString name = it.key();
-                m_table->setItem(row, 0, new QTableWidgetItem(name));
-                m_table->setItem(row, 1, new QTableWidgetItem(QString::number(it.value())));
+
+                QTableWidgetItem *nameItem = new QTableWidgetItem(name);
+                nameItem->setTextAlignment(Qt::AlignCenter);
+                m_table->setItem(row, 0, nameItem);
+
+                QTableWidgetItem *qtyItem = new QTableWidgetItem(QString::number(it.value()));
+                qtyItem->setTextAlignment(Qt::AlignCenter);
+                m_table->setItem(row, 1, qtyItem);
 
                 QTableWidgetItem *checkItem = new QTableWidgetItem();
                 bool checked = m_task->itemCompletionStatus.value(name, false);
-                checkItem->setText(checked ? "●" : "○");
-                checkItem->setForeground(checked ? QBrush(Qt::green) : QBrush(Qt::gray));
+                updateCheckItem(checkItem, checked);
                 checkItem->setTextAlignment(Qt::AlignCenter);
                 checkItem->setData(Qt::UserRole, name); // Store name
                 m_table->setItem(row, 2, checkItem);
@@ -109,8 +114,7 @@ public:
                 m_task->itemCompletionStatus[name] = !current;
 
                 // 更新 UI
-                item->setText(!current ? "●" : "○");
-                item->setForeground(!current ? QBrush(Qt::green) : QBrush(Qt::gray));
+                updateCheckItem(item, !current);
             }
         });
 
@@ -145,6 +149,37 @@ private:
     Task *m_task;
     QTableWidget *m_table;
     QPushButton *m_headerBtn;
+
+    void updateCheckItem(QTableWidgetItem *item, bool checked) {
+        // 创建圆圈打勾图标
+        // Size: 24x24
+        QPixmap pix(24, 24);
+        pix.fill(Qt::transparent);
+        QPainter p(&pix);
+        p.setRenderHint(QPainter::Antialiasing);
+
+        // Draw Circle
+        if (checked) {
+            p.setBrush(Qt::transparent);
+            p.setPen(QPen(Qt::green, 2));
+            p.drawEllipse(2, 2, 20, 20);
+
+            // Draw Tick
+            QPainterPath path;
+            path.moveTo(6, 12);
+            path.lineTo(10, 16);
+            path.lineTo(18, 8);
+            p.drawPath(path);
+        } else {
+            p.setBrush(Qt::transparent);
+            p.setPen(QPen(Qt::gray, 2));
+            p.drawEllipse(2, 2, 20, 20);
+        }
+
+        item->setIcon(QIcon(pix));
+        // Clear text to show icon only (or keep empty)
+        item->setText("");
+    }
 };
 
 Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode(isDevMode)
@@ -770,6 +805,32 @@ void Test3::renderScene()
 
 void Test3::tryShowTip(GameScene scene)
 {
+    // Video Tutorial Check
+    if (scene == GameScene::Warehouse && !gameState.hasShownTipWarehouse) {
+        VideoTutorialDialog *dlg = new VideoTutorialDialog(":/source/Test3/脏布草.mp4", Config::Test3::Texts::TUTORIAL_WAREHOUSE_ENTRY, this);
+        dlg->setAttribute(Qt::WA_DeleteOnClose);
+        dlg->exec();
+        gameState.hasShownTipWarehouse = true;
+        return;
+    }
+
+    if (scene == GameScene::WarehouseShelf && !gameState.hasShownTipShelf) {
+        VideoTutorialDialog *dlg = new VideoTutorialDialog(":/source/Test3/拿布草.mp4", Config::Test3::Texts::TUTORIAL_WAREHOUSE_SHELF_ACTION, this);
+        dlg->setAttribute(Qt::WA_DeleteOnClose);
+        dlg->exec();
+        gameState.hasShownTipShelf = true;
+        return;
+    }
+
+    if (scene == GameScene::LinenRoom && !gameState.hasShownTipLinenRoom) {
+        VideoTutorialDialog *dlg = new VideoTutorialDialog(":/source/Test3/放布草.mp4", Config::Test3::Texts::TUTORIAL_SHELF, this);
+        dlg->setAttribute(Qt::WA_DeleteOnClose);
+        dlg->exec();
+        gameState.hasShownTipLinenRoom = true;
+        return;
+    }
+
+    // Default Fallback (SpeechBubble) for Entrance
     QString tipText;
     bool *flag = nullptr;
 
@@ -778,24 +839,6 @@ void Test3::tryShowTip(GameScene scene)
             if (!gameState.hasShownTipEntrance) {
                 tipText = Config::Test3::Texts::TUTORIAL_GENERAL;
                 flag = &gameState.hasShownTipEntrance;
-            }
-            break;
-        case GameScene::Warehouse:
-            if (!gameState.hasShownTipWarehouse) {
-                tipText = Config::Test3::Texts::TUTORIAL_WAREHOUSE_ENTRY;
-                flag = &gameState.hasShownTipWarehouse;
-            }
-            break;
-        case GameScene::WarehouseShelf:
-            if (!gameState.hasShownTipShelf) {
-                tipText = Config::Test3::Texts::TUTORIAL_WAREHOUSE_SHELF_ACTION;
-                flag = &gameState.hasShownTipShelf;
-            }
-            break;
-        case GameScene::LinenRoom:
-             if (!gameState.hasShownTipLinenRoom) {
-                tipText = Config::Test3::Texts::TUTORIAL_SHELF;
-                flag = &gameState.hasShownTipLinenRoom;
             }
             break;
         default: break;

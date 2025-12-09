@@ -137,6 +137,12 @@ void Test1::finishSlideshow()
 
     // 创建网格布局显示缩略图
     QGridLayout *grid = new QGridLayout(slideshowSummaryWidget);
+    summaryThumbnails.clear(); // Clear old references if any
+
+    // Scale spacing for grid
+    int spacing = 10 * m_currentScale;
+    grid->setSpacing(spacing);
+
     for (int i = 0; i < totalSlides; ++i)
     {
         QLabel *thumb = new QLabel();
@@ -147,19 +153,27 @@ void Test1::finishSlideshow()
             imagePath = Config::Test1::SLIDE_IMAGES()[i];
         }
 
+        // Store path in property for resizing later
+        thumb->setProperty("imagePath", imagePath);
+        thumb->setProperty("imageIndex", i); // Backup
+
         QPixmap pix = getPixmap(imagePath); // 同样使用缓存
+        QSize currentThumbSize = Config::Test1::THUMBNAIL_SIZE * m_currentScale;
+
         if (pix.isNull())
         {
-            pix = generatePlaceholder(QString("图 %1").arg(i + 1), Qt::gray, Config::Test1::THUMBNAIL_SIZE);
+            pix = generatePlaceholder(QString("图 %1").arg(i + 1), Qt::gray, currentThumbSize);
         }
         else
         {
-            pix = pix.scaled(Config::Test1::THUMBNAIL_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            pix = pix.scaled(currentThumbSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         }
 
         thumb->setPixmap(pix);
         thumb->setAlignment(Qt::AlignCenter);
         thumb->setStyleSheet(Config::Test1::STYLE_THUMBNAIL_BORDER);
+
+        summaryThumbnails.append(thumb); // Store reference
         grid->addWidget(thumb, i / 5, i % 5);
     }
 
@@ -272,5 +286,29 @@ void Test1::updateLayoutScale()
         QString retBtnStyle = Config::Test1::GET_BTN_RETURN_STYLE();
         retBtnStyle.replace(QRegularExpression("font-size: \\d+px"), QString("font-size: %1px").arg(retBtnFontSize));
         returnBtn->setStyleSheet(retBtnStyle);
+    }
+
+    // Scale Summary Grid
+    if (slideshowSummaryWidget && slideshowSummaryWidget->isVisible()) {
+        QGridLayout *grid = qobject_cast<QGridLayout*>(slideshowSummaryWidget->layout());
+        if (grid) {
+            grid->setSpacing(10 * m_currentScale);
+        }
+
+        QSize newThumbSize = Config::Test1::THUMBNAIL_SIZE * m_currentScale;
+
+        for(QLabel *thumb : summaryThumbnails) {
+            if(!thumb) continue;
+            QString path = thumb->property("imagePath").toString();
+            int idx = thumb->property("imageIndex").toInt();
+
+            QPixmap pix = getPixmap(path);
+            if(!pix.isNull()) {
+                 thumb->setPixmap(pix.scaled(newThumbSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+            } else {
+                 // Regenerate placeholder with new size
+                 thumb->setPixmap(generatePlaceholder(QString("图 %1").arg(idx + 1), Qt::gray, newThumbSize));
+            }
+        }
     }
 }

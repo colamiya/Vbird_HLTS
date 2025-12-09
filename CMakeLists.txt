@@ -10,7 +10,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia MultimediaWidgets)
 
 set(PROJECT_SOURCES
     logger.h
@@ -28,6 +28,8 @@ set(PROJECT_SOURCES
     utils.h
     tutorial_overlay.h
     tutorial_overlay.cpp
+    video_tutorial_dialog.h
+    video_tutorial_dialog.cpp
     config.h
     config_global.h
     config_test1.h
@@ -39,7 +41,7 @@ set(PROJECT_SOURCES
 
 add_executable(HotelTrainingApp ${PROJECT_SOURCES})
 
-target_link_libraries(HotelTrainingApp PRIVATE Qt6::Widgets)
+target_link_libraries(HotelTrainingApp PRIVATE Qt6::Widgets Qt6::Multimedia Qt6::MultimediaWidgets)
 
 # Handle Window application on Windows
 if(WIN32)
