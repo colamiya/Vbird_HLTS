@@ -50,6 +50,7 @@ private:
     QPushButton *prevBtn;
     QPushButton *nextBtn;
     QPushButton *returnBtn;
+    QPushButton *finishBtn = nullptr; // Make member to access in resize
 
     // Original sizes for scaling
     const QSize REF_SIZE = QSize(1750, 900);

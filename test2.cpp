@@ -1,5 +1,6 @@
 #include "test2.h"
 #include "config.h"
+#include "utils.h" // Include custom dialogs
 #include <QMessageBox>
 #include "logger.h"
 #include <QRegularExpression>
@@ -16,10 +17,8 @@ Test2::Test2(QWidget *parent) : QWidget(parent)
     returnBtn->setStyleSheet(Config::Test2::GET_BTN_RETURN_STYLE());
     connect(returnBtn, &QPushButton::clicked, [this]()
             {
-        QMessageBox::StandardButton reply;
-        reply = QMessageBox::question(this, "确认退出", "确定要退出当前测验并返回主菜单吗？\n当前进度将不会保留。",
-                                      QMessageBox::Yes|QMessageBox::No);
-        if (reply == QMessageBox::Yes) {
+        // Replace QMessageBox with Custom Confirm Dialog
+        if (Utils::ShowCustomConfirmDialog(this, "确认退出", "确定要退出当前测验并返回主菜单吗？\n当前进度将不会保留。")) {
              emit levelCancelled();
         } });
     mainGrid->addWidget(returnBtn, 0, 1, Qt::AlignRight | Qt::AlignTop);

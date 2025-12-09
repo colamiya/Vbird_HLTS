@@ -4,7 +4,148 @@
 #include <QPainterPath>
 #include <QtMath>
 #include <QBoxLayout>
+#include <QDialog>
+#include <QLabel>
+#include <QPushButton>
+#include "config_global.h"
 #include "config_text.h" // Needed for styles
+
+// --- Namespace Utils Implementation ---
+namespace Utils {
+
+    // 辅助函数：创建样式化按钮
+    QPushButton* CreateStyledButton(const QString &text, const QString &bgColor = "") {
+        QPushButton *btn = new QPushButton(text);
+
+        // 尺寸设置 (从 Config::Global 读取)
+        int minW = Config::Global::DIALOG_BTN_MIN_WIDTH;
+        int minH = Config::Global::DIALOG_BTN_MIN_HEIGHT;
+        btn->setMinimumSize(minW, minH);
+
+        // 样式
+        QString bg = bgColor.isEmpty() ? Config::Global::COL_BTN_PRIMARY : bgColor;
+        QString style = QString(
+            "QPushButton { "
+            "  background-color: %1; "
+            "  color: white; "
+            "  border-radius: 6px; "
+            "  font-size: %2px; "
+            "  font-weight: bold; "
+            "  padding: 5px 15px; "
+            "} "
+            "QPushButton:hover { background-color: %3; } "
+            "QPushButton:pressed { background-color: %4; }"
+        )
+        .arg(bg)
+        .arg(Config::Global::DIALOG_BTN_FONT_SIZE)
+        .arg(Config::Global::COL_BTN_HOVER) // Simple hover darkening approximation or use config
+        .arg(Config::Global::COL_BTN_HOVER);
+
+        btn->setStyleSheet(style);
+        btn->setCursor(Qt::PointingHandCursor);
+        return btn;
+    }
+
+    void ShowCustomMessageBox(QWidget *parent, const QString &title, const QString &content, bool isWarning) {
+        QDialog dlg(parent);
+        dlg.setWindowTitle(title);
+        dlg.setModal(true);
+        // 去掉问号，保留关闭按钮
+        dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
+
+        // 设置最小宽度，避免太窄
+        dlg.setMinimumWidth(400);
+
+        QVBoxLayout *layout = new QVBoxLayout(&dlg);
+        layout->setSpacing(20);
+        layout->setContentsMargins(20, 20, 20, 20);
+
+        // 图标 + 内容 (水平布局)
+        QHBoxLayout *contentLayout = new QHBoxLayout();
+
+        // 图标 (使用标准图标)
+        QLabel *iconLabel = new QLabel();
+        QStyle::StandardPixmap iconType = isWarning ? QStyle::SP_MessageBoxWarning : QStyle::SP_MessageBoxInformation;
+        QIcon icon = dlg.style()->standardIcon(iconType);
+        iconLabel->setPixmap(icon.pixmap(48, 48));
+        iconLabel->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+
+        QLabel *textLabel = new QLabel(content);
+        textLabel->setWordWrap(true);
+        textLabel->setStyleSheet(QString("font-size: %1px; color: #333;").arg(Config::Text::SIZE_TEST3_DIALOG_TEXT));
+        textLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+
+        contentLayout->addWidget(iconLabel);
+        contentLayout->addSpacing(15);
+        contentLayout->addWidget(textLabel, 1);
+
+        layout->addLayout(contentLayout);
+
+        // 按钮区域
+        QHBoxLayout *btnLayout = new QHBoxLayout();
+        btnLayout->addStretch();
+
+        QPushButton *okBtn = CreateStyledButton("确定");
+        QObject::connect(okBtn, &QPushButton::clicked, &dlg, &QDialog::accept);
+
+        btnLayout->addWidget(okBtn);
+        btnLayout->addStretch(); // Center the button
+
+        layout->addLayout(btnLayout);
+
+        dlg.exec();
+    }
+
+    bool ShowCustomConfirmDialog(QWidget *parent, const QString &title, const QString &content) {
+        QDialog dlg(parent);
+        dlg.setWindowTitle(title);
+        dlg.setModal(true);
+        dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
+        dlg.setMinimumWidth(400);
+
+        QVBoxLayout *layout = new QVBoxLayout(&dlg);
+        layout->setSpacing(20);
+        layout->setContentsMargins(20, 20, 20, 20);
+
+        // 图标 + 内容
+        QHBoxLayout *contentLayout = new QHBoxLayout();
+
+        QLabel *iconLabel = new QLabel();
+        QIcon icon = dlg.style()->standardIcon(QStyle::SP_MessageBoxQuestion);
+        iconLabel->setPixmap(icon.pixmap(48, 48));
+        iconLabel->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+
+        QLabel *textLabel = new QLabel(content);
+        textLabel->setWordWrap(true);
+        textLabel->setStyleSheet(QString("font-size: %1px; color: #333;").arg(Config::Text::SIZE_TEST3_DIALOG_TEXT));
+
+        contentLayout->addWidget(iconLabel);
+        contentLayout->addSpacing(15);
+        contentLayout->addWidget(textLabel, 1);
+
+        layout->addLayout(contentLayout);
+
+        // 按钮 (Yes / No)
+        QHBoxLayout *btnLayout = new QHBoxLayout();
+        btnLayout->addStretch();
+
+        QPushButton *yesBtn = CreateStyledButton("是 (Yes)");
+        QPushButton *noBtn = CreateStyledButton("否 (No)", "#95a5a6"); // Grey for No
+
+        QObject::connect(yesBtn, &QPushButton::clicked, &dlg, &QDialog::accept);
+        QObject::connect(noBtn, &QPushButton::clicked, &dlg, &QDialog::reject);
+
+        btnLayout->addWidget(yesBtn);
+        btnLayout->addSpacing(20);
+        btnLayout->addWidget(noBtn);
+        btnLayout->addStretch();
+
+        layout->addLayout(btnLayout);
+
+        return (dlg.exec() == QDialog::Accepted);
+    }
+}
+
 
 // --- DragSourceLabel ---
 DragSourceLabel::DragSourceLabel(const QString &itemName, QWidget *parent)

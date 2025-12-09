@@ -50,8 +50,13 @@ namespace Config
         const QSize DISPLAY_SIZE(1200, 675);
         // 总结页缩略图大小 (宽, 高)
         const QSize THUMBNAIL_SIZE(300, 225);
-        // 返回按钮尺寸
-        const QSize RETURN_BTN_SIZE(120, 40);
+        // 返回按钮尺寸 (原始设计尺寸，实际渲染会根据 BTN_HEIGHT_BASE 调整)
+        const QSize RETURN_BTN_SIZE(120, 50);
+
+        // --- 按钮高度缩放基准 (Button Height Base) ---
+        // 新增: 控制按钮的垂直高度基准值 (Previous/Next/Finish/Return)
+        // 实际高度 = BTN_HEIGHT_BASE * scaleFactor
+        const int BTN_HEIGHT_BASE = 50; // 原为30，增加到50以防止太窄
 
         // --- 样式与颜色 (Styles) ---
         // 占位符背景颜色 (当图片缺失时显示)

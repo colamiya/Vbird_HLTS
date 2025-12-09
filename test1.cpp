@@ -1,5 +1,6 @@
 #include "test1.h"
 #include "config.h"
+#include "utils.h" // Include utils for Custom Dialogs
 #include <QMessageBox>
 #include <QRegularExpression>
 
@@ -15,10 +16,8 @@ Test1::Test1(QWidget *parent) : QWidget(parent)
     returnBtn->setStyleSheet(Config::Test1::GET_BTN_RETURN_STYLE());
     connect(returnBtn, &QPushButton::clicked, [this]()
             {
-        QMessageBox::StandardButton reply;
-        reply = QMessageBox::question(this, "确认退出", "确定要退出当前测试并返回主菜单吗？\n当前进度将不会保存。",
-                                      QMessageBox::Yes|QMessageBox::No);
-        if (reply == QMessageBox::Yes) {
+        // Replace standard QMessageBox with Custom Confirm Dialog
+        if (Utils::ShowCustomConfirmDialog(this, "确认退出", "确定要退出当前测试并返回主菜单吗？\n当前进度将不会保存。")) {
             // 发出取消信号，由 MainWindow 处理页面切换
             emit levelCancelled();
         } });
@@ -133,6 +132,9 @@ void Test1::finishSlideshow()
     slideshowContainer->setVisible(false);
     slideshowSummaryWidget->setVisible(true);
 
+    // Store reference to finishBtn to update its size later
+    finishBtn = new QPushButton(Config::Test1::BTN_TEXT_FINISH);
+
     // 创建网格布局显示缩略图
     QGridLayout *grid = new QGridLayout(slideshowSummaryWidget);
     for (int i = 0; i < totalSlides; ++i)
@@ -162,10 +164,14 @@ void Test1::finishSlideshow()
     }
 
     // 完成按钮
-    QPushButton *finishBtn = new QPushButton(Config::Test1::BTN_TEXT_FINISH);
     // Apply style for finish button (similar to nav but maybe bigger?)
     // Using nav style for simplicity as requested, or default global
     finishBtn->setStyleSheet(Config::Test1::GET_BTN_NAV_STYLE());
+
+    // Initial Size Update
+    int btnH = Config::Test1::BTN_HEIGHT_BASE * m_currentScale;
+    if (btnH < 40) btnH = 40;
+    finishBtn->setMinimumHeight(btnH);
 
     connect(finishBtn, &QPushButton::clicked, [this]()
             { emit levelCompleted(); });
@@ -217,11 +223,12 @@ void Test1::updateLayoutScale()
         }
     }
 
-    // Scale Buttons (Prev/Next)
+    // Scale Buttons (Prev/Next/Finish)
+    // Use BTN_HEIGHT_BASE from Config
     int btnW = 100 * m_currentScale; // Approx initial width
-    int btnH = 30 * m_currentScale;
+    int btnH = Config::Test1::BTN_HEIGHT_BASE * m_currentScale;
     if (btnW < 60) btnW = 60;
-    if (btnH < 20) btnH = 20;
+    if (btnH < 30) btnH = 30; // Minimum safety
 
     int btnFontSize = static_cast<int>(Config::Text::SIZE_TEST1_NAV_BTN * m_currentScale);
     if (btnFontSize < 8) btnFontSize = 8;
@@ -232,15 +239,27 @@ void Test1::updateLayoutScale()
 
     if(prevBtn) {
         prevBtn->setStyleSheet(navBtnStyle);
+        prevBtn->setMinimumHeight(btnH);
     }
     if(nextBtn) {
         nextBtn->setStyleSheet(navBtnStyle);
+        nextBtn->setMinimumHeight(btnH);
+    }
+    if(finishBtn) {
+        finishBtn->setStyleSheet(navBtnStyle);
+        finishBtn->setMinimumHeight(btnH);
     }
 
     // Scale Return Button
+    // We scale Config::Test1::RETURN_BTN_SIZE (which is now larger in config)
     QSize scaledRetBtnMin = Config::Test1::RETURN_BTN_SIZE * m_currentScale;
+
+    // Ensure the height respects the new config logic (max of scaled size or min limit)
+    int retBtnH = scaledRetBtnMin.height();
+    if (retBtnH < Config::Test1::BTN_HEIGHT_BASE) retBtnH = Config::Test1::BTN_HEIGHT_BASE; // At least base
+    scaledRetBtnMin.setHeight(retBtnH);
+
     if (scaledRetBtnMin.width() < 120) scaledRetBtnMin.setWidth(120);
-    if (scaledRetBtnMin.height() < 30) scaledRetBtnMin.setHeight(30);
 
     if(returnBtn) {
         returnBtn->setFixedSize(QSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX)); // Clear fixed size

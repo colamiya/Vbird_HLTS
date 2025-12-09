@@ -15,6 +15,31 @@
 #include <QBoxLayout>
 #include <QVariant>
 #include <functional>
+#include <QDialog>
+#include <QMessageBox>
+
+// --- Namespace for Utility Functions ---
+namespace Utils {
+    /**
+     * @brief 显示自定义的消息提示框 (Custom Information/Warning Dialog)
+     * 替代 QMessageBox::information/warning，提供更大的按钮和更好的可配置性
+     * @param parent 父窗口
+     * @param title 标题
+     * @param content 内容
+     * @param isWarning 是否为警告样式 (默认为 false, 即 Information)
+     */
+    void ShowCustomMessageBox(QWidget *parent, const QString &title, const QString &content, bool isWarning = false);
+
+    /**
+     * @brief 显示自定义的确认对话框 (Custom Yes/No Dialog)
+     * 替代 QMessageBox::question，提供更大的按钮
+     * @param parent 父窗口
+     * @param title 标题
+     * @param content 内容
+     * @return true if Yes, false if No
+     */
+    bool ShowCustomConfirmDialog(QWidget *parent, const QString &title, const QString &content);
+}
 
 // --- 辅助函数 (Helper Functions) ---
 
@@ -37,18 +62,6 @@ inline void setGeometryCentered(QWidget *widget, int centerX, int centerY, int w
     if (!widget)
         return;
     // 构造 Rect 存储
-    QRect rect(centerX, centerY, w, h); // 注意：这里存储的是 CenterX/Y 和 W/H，为了统一，我们在 rescale 逻辑中需要特殊处理，或者统一存储 TopLeft
-    // 为了简化，我们统一存储 "Center Rect" (Center X, Center Y, W, H) 还是 "Geometry Rect" (Left, Top, W, H)?
-    // 上面的重载传入的是 rect，逻辑是 center based (x - w/2).
-    // 这里的参数 explicitly centerX.
-    // 让我们统一存储 "Reference Rect" 为 Center-Based 的原始定义可能比较麻烦，因为 Qt 的 QRect 是 Left-Top.
-    // 现有的 config 全是 Center Based 吗？
-    // config_test3.h: "RECT_..." 通常是中心点? 让我们再次检查。
-    // Config: "Test 3 button geometries ... apply to widget centers."
-    // 所以 config 中的 QRect 其实是 (CenterX, CenterY, Width, Height).
-    // 而 setGeometry 需要 (Left, Top, Width, Height).
-
-    // 所以，我们存储原始的 Config Rect (Center-based) 到 property 中。
     widget->setProperty("originalGeometry", QRect(centerX, centerY, w, h));
 
     widget->setGeometry(centerX - (w / 2), centerY - (h / 2), w, h);

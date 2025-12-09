@@ -22,6 +22,13 @@ namespace Config
         // 窗口大小 (宽, 高)
         const QSize WINDOW_SIZE(1750, 900);
 
+        // --- 弹窗与对话框配置 (Dialogs) ---
+        // 新增: 弹窗按钮的尺寸基准
+        // 实际大小通常固定或随内容调整，这里设定最小尺寸以确保不显得太小
+        const int DIALOG_BTN_MIN_WIDTH = 100;
+        const int DIALOG_BTN_MIN_HEIGHT = 45; // 增加高度 (原系统默认通常较小)
+        const int DIALOG_BTN_FONT_SIZE = 16;
+
         // --- 颜色主题 (Color Theme - MacOS Inspired) ---
         // 主背景色 (Off-white)
         constexpr const char *COL_BACKGROUND = "#fbfbfb";
