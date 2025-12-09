@@ -112,5 +112,8 @@
         <file>source/Test3/脏布草回收.png</file>
         <file>source/Test3/脏布草.png</file>
         <file>source/Test3/仓库1(集成脏布草回收桶).png</file>
+        <file>source/Test3/脏布草.mp4</file>
+        <file>source/Test3/拿布草.mp4</file>
+        <file>source/Test3/放布草.mp4</file>
     </qresource>
 </RCC>
