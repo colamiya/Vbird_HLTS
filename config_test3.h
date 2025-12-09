@@ -220,14 +220,14 @@ namespace Config
             constexpr const char *LBL_SUCCESS_GREEN = "color: #27ae60; font-weight: bold; font-size: 18px; border: 2px solid #27ae60; padding: 10px; background: rgba(255,255,255,0.8);";
 
             // 按钮样式
-            constexpr const char *BTN_RETURN_MENU = "QPushButton { background-color: #e74c3c; color: white; border-radius: 5px; } QPushButton:hover { background-color: #c0392b; }";
-            constexpr const char *BTN_TUTORIAL = "QPushButton { background-color: #f1c40f; color: #2c3e50; border-radius: 5px; font-weight: bold; } QPushButton:hover { background-color: #f39c12; }";
-            constexpr const char *BTN_VIEW_TASK_SHEET = "padding: 8px; margin: 5px;";
+            constexpr const char *BTN_RETURN_MENU = "QPushButton { background-color: #e74c3c; color: white; border-radius: 5px; padding: 0px; margin: 0px; } QPushButton:hover { background-color: #c0392b; }";
+            constexpr const char *BTN_TUTORIAL = "QPushButton { background-color: #f1c40f; color: #2c3e50; border-radius: 5px; font-weight: bold; padding: 0px; margin: 0px; } QPushButton:hover { background-color: #f39c12; }";
+            constexpr const char *BTN_VIEW_TASK_SHEET = "padding: 0px; margin: 5px;";
             constexpr const char *BTN_ORANGE = "background-color: #e67e22; color: white; border-radius: 4px;";
 
             // 统一玻璃风格按钮 (Unified Glass Style)
             // 蓝色边框，白色半透明背景，蓝色字体
-            constexpr const char *STYLE_BTN_UNIFIED = "QPushButton { border: 2px solid #3498db; background-color: rgba(255, 255, 255, 0.8); color: #3498db; border-radius: 10px; font-weight: bold; font-size: 16px; } QPushButton:hover { background-color: rgba(255, 255, 255, 0.95); } QPushButton:disabled { color: gray; border-color: gray; }";
+            constexpr const char *STYLE_BTN_UNIFIED = "QPushButton { border: 2px solid #3498db; background-color: rgba(255, 255, 255, 0.8); color: #3498db; border-radius: 10px; font-weight: bold; font-size: 16px; padding: 0px; } QPushButton:hover { background-color: rgba(255, 255, 255, 0.95); } QPushButton:disabled { color: gray; border-color: gray; }";
 
             // 列表样式
             constexpr const char *LIST_WIDGET = "QTreeWidget { background: transparent; border: none; font-size: 14px; } QTreeWidget::item { padding: 5px; }";

@@ -61,7 +61,7 @@ namespace Config
                 background-color: #007AFF;
                 color: white;
                 border-radius: 10px;
-                padding: 12px 24px;
+                padding: 0px;
                 font-weight: 600;
                 font-size: 15px;
                 border: none;
