@@ -190,6 +190,10 @@ void Test2::loadQuestion()
         connect(optionImages[i], &QPushButton::clicked, [this, path, title]()
                 { showImagePreview(path, title); });
     }
+
+    // 更新布局缩放，确保新加载的图标/文本大小正确
+    updateLayoutScale();
+
     optionGroup->setExclusive(true);
     optionGroup->blockSignals(false);
 
@@ -322,12 +326,12 @@ void Test2::updateLayoutScale()
     // Calculate scale based on current size vs reference size
     float scaleX = (float)width() / REF_SIZE.width();
     float scaleY = (float)height() / REF_SIZE.height();
-    float scale = qMin(scaleX, scaleY); // Maintain aspect ratio for content elements
+    m_currentScale = qMin(scaleX, scaleY); // Maintain aspect ratio for content elements
 
     // 1. Scale Question Label (Font)
     if(questionLabel) {
         QFont f = questionLabel->font();
-        int newSize = static_cast<int>(ORIG_FONT_SIZE_Q * scale);
+        int newSize = static_cast<int>(ORIG_FONT_SIZE_Q * m_currentScale);
         if(newSize < 12) newSize = 12;
         // The style sheet overrides font size usually, so we update stylesheet or set font.
         // Config defines STYLE_QUESTION_LBL with font-size: 24px.
@@ -337,11 +341,11 @@ void Test2::updateLayoutScale()
     }
 
     // 2. Scale Options (Images & Buttons)
-    QSize newImgSize = Config::Test2::SIZE_OPTION_IMG * scale;
-    QSize newBtnSize = Config::Test2::SIZE_OPTION_BTN * scale;
-    QSize newIconSize = Config::Test2::SIZE_OPTION_ICON * scale;
+    QSize newImgSize = Config::Test2::SIZE_OPTION_IMG * m_currentScale;
+    QSize newBtnSize = Config::Test2::SIZE_OPTION_BTN * m_currentScale;
+    QSize newIconSize = Config::Test2::SIZE_OPTION_ICON * m_currentScale;
 
-    int newOptFontSize = static_cast<int>(ORIG_FONT_SIZE_OPT * scale);
+    int newOptFontSize = static_cast<int>(ORIG_FONT_SIZE_OPT * m_currentScale);
     if(newOptFontSize < 10) newOptFontSize = 10;
 
     // We update the stylesheet for buttons to reflect new font size
@@ -371,7 +375,7 @@ void Test2::updateLayoutScale()
     // Since they are in a layout, we might just scale font size or min size.
     // Their size is not fixed in constructor (default QPushButton size).
     // Let's scale font.
-    int btnFontSize = static_cast<int>(16 * scale); // default approx 16
+    int btnFontSize = static_cast<int>(16 * m_currentScale); // default approx 16
     if(btnFontSize < 10) btnFontSize = 10;
     QString navBtnStyle = QString("font-size: %1px;").arg(btnFontSize);
 
@@ -397,12 +401,22 @@ void Test2::updateLayoutScale()
     }
 
     // 4. Return Button
+    // remove fixed width constraint to allow text to fit, set min size instead
+    QSize scaledRetBtnMin = Config::Test2::RETURN_BTN_SIZE * m_currentScale;
+    if (scaledRetBtnMin.width() < 120) scaledRetBtnMin.setWidth(120); // ensure minimum readability width
+    if (scaledRetBtnMin.height() < 30) scaledRetBtnMin.setHeight(30);
+
     if(returnBtn) {
-        returnBtn->setFixedSize(Config::Test2::RETURN_BTN_SIZE * scale);
-        // It uses BTN_RETURN_STYLE which doesn't specify size but color/font.
-        // We can scale font too.
-        QFont f = font();
-        f.setPixelSize(btnFontSize);
-        returnBtn->setFont(f);
+        // Reset fixed size to allow expansion if needed, set min size
+        returnBtn->setFixedSize(QSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX)); // Clear fixed size
+        returnBtn->setMinimumSize(scaledRetBtnMin);
+        returnBtn->setMaximumSize(scaledRetBtnMin.width() * 2, scaledRetBtnMin.height()); // Constrain max width a bit
+
+        // Ensure font scales but doesn't get too small
+        QFont retBtnFont = font();
+        int retBtnFontSize = static_cast<int>(16 * m_currentScale);
+        if (retBtnFontSize < 10) retBtnFontSize = 10;
+        retBtnFont.setPixelSize(retBtnFontSize);
+        returnBtn->setFont(retBtnFont);
     }
 }

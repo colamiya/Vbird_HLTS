@@ -54,6 +54,8 @@ private:
     // Original sizes for scaling
     const QSize REF_SIZE = QSize(1750, 900);
     const int ORIG_FONT_SIZE_BTN = 16;
+
+    float m_currentScale = 1.0f;
 };
 
 #endif // TEST1_H
