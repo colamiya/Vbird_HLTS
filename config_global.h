@@ -32,6 +32,8 @@ namespace Config
         constexpr const char *COL_BTN_HOVER = "#0051a8";
         // 按钮禁用颜色 (Light Gray)
         constexpr const char *COL_BTN_DISABLED = "#d1d1d6";
+        // 文本禁用颜色
+        constexpr const char *COL_TEXT_DISABLED = "#8e8e93";
         // 输入框背景色 (White)
         constexpr const char *COL_INPUT_BG = "#ffffff";
         // 边框颜色 (Soft Gray)
