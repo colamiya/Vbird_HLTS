@@ -33,6 +33,7 @@ set(PROJECT_SOURCES
     config_test1.h
     config_test2.h
     config_test3.h
+    config_text.h
     resources.qrc
 )
 
