@@ -4,6 +4,7 @@
 #include <QPainterPath>
 #include <QtMath>
 #include <QBoxLayout>
+#include "config_text.h" // Needed for styles
 
 // --- DragSourceLabel ---
 DragSourceLabel::DragSourceLabel(const QString &itemName, QWidget *parent)
@@ -386,35 +387,28 @@ void ArrowButton::paintEvent(QPaintEvent *)
 
     // Changed: Solid Blue, No Red Border
     p.setPen(Qt::NoPen);
-    p.setBrush(QColor("#007AFF")); // Blue
+    p.setBrush(QColor("#007AFF")); // Blue, fixed for now as graphic style.
+    // If arrow color should be configurable, it should be passed in or read from config.
+    // Given the request is about text, we keep the graphic as is,
+    // but we ensure TEXT color is m_color.
 
     p.drawPath(path);
     p.restore();
 
-    // Text rendering logic remains same (optional text)
+    // Text rendering logic
     if (!m_text.isEmpty()) {
         double radians = qDegreesToRadians((double)m_angle);
         double tailDist = arrowLen / 2.0 + 10.0;
         double tx = cx - tailDist * qCos(radians);
         double ty = cy - tailDist * qSin(radians);
 
-        // Dynamically calculate text rectangle
-        // Center the text around (tx, ty) with enough space
-        // Using a fixed size rect 200x50 might be too small or fixed height.
-        // We use QFontMetrics to ensure it fits, or at least scale the rect.
-        // For simplicity and fixing the "middle strip" issue, we expand height
-        // and rely on AlignCenter.
         int txtW = 300;
         int txtH = 100;
         QRect txtRect(tx - txtW/2, ty - txtH/2, txtW, txtH);
 
-        p.setPen(m_color);
+        p.setPen(m_color); // Use configured color (set via setColor)
         QFont f = font();
         f.setBold(true);
-        // Use the font size set on the widget (scaled by updateGameLayout)
-        // instead of internal m_textSize unless m_textSize is explicitly managed.
-        // We prefer standard font scaling.
-        // But previously m_textSize was used. To support existing code, we fallback.
         if (f.pointSize() <= 0) f.setPointSize(m_textSize);
         p.setFont(f);
         p.drawText(txtRect, Qt::AlignCenter, m_text);
@@ -438,6 +432,8 @@ SpeechBubble::SpeechBubble(const QString &text, QWidget *parent) : QWidget(paren
     // Bubble Container
     QWidget *container = new QWidget(this);
     container->setFixedWidth(400); // Fixed width for the bubble
+
+    // Configurable style for bubble text
     container->setStyleSheet(
         "background-color: white;"
         "border-radius: 15px;"
@@ -450,7 +446,13 @@ SpeechBubble::SpeechBubble(const QString &text, QWidget *parent) : QWidget(paren
     // Text Label
     QLabel *lblText = new QLabel(m_text, container);
     lblText->setWordWrap(true);
-    lblText->setStyleSheet("color: #333; font-size: 16px; font-weight: bold; border: none;");
+
+    // Inject Config Values
+    QString textStyle = QString("color: %1; font-size: %2px; font-weight: bold; border: none;")
+        .arg(Config::Text::COLOR_TEST3_TUTORIAL_TEXT)
+        .arg(Config::Text::SIZE_TEST3_TUTORIAL_TEXT);
+
+    lblText->setStyleSheet(textStyle);
     lblText->setAlignment(Qt::AlignCenter);
     vbox->addWidget(lblText);
 
@@ -459,10 +461,13 @@ SpeechBubble::SpeechBubble(const QString &text, QWidget *parent) : QWidget(paren
     // Close Button
     QPushButton *btnClose = new QPushButton("我知道了", container);
     btnClose->setCursor(Qt::PointingHandCursor);
-    btnClose->setStyleSheet(
-        "QPushButton { background-color: #007AFF; color: white; border-radius: 5px; padding: 8px 20px; font-size: 14px; }"
-        "QPushButton:hover { background-color: #0062cc; }"
-    );
+    // Reuse tutorial btn style or define new
+    QString btnStyle = QString(
+        "QPushButton { background-color: #007AFF; color: white; border-radius: 5px; padding: 8px 20px; font-size: %1px; }"
+        "QPushButton:hover { background-color: #0062cc; }")
+        .arg(Config::Text::SIZE_TEST3_TUTORIAL_BTN); // Approximate
+
+    btnClose->setStyleSheet(btnStyle);
     connect(btnClose, &QPushButton::clicked, this, &QWidget::close);
     connect(btnClose, &QPushButton::clicked, this, &QObject::deleteLater);
 

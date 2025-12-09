@@ -200,6 +200,7 @@ private:
     // 辅助函数
     int getNormalRandom(int min, int max); // 获取正态分布随机数
     void tryShowTip(GameScene scene); // 尝试显示气泡提示
+    ArrowButton* createArrow(QWidget* parent, const QRect &rect, int angle, const QString &text, int fontSize); // Arrow Helper
 
     // 交互处理
     void handleInventoryDrop(QString itemName, const QMimeData *mimeData);           // 处理物品放入推车

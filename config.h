@@ -4,6 +4,7 @@
 // 主配置文件
 // 包含所有分模块的配置头文件，方便统一引用
 
+#include "config_text.h" // 新增: 文本配置
 #include "config_global.h"
 #include "config_test1.h"
 #include "config_test2.h"

@@ -1,9 +1,10 @@
-﻿#ifndef CONFIG_GLOBAL_H
+#ifndef CONFIG_GLOBAL_H
 #define CONFIG_GLOBAL_H
 
 #include <QString>
 #include <QSize>
 #include <QColor>
+#include "config_text.h" // 引用文本配置
 
 /**
  * @brief 全局通用配置
@@ -21,29 +22,16 @@ namespace Config
         // 窗口大小 (宽, 高)
         const QSize WINDOW_SIZE(1750, 900);
 
-        // --- 字体设置 (Fonts) ---
-        // 默认字体家族 (MacOS Style)
-        constexpr const char *FONT_FAMILY = "Segoe UI, Microsoft YaHei";
-        // 默认字体大小
-        const int FONT_SIZE_DEFAULT = 14;
-        // 主菜单标题字体大小
-        const int FONT_SIZE_TITLE = 32;
-        // 子页面标题字体大小
-        const int FONT_SIZE_SUBTITLE = 24;
-
         // --- 颜色主题 (Color Theme - MacOS Inspired) ---
         // 主背景色 (Off-white)
         constexpr const char *COL_BACKGROUND = "#fbfbfb";
-        // 默认文字颜色 (Dark Gray)
-        constexpr const char *COL_TEXT_PRIMARY = "#333333";
+
         // 按钮默认颜色 (Apple Blue)
         constexpr const char *COL_BTN_PRIMARY = "#007AFF";
         // 按钮悬停颜色 (Darker Blue)
         constexpr const char *COL_BTN_HOVER = "#0051a8";
         // 按钮禁用颜色 (Light Gray)
         constexpr const char *COL_BTN_DISABLED = "#d1d1d6";
-        // 禁用文字颜色
-        constexpr const char *COL_TEXT_DISABLED = "#8e8e93";
         // 输入框背景色 (White)
         constexpr const char *COL_INPUT_BG = "#ffffff";
         // 边框颜色 (Soft Gray)
@@ -52,47 +40,66 @@ namespace Config
         constexpr const char *COL_LIST_SELECTED = "#e5f1fb";
 
         // --- 全局样式表 (Global QSS) ---
-        // 定义了主窗口、按钮、输入框、列表控件的默认样式。
-        // MacOS 风格: 圆角, 扁平化, 柔和阴影 (Shadows are tricky in pure QSS without images, handled via clean borders)
-        constexpr const char *GLOBAL_STYLESHEET = R"(
-            QMainWindow { background-color: #fbfbfb; font-family: "Segoe UI", "Microsoft YaHei"; color: #333333; }
+        // 动态生成样式表以支持 Config::Text 中的配置
+        static inline QString GET_GLOBAL_STYLESHEET()
+        {
+            return QString(R"(
+                QMainWindow {
+                    background-color: %1;
+                    font-family: "%2";
+                    color: %3;
+                    font-size: %4px;
+                }
 
-            QPushButton {
-                background-color: #007AFF;
-                color: white;
-                border-radius: 6px;
-                padding: 0px;
-                font-weight: 600;
-                font-size: 18px;
-                border: none;
-            }
-            QPushButton:hover { background-color: #0062cc; }
-            QPushButton:pressed { background-color: #0051a8; }
-            QPushButton:disabled { background-color: #e5e5ea; color: #8e8e93; }
+                QPushButton {
+                    background-color: %5;
+                    color: white;
+                    border-radius: 6px;
+                    padding: 0px;
+                    font-weight: 600;
+                    border: none;
+                }
+                QPushButton:hover { background-color: %6; }
+                QPushButton:pressed { background-color: %7; }
+                QPushButton:disabled { background-color: %8; color: %9; }
 
-            QLineEdit, QSpinBox, QComboBox {
-                background-color: white;
-                border: 1px solid #c7c7cc;
-                border-radius: 8px;
-                padding: 10px;
-                font-size: 14px;
-                color: #333333;
-            }
-            QLineEdit:focus, QSpinBox:focus, QComboBox:focus { border: 2px solid #007AFF; }
+                QLineEdit, QSpinBox, QComboBox {
+                    background-color: %10;
+                    border: 1px solid %11;
+                    border-radius: 8px;
+                    padding: 10px;
+                    font-size: %12px;
+                    color: %13;
+                }
+                QLineEdit:focus, QSpinBox:focus, QComboBox:focus { border: 2px solid %5; }
 
-            QListWidget {
-                background-color: white;
-                border: 1px solid #d1d1d6;
-                border-radius: 10px;
-                outline: none;
-            }
-            QListWidget::item { padding: 12px; color: #333333; border-bottom: 1px solid #f2f2f7; }
-            QListWidget::item:selected { background-color: #007AFF; color: white; border-radius: 6px; }
-            QListWidget::item:hover { background-color: #f2f2f7; color: #333333; }
-            QListWidget::item:selected:hover { background-color: #0062cc; color: white; }
+                QListWidget {
+                    background-color: white;
+                    border: 1px solid %11;
+                    border-radius: 10px;
+                    outline: none;
+                }
+                QListWidget::item { padding: 12px; color: %3; border-bottom: 1px solid #f2f2f7; }
+                QListWidget::item:selected { background-color: %5; color: white; border-radius: 6px; }
+                QListWidget::item:hover { background-color: #f2f2f7; color: %3; }
+                QListWidget::item:selected:hover { background-color: %6; color: white; }
 
-            QLabel { color: #333333; font-size: 14px; }
-        )";
+                QLabel { color: %3; font-size: %4px; }
+            )")
+            .arg(COL_BACKGROUND)                             // 1
+            .arg(Config::Text::FONT_FAMILY)                  // 2
+            .arg(Config::Text::COLOR_DEFAULT)                // 3
+            .arg(Config::Text::SIZE_DEFAULT)                 // 4
+            .arg(COL_BTN_PRIMARY)                            // 5
+            .arg(COL_BTN_HOVER)                              // 6
+            .arg(COL_BTN_HOVER)                              // 7 (Pressed)
+            .arg(COL_BTN_DISABLED)                           // 8
+            .arg(Config::Text::COLOR_DISABLED)               // 9
+            .arg(COL_INPUT_BG)                               // 10
+            .arg(COL_BORDER)                                 // 11
+            .arg(Config::Text::SIZE_START_INPUT)             // 12 (Use input size default)
+            .arg(Config::Text::COLOR_START_INPUT);           // 13
+        }
 
         // --- 首页设置 (Start Page) ---
         // 首页标题文本
