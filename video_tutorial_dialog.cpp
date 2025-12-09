@@ -46,7 +46,7 @@ VideoTutorialDialog::VideoTutorialDialog(const QString &videoPath, const QString
         // Simple hack: Assume it works or copy if needed.
         // QMediaPlayer support for qrc is tricky.
         // Let's try passing "qrc:..." url.
-        QString qrcUrl = "qrc" + finalPath.mid(1);
+        QString qrcUrl = "qrc:" + finalPath.mid(1);
         m_player->setSource(QUrl(qrcUrl));
     } else {
         m_player->setSource(QUrl::fromLocalFile(finalPath));
