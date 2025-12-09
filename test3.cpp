@@ -13,7 +13,7 @@
 #include <QCheckBox>
 #include <QRegularExpression>
 #include "config.h"
-#include "utils.h"
+#include "utils.h" // Include custom dialogs
 #include "logger.h"
 
 // --- 辅助控件：任务项 (Task Item Widget) ---
@@ -172,10 +172,8 @@ Test3::Test3(bool isDevMode, QWidget *parent) : QWidget(parent), isDeveloperMode
     returnBtn->setCursor(Qt::PointingHandCursor);
     connect(returnBtn, &QPushButton::clicked, [this]()
             {
-        QMessageBox::StandardButton reply;
-        reply = QMessageBox::question(this, "确认退出", "确定要退出当前实训并返回主菜单吗？\n当前进度将不会保留。",
-                                      QMessageBox::Yes|QMessageBox::No);
-        if (reply == QMessageBox::Yes) {
+        // Custom Confirm Dialog
+        if (Utils::ShowCustomConfirmDialog(this, "确认退出", "确定要退出当前实训并返回主菜单吗？\n当前进度将不会保留。")) {
              reset();
              emit levelCancelled();
         } });
@@ -935,7 +933,7 @@ void Test3::renderWarehouse()
             gameState.inventory.dirtyItemsCount = 0;
             emit logMessage("脏布草已回收");
             refreshInventoryList();
-            QMessageBox::information(this, "提示", "脏布草已回收。");
+            Utils::ShowCustomMessageBox(this, "提示", "脏布草已回收。");
         } else {
             // 回收干净布草
             int count = gameState.inventory.cleanItems[item];
@@ -943,7 +941,7 @@ void Test3::renderWarehouse()
                  gameState.inventory.cleanItems[item] = 0;
                  emit logMessage("回收(丢弃): " + item);
                  refreshInventoryList();
-                 QMessageBox::information(this, "提示", QString("已将 %1 放入回收处理。").arg(item));
+                 Utils::ShowCustomMessageBox(this, "提示", QString("已将 %1 放入回收处理。").arg(item));
             }
         }
     };
@@ -1030,7 +1028,10 @@ void Test3::renderWarehouseShelf()
         {
             if (item != name)
             {
-                QMessageBox::critical(this, "错误", QString("存放失败：不能将 %1 放入 %2 的位置！").arg(item, name));
+                // Warning/Error stays as standard critical/warning often, but for consistency can change
+                // Standard critical is usually fine, but user wanted "similar popups".
+                // I will use CustomMessageBox with warning flag.
+                Utils::ShowCustomMessageBox(this, "错误", QString("存放失败：不能将 %1 放入 %2 的位置！").arg(item, name), true);
                 return;
             }
             handleSceneDrop(item, true);
@@ -1064,7 +1065,7 @@ void Test3::handleInventoryDrop(QString itemName, const QMimeData *mimeData)
     if (itemName == "脏布草" || itemName == "DirtyLinen")
     {
         if (totalItems + 1 > Config::Test3::Logic::MAX_CART_ITEMS) {
-            QMessageBox::warning(this, "推车已满", "推车已满，无法再装入物品！(上限40件)");
+            Utils::ShowCustomMessageBox(this, "推车已满", "推车已满，无法再装入物品！(上限40件)", true);
             return;
         }
 
@@ -1092,43 +1093,15 @@ void Test3::handleInventoryDrop(QString itemName, const QMimeData *mimeData)
              emit logMessage("回收脏布草");
         }
         else if (!fromFloor) {
-             // 如果不是从地板来的（例如从车里拖回车里），不增加计数，也不减少地板计数
-             // 但这里是 dropEvent，如果源不是 ListWidget，通常意味着从外部拖入。
-             // 如果从 ListWidget 拖入，通常 dropEvent 会被 ListWidget 自身处理 (internal move)
-             // 但是 DraggableListWidget 的 dropEvent 处理外部拖入。
-             // 此处逻辑是 Test3::handleInventoryDrop 被 DraggableListWidget::onItemDroppedIn 调用
-             // 我们需要确保 onItemDroppedIn 只在 source != this 时触发，或者在这里判断。
-             // DraggableListWidget::dropEvent 已经有了 if (event->source() != this) check.
-             // 所以从 ListWidget 拖回 ListWidget 不会触发这里。
-             // 唯一风险是其他不相关的源。
-             // 安全起见，如果是脏布草，且不是从地板来的（那可能是哪里？），我们假设是合法的？
-             // 不，脏布草只能从地板来。
-             // 所以如果 !fromFloor，我们应该拒绝吗？
-             // 考虑到 Test3::handleSceneDrop 处理从车到场景， handleInventoryDrop 处理场景到车。
-             // 唯一的场景源是 ShelfArea (setSourceType).
-             // 所以强制检查 source 是安全的。
-
-             // 如果 source为空，可能是旧代码的 ShelfArea（Clean Linen）
-             // 干净布草 logic 下面 else 分支处理。
-             // 这里是 itemName == "脏布草"。
-             // 如果 !fromFloor，说明可能代码有误或未知来源，不处理为妙。
-             // 但为了兼容性（万一 mimeData 丢失），我们保持谨慎。
-             // 现有的 Clean Linen 逻辑也没检查 source。
-             // 但 Dirty Linen 有刷分风险，且我们明确设置了 source。
-             // 所以这里仅处理 fromFloor = true 的情况。
+             // ... Logic preserved ...
         }
 
-        // 注意：上面的 if (fromFloor) 块已经做了 inventory++。
-        // 如果 !fromFloor，什么都不做（防止刷分）。
-        // 除了 dirtyItemsCount++ 移到了 inside if。
-
-        // gameState.dirtyBagState[gameState.currentFloor] = false; // 已废弃，使用 count 控制
         renderScene();
     }
     else
     {
         if (totalItems + 1 > Config::Test3::Logic::MAX_CART_ITEMS) {
-            QMessageBox::warning(this, "推车已满", "推车已满，无法再装入物品！(上限40件)");
+            Utils::ShowCustomMessageBox(this, "推车已满", "推车已满，无法再装入物品！(上限40件)", true);
             return;
         }
 
@@ -1158,11 +1131,8 @@ void Test3::handleReportWork()
     bool perfect = true;
 
     // 1. Check Emergency Priority First
-    // (Logic: If emergency task exists, was it done first? or done at all?)
-    // Simplified: Just check if done.
     for (const auto &t : gameState.tasks) {
         if (t.isEmergency) {
-            // Check if satisfied
             bool isMet = true;
             for (auto it = t.requiredItems.begin(); it != t.requiredItems.end(); ++it) {
                 if (gameState.floorInventory[t.targetFloor].value(it.key(), 0) < it.value()) {
@@ -1230,7 +1200,7 @@ void Test3::handleReportWork()
         finalMsg += "\n下次注意改进。”";
     }
 
-    QMessageBox::information(this, title, finalMsg);
+    Utils::ShowCustomMessageBox(this, title, finalMsg);
     gameState.hasReported = true;
     emit logMessage("已汇报工作: " + finalMsg.replace("\n", " "));
     renderScene();
@@ -1239,20 +1209,17 @@ void Test3::handleReportWork()
 void Test3::handleGetTask()
 {
     if (gameState.hasReceivedTask) {
-        QMessageBox::information(this, "提示", "您已经领取过任务了，请查看右侧任务列表。");
+        Utils::ShowCustomMessageBox(this, "提示", "您已经领取过任务了，请查看右侧任务列表。");
         return;
     }
 
     gameState.hasReceivedTask = true;
 
     // 分配基础任务 (6楼 和 7楼) - 随机生成
-    // 规则: 随机选4-6种布草，每个最大6个
     auto generateRandomReqs = [this]() -> QMap<QString, int> {
         QMap<QString, int> reqs;
         QStringList allItems = Config::Test3::Images::ITEMS().keys();
-        // 随机选择 4-6 种
         int typeCount = getNormalRandom(4, 6);
-        // Fisher-Yates shuffle variant or just random pick unique
         while (reqs.size() < typeCount && !allItems.isEmpty()) {
             int idx = QRandomGenerator::global()->bounded(allItems.size());
             QString item = allItems.takeAt(idx);
@@ -1276,13 +1243,12 @@ void Test3::handleGetTask()
 
     refreshTaskList();
     emit logMessage("任务已下发: 6楼, 7楼");
-    QMessageBox::information(this, "提示", "任务已下发，请查看右侧上方任务列表。\n 点击任务可展开具体需求");
+    Utils::ShowCustomMessageBox(this, "提示", "任务已下发，请查看右侧上方任务列表。\n 点击任务可展开具体需求");
     renderScene();
 
     // 只有在勾选了紧急事件开关时才触发
     if (isEmergencyEnabled)
     {
-        // 50% 概率触发事件A (紧急任务) 或 事件B (脏布草)
         bool isEventA = (QRandomGenerator::global()->bounded(2) == 0);
 
         if (isEventA)
@@ -1318,14 +1284,14 @@ void Test3::checkEmergencyTask()
     t.targetFloor = targetFloor;
     t.isEmergency = true;
     t.requiredItems = {{"大床单", 1}, {"毛巾", 2}}; // 简单紧急需求
-    gameState.tasks.append(t); // 实际上由于 refreshTaskList 的排序，这里 append 也行，或者 insert(0, t)
+    gameState.tasks.append(t);
 
     isEmergencyActive = true;
     refreshTaskList();
 
     // 弹出经理提示 (增加换行)
     QString msg = QString(Config::Test3::Texts::POPUP_EMERGENCY_MANAGER).arg(targetFloor);
-    QMessageBox::warning(this, "突发事件 (经理)", msg);
+    Utils::ShowCustomMessageBox(this, "突发事件 (经理)", msg, true); // true = warning style
     emit logMessage("触发事件A: 紧急任务 " + QString::number(targetFloor) + "楼");
 }
 
@@ -1358,7 +1324,7 @@ void Test3::handleClockIn()
     gameState.hasClockedIn = true;
     gameState.hasEverClockedIn = true;
     emit logMessage("上班打卡成功");
-    QMessageBox::information(this, "提示", "上班打卡成功！请前往办公室领取任务。");
+    Utils::ShowCustomMessageBox(this, "提示", "上班打卡成功！请前往办公室领取任务。");
     renderScene();
 }
 
@@ -1366,7 +1332,7 @@ void Test3::handleClockOut()
 {
     gameState.hasClockedIn = false;
     emit logMessage("下班打卡");
-    QMessageBox::information(this, "提示", "已打卡下班。");
+    Utils::ShowCustomMessageBox(this, "提示", "已打卡下班。");
     renderScene();
 }
 
@@ -1688,7 +1654,8 @@ void Test3::renderLinenRoom()
 
         area->onDropCallback = [this, name](QString item) {
              if (item != name) {
-                QMessageBox::critical(this, "错误", QString("存放失败：不能将 %1 放入 %2 的位置！").arg(item, name));
+                // Critical error
+                Utils::ShowCustomMessageBox(this, "错误", QString("存放失败：不能将 %1 放入 %2 的位置！").arg(item, name), true);
                 return;
             }
             handleSceneDrop(item, false); // false = LinenRoom
