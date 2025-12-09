@@ -11,6 +11,7 @@
 #include <QMessageBox>
 #include <QHeaderView>
 #include <QCheckBox>
+#include <QRegularExpression>
 #include "config.h"
 #include "utils.h"
 #include "logger.h"
@@ -483,9 +484,9 @@ void Test3::updateGameLayout()
             QVariant varFontSize = w->property("originalFontSize");
             if (varFontSize.isValid()) {
                 int origSize = varFontSize.toInt();
-                // 简单的平均缩放比例
-                float avgScale = (scaleX + scaleY) / 2.0f;
-                int newSize = static_cast<int>(origSize * avgScale);
+                // 使用最小缩放比例，防止压扁时字体截断
+                float minScale = qMin(scaleX, scaleY);
+                int newSize = static_cast<int>(origSize * minScale);
                 if (newSize < 8) newSize = 8; // 最小字体保护
 
                 QString baseStyle = w->property("baseStyleSheet").toString();
@@ -494,13 +495,27 @@ void Test3::updateGameLayout()
                     w->setProperty("baseStyleSheet", baseStyle);
                 }
 
-                w->setStyleSheet(baseStyle + QString("; font-size: %1px;").arg(newSize));
+                // 使用正则替换 font-size，支持复杂样式表 (如 QPushButton { ... })
+                QString newStyle = baseStyle;
+                static QRegularExpression regex("font-size\\s*:\\s*\\d+px", QRegularExpression::CaseInsensitiveOption);
+                QString replacement = QString("font-size: %1px").arg(newSize);
+
+                if (newStyle.contains(regex)) {
+                    newStyle.replace(regex, replacement);
+                } else {
+                    // 如果没有 font-size，则尝试插入或追加
+                    newStyle += QString("; font-size: %1px;").arg(newSize);
+                }
+
+                w->setStyleSheet(newStyle);
             }
         }
 
         // 3. 处理 ClickableArea (Polygon)
         ClickableArea* ca = qobject_cast<ClickableArea*>(w);
         if (ca) {
+            // 修复: 强制设置几何为全屏，以确保点击区域有效 (尤其是首次加载时)
+            ca->setGeometry(0, 0, currentSize.width(), currentSize.height());
             ca->rescale(scaleX, scaleY);
         }
     }
@@ -1683,7 +1698,17 @@ void Test3::renderLinenRoom()
             cntLbl->adjustSize();
 
             // 放置在格子左上角 (Left-Top)
-            cntLbl->move(rect.x() + 5, rect.y() + 5);
+            // 修复: 使用 setGeometryCentered 并设置 originalGeometry 以支持缩放
+            // rect 是中心点坐标 (cx, cy, w, h)，需转换为左上角
+            int realLeft = rect.x() - rect.width() / 2;
+            int realTop = rect.y() - rect.height() / 2;
+
+            // 计算目标中心点 (Label Center)
+            int targetX = realLeft + 5 + cntLbl->width() / 2;
+            int targetY = realTop + 5 + cntLbl->height() / 2;
+
+            setGeometryCentered(cntLbl, targetX, targetY, cntLbl->width(), cntLbl->height());
+            cntLbl->setProperty("originalFontSize", Config::Test3::Fonts::SIZE_LINEN_COUNT);
             cntLbl->show();
         } else {
             // Empty
@@ -1737,7 +1762,19 @@ void Test3::renderLinenRoom()
             cntLbl->setStyleSheet(QString("color: red; font-size: %1px; font-weight: bold;")
                                   .arg(Config::Test3::Fonts::SIZE_LINEN_COUNT));
             cntLbl->adjustSize();
-            cntLbl->move(Config::Test3::Geometry::RECT_EVENT_DIRTY_LINEN.right() - 20, Config::Test3::Geometry::RECT_EVENT_DIRTY_LINEN.bottom() - 20);
+
+            // 修复: 脏布草计数标签定位与缩放
+            QRect dRect = Config::Test3::Geometry::RECT_EVENT_DIRTY_LINEN;
+            int realRight = dRect.x() + dRect.width() / 2;
+            int realBottom = dRect.y() + dRect.height() / 2;
+
+            // 放置在右下角 (Inside)
+            // Calculate Center X/Y for the label
+            int targetX = realRight - cntLbl->width() / 2 - 5;
+            int targetY = realBottom - cntLbl->height() / 2 - 5;
+
+            setGeometryCentered(cntLbl, targetX, targetY, cntLbl->width(), cntLbl->height());
+            cntLbl->setProperty("originalFontSize", Config::Test3::Fonts::SIZE_LINEN_COUNT);
             cntLbl->show();
         }
 
