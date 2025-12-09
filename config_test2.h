@@ -49,6 +49,8 @@ namespace Config
         // --- 颜色与样式 (Colors & Styles) ---
         // 提交按钮背景色 (绿色)
         constexpr const char *COL_BTN_SUBMIT = "#27ae60";
+        // 按钮文字白色
+        constexpr const char *COL_BTN_TEXT_WHITE = "#FFFFFF";
 
         // 选项按钮样式表 (动态生成)
         static inline QString GET_STYLE_OPTION_BTN() {
