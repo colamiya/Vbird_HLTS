@@ -2,6 +2,7 @@
 #include "config.h"
 #include <QMessageBox>
 #include "logger.h"
+#include <QRegularExpression>
 
 Test2::Test2(QWidget *parent) : QWidget(parent)
 {

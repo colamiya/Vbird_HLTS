@@ -1,6 +1,7 @@
 #include "test1.h"
 #include "config.h"
 #include <QMessageBox>
+#include <QRegularExpression>
 
 Test1::Test1(QWidget *parent) : QWidget(parent)
 {
