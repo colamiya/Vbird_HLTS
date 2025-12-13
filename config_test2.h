@@ -17,7 +17,7 @@ namespace Config
 
         // --- 资源路径模板 (Path Templates) ---
         // 选项图片路径格式。 %1 会被替换为题目编号和选项字母 (如 "1A")
-        constexpr const char *PATH_FMT_JPG = ":/source/Test2/%1.jpg";
+        constexpr const char *PATH_FMT_JPG = "source/Test2/%1.jpg";
 
         // --- 界面文本 (UI Texts) ---
         // 导航按钮

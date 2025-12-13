@@ -168,9 +168,6 @@ private:
     // 获取图片 (带缓存)
     QPixmap getPixmap(const QString &path);
 
-    // 格式化任务清单字符串
-    QString formatTaskList() const;
-
     // 自适应布局更新
     void updateGameLayout();
 

@@ -807,7 +807,7 @@ void Test3::tryShowTip(GameScene scene)
 {
     // Video Tutorial Check
     if (scene == GameScene::Warehouse && !gameState.hasShownTipWarehouse) {
-        VideoTutorialDialog *dlg = new VideoTutorialDialog(":/source/Test3/脏布草.mp4", Config::Test3::Texts::TUTORIAL_WAREHOUSE_ENTRY, this);
+        VideoTutorialDialog *dlg = new VideoTutorialDialog("source/Test3/脏布草.mp4", Config::Test3::Texts::TUTORIAL_WAREHOUSE_ENTRY, this);
         dlg->setAttribute(Qt::WA_DeleteOnClose);
         dlg->exec();
         gameState.hasShownTipWarehouse = true;
@@ -815,7 +815,7 @@ void Test3::tryShowTip(GameScene scene)
     }
 
     if (scene == GameScene::WarehouseShelf && !gameState.hasShownTipShelf) {
-        VideoTutorialDialog *dlg = new VideoTutorialDialog(":/source/Test3/拿布草.mp4", Config::Test3::Texts::TUTORIAL_WAREHOUSE_SHELF_ACTION, this);
+        VideoTutorialDialog *dlg = new VideoTutorialDialog("source/Test3/拿布草.mp4", Config::Test3::Texts::TUTORIAL_WAREHOUSE_SHELF_ACTION, this);
         dlg->setAttribute(Qt::WA_DeleteOnClose);
         dlg->exec();
         gameState.hasShownTipShelf = true;
@@ -823,7 +823,7 @@ void Test3::tryShowTip(GameScene scene)
     }
 
     if (scene == GameScene::LinenRoom && !gameState.hasShownTipLinenRoom) {
-        VideoTutorialDialog *dlg = new VideoTutorialDialog(":/source/Test3/放布草.mp4", Config::Test3::Texts::TUTORIAL_SHELF, this);
+        VideoTutorialDialog *dlg = new VideoTutorialDialog("source/Test3/放布草.mp4", Config::Test3::Texts::TUTORIAL_SHELF, this);
         dlg->setAttribute(Qt::WA_DeleteOnClose);
         dlg->exec();
         gameState.hasShownTipLinenRoom = true;
@@ -1470,7 +1470,7 @@ void Test3::handleGoHome()
     }
 
     // Also format simple string just in case (optional, but requested detailed table so string might be unused)
-    data.taskList = formatTaskList();
+    // data.taskList = formatTaskList(); // Removed as taskList is replaced by detailedTasks
 
     // Floor Statuses (Task Completion)
     data.floorStatuses.clear();
@@ -1500,23 +1500,6 @@ void Test3::handleGoHome()
 
     // 退出到主菜单 (使用 levelCancelled 返回菜单，不触发 MainWindow 的成功弹窗)
     emit levelCancelled();
-}
-
-QString Test3::formatTaskList() const
-{
-    QStringList result;
-    for (int i = 0; i < gameState.tasks.size(); ++i) {
-        const Task &t = gameState.tasks[i];
-        QString header = QString("[%1] %2层: ").arg(t.isEmergency ? "紧急" : "任务").arg(t.targetFloor);
-        QStringList items;
-        for (auto it = t.requiredItems.begin(); it != t.requiredItems.end(); ++it) {
-            if (it.value() > 0) {
-                items << QString("%1x%2").arg(it.key()).arg(it.value());
-            }
-        }
-        result << (header + items.join(", "));
-    }
-    return result.join("; ");
 }
 
 void Test3::handleElevatorButton(int floor)
