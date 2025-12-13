@@ -42,22 +42,29 @@ Test2::Test2(QWidget *parent) : QWidget(parent)
         {"3. 工作时，谁的工作方式正确？", 3},
         {"4. 工作时，谁的工作方式正确？", 3},
         {"5. 工作时，谁的工作方式正确？", 0},
-        {"6. 进行交接时，谁的工作方式正确？", 0},
-        {"7. 发现床单破洞了，谁的工作方式正确？", 0},
-        {"8. 工作时，谁的工作方式正确？", 0},
-        {"9. 遇到了紧急任务，需要送到15楼，谁的工作方式正确？", 0},
-        {"10. 下午4:00汇报工作时，谁的方式正确？", 1},
-        {"11. 推车轮子坏了，谁的处理方式正确？", 3},
-        {"12. 工作时，谁的工作方式正确？", 0},
-        {"13. 工作时，谁的工作方式正确？", 3},
-        {"14. 地面湿滑，谁的处理方式正确？", 2},
-        {"15. 工作时，谁的工作方式正确？", 2},
-        {"16. 房间里的布草不够了，谁的工作方式正确？", 1},
-        {"17. 和同事相处时，谁的做法错误？", 3},
-        {"18. 被批评了，谁的态度是对的？", 1},
-        {"19. 下午17:00下班了，谁做的是对的？", 0}};
+        {"6. 发现床单破洞了，谁的工作方式正确？", 0},
+        {"7. 工作时，谁的工作方式正确？", 0},
+        {"8. 遇到了紧急任务，需要送到15楼，谁的工作方式正确？", 0},
+        {"9. 下午4:00汇报工作时，谁的方式正确？", 1},
+        {"10. 推车轮子坏了，谁的处理方式正确？", 3},
+        {"11. 工作时，谁的工作方式正确？", 0},
+        {"12. 工作时，谁的工作方式正确？", 3},
+        {"13. 地面湿滑，谁的处理方式正确？", 2},
+        {"14. 工作时，谁的工作方式正确？", 2},
+        {"15. 房间里的布草不够了，谁的工作方式正确？", 1},
+        {"16. 和同事相处时，谁的做法错误？", 3},
+        {"17. 被批评了，谁的态度是对的？", 1},
+        {"18. 下午17:00下班了，谁做的是对的？", 0}};
 
     // 构建问题列表
+    // 1. 添加引导页 (Intro Slide)
+    Question intro;
+    intro.text = "这里有四位酒店的员工，请你先认识他们。在你认识他们后，我们一起来看看他们是怎么工作的";
+    intro.options = QStringList() << "" << "" << "" << ""; // 占位
+    intro.correctIndex = -1; // 不计分
+    questions.append(intro);
+
+    // 2. 添加正式题目
     for (const auto &item : quizData)
     {
         Question q;
@@ -157,23 +164,40 @@ void Test2::loadQuestion()
 
     for (int i = 0; i < 4; ++i)
     {
-        optionButtons[i]->setText(q.options[i]);
+        QString path;
+        QString title;
 
-        // 恢复之前的选择
-        if (q.userSelection == i)
-        {
-            optionButtons[i]->setChecked(true);
+        // 特殊处理引导页 (Index 0)
+        if (currentQuestionIndex == 0) {
+            optionButtons[i]->setVisible(false); // 隐藏选项按钮
+
+            // 加载 01.jpg - 04.jpg
+            QString imgName = QString("0%1").arg(i + 1);
+            path = QString(Config::Test2::PATH_FMT_JPG).arg(imgName);
+            title = QString("员工介绍 %1").arg(i + 1);
         }
-        else
-        {
-            optionButtons[i]->setChecked(false);
+        else {
+            optionButtons[i]->setVisible(true); // 显示选项按钮
+            optionButtons[i]->setText(q.options[i]);
+
+            // 恢复之前的选择
+            if (q.userSelection == i)
+            {
+                optionButtons[i]->setChecked(true);
+            }
+            else
+            {
+                optionButtons[i]->setChecked(false);
+            }
+
+            // 加载题目图片
+            // 因为第0页是引导页，所以第1页(Q1)对应图片 1A/B/C/D
+            // 公式直接使用 currentQuestionIndex 即可 (Index 1 -> "1")
+            char suffix = 'A' + i;
+            QString imgName = QString("%1%2").arg(currentQuestionIndex).arg(suffix);
+            path = QString(Config::Test2::PATH_FMT_JPG).arg(imgName);
+            title = QString("第 %1 题 - 选项 %2").arg(currentQuestionIndex).arg(suffix);
         }
-
-        char suffix = 'A' + i;
-        QString imgName = QString("%1%2").arg(currentQuestionIndex + 1).arg(suffix);
-
-        // 使用配置中的路径模板加载图片
-        QString path = QString(Config::Test2::PATH_FMT_JPG).arg(imgName);
 
         QPixmap pix(path);
         if (pix.isNull())
@@ -191,7 +215,6 @@ void Test2::loadQuestion()
 
         // 断开旧连接并连接新的预览信号
         optionImages[i]->disconnect();
-        QString title = QString("第 %1 题 - 选项 %2").arg(currentQuestionIndex + 1).arg(suffix);
         connect(optionImages[i], &QPushButton::clicked, [this, path, title]()
                 { showImagePreview(path, title); });
     }
@@ -212,6 +235,11 @@ void Test2::loadQuestion()
                 .arg(Config::Test2::COL_BTN_TEXT_WHITE)
                 .arg(Config::Text::SIZE_TEST2_ACTION_BTN);
         nextQBtn->setStyleSheet(submitStyle);
+    }
+    else if (currentQuestionIndex == 0)
+    {
+        nextQBtn->setText("开始"); // 引导页显示 "开始"
+        nextQBtn->setStyleSheet(Config::Test2::GET_ACTION_BTN_STYLE());
     }
     else
     {
@@ -245,9 +273,10 @@ void Test2::showQuizSummary()
 {
     quizScore = 0;
 
-    // 计算总分
-    for (const auto &q : questions)
+    // 计算总分 (跳过 Index 0 的引导页)
+    for (int i = 1; i < questions.size(); ++i)
     {
+        const Question &q = questions[i];
         if (q.userSelection == q.correctIndex)
             quizScore++;
     }
@@ -255,7 +284,7 @@ void Test2::showQuizSummary()
     // 填充 Logger 数据
     Logger::Test2BriefData data;
     data.score = quizScore;
-    data.total = questions.size();
+    data.total = questions.size() - 1; // 减去引导页
 
     // Calculate Duration
     qint64 secs = m_startTime.secsTo(QDateTime::currentDateTime());
@@ -265,22 +294,23 @@ void Test2::showQuizSummary()
 
     char optionChars[] = {'A', 'B', 'C', 'D'};
 
-    for (int i = 0; i < questions.size(); ++i)
+    // 记录结果 (从 Index 1 开始)
+    for (int i = 1; i < questions.size(); ++i)
     {
         const Question &q = questions[i];
         bool isCorrect = (q.userSelection == q.correctIndex);
 
         Logger::Test2BriefData::QuestionResult r;
-        r.id = i + 1;
+        r.id = i; // 题目ID从1开始 (对应 questions[1])
         r.selection = (q.userSelection != -1) ? QString(optionChars[q.userSelection]) : "未作答";
         r.correct = isCorrect;
         data.results.append(r);
 
-        emit logMessage(QString("题目%1: 选%2 -> %3").arg(i + 1).arg(r.selection).arg(isCorrect ? "正确" : "错误"));
+        emit logMessage(QString("题目%1: 选%2 -> %3").arg(r.id).arg(r.selection).arg(isCorrect ? "正确" : "错误"));
     }
 
     Logger::instance().test2Data = data;
-    emit logMessage(QString("测验完成. 得分: %1 / %2").arg(quizScore).arg(questions.size()));
+    emit logMessage(QString("测验完成. 得分: %1 / %2").arg(quizScore).arg(data.total));
 
     // 直接完成关卡，不弹窗
     emit levelCompleted();
