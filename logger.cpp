@@ -39,6 +39,11 @@ void Logger::logAction(const QString &module, const QString &action)
 
 void Logger::logSystemMessage(const QString &msg)
 {
+    // Disable file logging for System messages as per requirement
+    // Only print to stderr (done by customMessageHandler or here if needed, but handled by caller mainly)
+    return;
+
+    /*
     if (!m_initialized || !Config::Csv::ENABLE_OUTPUT_CN || m_detailedFnCn.isEmpty())
         return;
 
@@ -54,6 +59,7 @@ void Logger::logSystemMessage(const QString &msg)
         out << line << "\n";
         file.close();
     }
+    */
 }
 
 
@@ -226,17 +232,31 @@ void Logger::writeBriefReport(const QString &filename)
 
         if (Config::Csv::LOG_TEST3_TASK_LIST)
         {
-            out << "任务清单:\n";
-            if (test3Data.taskList.isEmpty()) {
+            out << "任务清单详情:\n";
+            if (test3Data.detailedTasks.isEmpty()) {
                 out << "无任务\n";
             } else {
-                out << test3Data.taskList << "\n";
+                for(int i=0; i<test3Data.detailedTasks.size(); ++i) {
+                    const auto& task = test3Data.detailedTasks[i];
+                    QString title = QString("任务%1 (%2层)%3").arg(i+1).arg(task.floor).arg(task.isEmergency ? " [紧急]" : "");
+                    out << title << "\n";
+                    out << "物品,需求量,学生标记,完成结果\n";
+                    for(const auto& item : task.items) {
+                        QString markedStr = item.isMarked ? "是" : "否";
+                        out << QString("%1,%2,%3,%4\n")
+                               .arg(item.name)
+                               .arg(item.required)
+                               .arg(markedStr)
+                               .arg(item.resultStatus);
+                    }
+                    out << "\n"; // Empty line between tasks
+                }
             }
         }
 
         if (Config::Csv::LOG_TEST3_TASK_STATUS)
         {
-            out << "楼层任务状态:\n";
+            out << "楼层任务状态 (汇总):\n";
             if (test3Data.floorStatuses.isEmpty())
             {
                 out << "无任务数据\n";
