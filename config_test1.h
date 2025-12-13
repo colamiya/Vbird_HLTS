@@ -22,16 +22,16 @@ namespace Config
         static const QList<QString> &SLIDE_IMAGES()
         {
             static const QList<QString> list = {
-                ":/source/Test1/fig1.png",
-                ":/source/Test1/fig2.png",
-                ":/source/Test1/fig3.png",
-                ":/source/Test1/fig4.png",
-                ":/source/Test1/fig5.png",
-                ":/source/Test1/fig6.png",
-                ":/source/Test1/fig7.png",
-                ":/source/Test1/fig8.png",
-                ":/source/Test1/fig9.png",
-                ":/source/Test1/fig10.png"};
+                "source/Test1/fig1.png",
+                "source/Test1/fig2.png",
+                "source/Test1/fig3.png",
+                "source/Test1/fig4.png",
+                "source/Test1/fig5.png",
+                "source/Test1/fig6.png",
+                "source/Test1/fig7.png",
+                "source/Test1/fig8.png",
+                "source/Test1/fig9.png",
+                "source/Test1/fig10.png"};
             return list;
         }
 

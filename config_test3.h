@@ -302,37 +302,37 @@ namespace Config
         namespace Images
         {
             // 场景
-            constexpr const char *SCENE_ENTRANCE = ":/source/Test3/入口.jpg";
-            constexpr const char *SCENE_HALLWAY_NORMAL = ":/source/Test3/走廊-状态2（正常打卡）.jpg";
-            constexpr const char *SCENE_HALLWAY_LATE = ":/source/Test3/走廊-状态2（迟到打卡）.jpg";
-            constexpr const char *SCENE_HALLWAY_CLOCKED_OUT = ":/source/Test3/走廊-状态3（下班打卡）.jpg";
-            constexpr const char *SCENE_OFFICE = ":/source/Test3/办公室.png";
+            constexpr const char *SCENE_ENTRANCE = "source/Test3/入口.jpg";
+            constexpr const char *SCENE_HALLWAY_NORMAL = "source/Test3/走廊-状态2（正常打卡）.jpg";
+            constexpr const char *SCENE_HALLWAY_LATE = "source/Test3/走廊-状态2（迟到打卡）.jpg";
+            constexpr const char *SCENE_HALLWAY_CLOCKED_OUT = "source/Test3/走廊-状态3（下班打卡）.jpg";
+            constexpr const char *SCENE_OFFICE = "source/Test3/办公室.png";
             // 更新仓库入口背景图
-            constexpr const char *SCENE_WAREHOUSE_ENTRY = ":/source/Test3/仓库1(集成脏布草回收桶).png";
-            constexpr const char *SCENE_WAREHOUSE_SHELF = ":/source/Test3/取布草的货架.jpg";
-            constexpr const char *SCENE_ELEVATOR_HALL = ":/source/Test3/电梯厅.jpg";
-            constexpr const char *SCENE_ELEVATOR_INSIDE = ":/source/Test3/电梯内.jpg";
-            constexpr const char *SCENE_FLOOR_CORRIDOR = ":/source/Test3/楼层走廊-前.png";
-            constexpr const char *SCENE_LINEN_ROOM_EMPTY = ":/source/Test3/布草间-空.jpg";
+            constexpr const char *SCENE_WAREHOUSE_ENTRY = "source/Test3/仓库1(集成脏布草回收桶).png";
+            constexpr const char *SCENE_WAREHOUSE_SHELF = "source/Test3/取布草的货架.jpg";
+            constexpr const char *SCENE_ELEVATOR_HALL = "source/Test3/电梯厅.jpg";
+            constexpr const char *SCENE_ELEVATOR_INSIDE = "source/Test3/电梯内.jpg";
+            constexpr const char *SCENE_FLOOR_CORRIDOR = "source/Test3/楼层走廊-前.png";
+            constexpr const char *SCENE_LINEN_ROOM_EMPTY = "source/Test3/布草间-空.jpg";
 
             // UI
-            constexpr const char *UI_CART_EMPTY = ":/source/Test3/推车-空.png";
-            constexpr const char *UI_CART_CLEAN = ":/source/Test3/推车-布草.png";
-            constexpr const char *UI_CART_DIRTY = ":/source/Test3/推车-脏布草.png";
-            constexpr const char *UI_DIRTY_BIN = ":/source/Test3/脏布草回收.png";
-            constexpr const char *UI_DIRTY_LINEN = ":/source/Test3/脏布草.png";
-            constexpr const char *UI_TASK_SHEET = ":/source/Test3/申领表.png";
+            constexpr const char *UI_CART_EMPTY = "source/Test3/推车-空.png";
+            constexpr const char *UI_CART_CLEAN = "source/Test3/推车-布草.png";
+            constexpr const char *UI_CART_DIRTY = "source/Test3/推车-脏布草.png";
+            constexpr const char *UI_DIRTY_BIN = "source/Test3/脏布草回收.png";
+            constexpr const char *UI_DIRTY_LINEN = "source/Test3/脏布草.png";
+            constexpr const char *UI_TASK_SHEET = "source/Test3/申领表.png";
 
             // 物品
             static inline QMap<QString, QString> ITEMS()
             {
                 QMap<QString, QString> m;
-                m["大床单"] = ":/source/Test3/大床单.png";
-                m["大被套"] = ":/source/Test3/大被套.png";
-                m["小被套"] = ":/source/Test3/小被套.png";
-                m["枕巾"] = ":/source/Test3/枕巾.png";
-                m["晚安巾"] = ":/source/Test3/晚安巾.png";
-                m["毛巾"] = ":/source/Test3/毛巾.png";
+                m["大床单"] = "source/Test3/大床单.png";
+                m["大被套"] = "source/Test3/大被套.png";
+                m["小被套"] = "source/Test3/小被套.png";
+                m["枕巾"] = "source/Test3/枕巾.png";
+                m["晚安巾"] = "source/Test3/晚安巾.png";
+                m["毛巾"] = "source/Test3/毛巾.png";
                 return m;
             }
         }
