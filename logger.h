@@ -42,7 +42,7 @@ public:
         QString clockOutStatus = "未打卡";
         bool isLate = false;
 
-        // Task Results
+        // Task Results (Summary)
         struct FloorStatus
         {
             int floor;
@@ -51,7 +51,22 @@ public:
         };
         QList<FloorStatus> floorStatuses;
 
-        QString taskList;            // Assigned tasks summary
+        // Detailed Task Item Log
+        struct TaskItemLog {
+            QString name;
+            int required;
+            bool isMarked;
+            QString resultStatus; // "完成", "未完成", "完成未标记"
+        };
+
+        struct TaskLog {
+            int floor;
+            bool isEmergency;
+            QList<TaskItemLog> items;
+        };
+
+        QList<TaskLog> detailedTasks; // Replaces simple taskList string
+
         QString timeUsed;            // Duration string
         bool emergencyPriorityMet = true;
         bool mixedLinen = false;

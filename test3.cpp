@@ -578,7 +578,7 @@ void Test3::updateGameLayout()
 
 void Test3::goToScene(GameScene scene)
 {
-    emit logMessage(QString("goToScene: %1").arg((int)scene));
+    // emit logMessage(QString("goToScene: %1").arg((int)scene)); // Filtered per request
 
     if (gameState.currentScene == GameScene::StaffHallway && scene != GameScene::StaffHallway)
     {
@@ -591,7 +591,7 @@ void Test3::goToScene(GameScene scene)
     }
 
     gameState.currentScene = scene;
-    emit logMessage("移动到场景: " + QString::number((int)scene));
+    // emit logMessage("移动到场景: " + QString::number((int)scene)); // Filtered per request
     renderScene();
 }
 
@@ -744,7 +744,7 @@ void Test3::refreshTaskList()
 
 void Test3::renderScene()
 {
-    emit logMessage(QString("renderScene: %1").arg((int)gameState.currentScene));
+    // emit logMessage(QString("renderScene: %1").arg((int)gameState.currentScene)); // Filtered per request
     QList<QObject *> children = rpgCenterPanel->children();
     for (QObject *child : children)
     {
@@ -1432,7 +1432,44 @@ void Test3::handleGoHome()
     int s = secs % 60;
     data.timeUsed = QString("%1分%2秒").arg(mins).arg(s);
 
-    // Task List
+    // Task List (Detailed Table Logic)
+    data.detailedTasks.clear();
+    for (int i = 0; i < gameState.tasks.size(); ++i) {
+        const Task &t = gameState.tasks[i];
+        Logger::Test3BriefData::TaskLog taskLog;
+        taskLog.floor = t.targetFloor;
+        taskLog.isEmergency = t.isEmergency;
+
+        for(auto it = t.requiredItems.begin(); it != t.requiredItems.end(); ++it) {
+            if(it.value() > 0) {
+                QString name = it.key();
+                int required = it.value();
+                int actual = gameState.floorInventory[t.targetFloor].value(name, 0);
+                bool marked = t.itemCompletionStatus.value(name, false);
+
+                Logger::Test3BriefData::TaskItemLog itemLog;
+                itemLog.name = name;
+                itemLog.required = required;
+                itemLog.isMarked = marked;
+
+                // Determine Result Status
+                if (actual >= required) {
+                    if (marked) {
+                        itemLog.resultStatus = "完成";
+                    } else {
+                        itemLog.resultStatus = "完成未标记";
+                    }
+                } else {
+                    itemLog.resultStatus = "未完成";
+                }
+
+                taskLog.items.append(itemLog);
+            }
+        }
+        data.detailedTasks.append(taskLog);
+    }
+
+    // Also format simple string just in case (optional, but requested detailed table so string might be unused)
     data.taskList = formatTaskList();
 
     // Floor Statuses (Task Completion)
