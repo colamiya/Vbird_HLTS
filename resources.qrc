@@ -17,7 +17,6 @@
         <file>source/Test3/电梯厅.jpg</file>
         <file>source/Test3/仓库1.jpg</file>
         <file>source/Test3/推车-脏布草.png</file>
-        <file>source/Test2/19B.jpg</file>
         <file>source/Test2/18B.jpg</file>
         <file>source/Test2/7B.jpg</file>
         <file>source/Test2/15D.jpg</file>
@@ -70,11 +69,8 @@
         <file>source/Test2/1A.jpg</file>
         <file>source/Test2/18A.jpg</file>
         <file>source/Test2/9B.jpg</file>
-        <file>source/Test2/19A.jpg</file>
-        <file>source/Test2/19C.jpg</file>
         <file>source/Test2/14B.jpg</file>
         <file>source/Test2/17D.jpg</file>
-        <file>source/Test2/19D.jpg</file>
         <file>source/Test2/16B.jpg</file>
         <file>source/Test2/8C.jpg</file>
         <file>source/Test2/15B.jpg</file>
@@ -105,7 +101,6 @@
         <file>source/Test2/3C.jpg</file>
         <file>source/Test2/3D.jpg</file>
         <file>source/Test2/5A.jpg</file>
-        <file>source/Test2/9A (2).jpg</file>
         <file>source/Test3/走廊-状态2（迟到打卡）.jpg</file>
         <file>source/Test3/走廊-状态2（正常打卡）.jpg</file>
         <file>source/Test3/走廊-状态3（下班打卡）.jpg</file>
@@ -115,5 +110,9 @@
         <file>source/Test3/脏布草.mp4</file>
         <file>source/Test3/拿布草.mp4</file>
         <file>source/Test3/放布草.mp4</file>
+        <file>source/Test2/01.jpg</file>
+        <file>source/Test2/02.jpg</file>
+        <file>source/Test2/03.jpg</file>
+        <file>source/Test2/04.jpg</file>
     </qresource>
 </RCC>
