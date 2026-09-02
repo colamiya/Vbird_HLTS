@@ -56,3 +56,7 @@ compile_commands.json
 #CO
 
 build/
+# Local training reports (may contain personal information)
+*.csv
+reports/
+training-data/
