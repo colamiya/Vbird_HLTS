@@ -82,7 +82,11 @@ void Logger::startNewSession()
     auto insertTimestamp = [&](const char *filename) -> QString
     {
         QString fn = QString(filename);
-        QString prefix = timestamp + "_" + m_student.name; // Format: Time_Name
+        QString prefix = timestamp;
+        if (Config::Csv::INCLUDE_STUDENT_NAME_IN_FILENAME && !m_student.name.trimmed().isEmpty())
+        {
+            prefix += "_" + m_student.name.trimmed();
+        }
         return prefix + "_" + fn;
     };
 
