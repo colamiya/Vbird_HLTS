@@ -155,11 +155,12 @@ namespace Config
 
         // --- 字段开关 (Field Toggles) ---
         // 学生基础信息
-        const bool LOG_STUDENT_NAME = true;     // 姓名
-        const bool LOG_STUDENT_AGE = true;      // 年龄
-        const bool LOG_STUDENT_GENDER = true;   // 性别
-        const bool LOG_STUDENT_CLASS = true;    // 班级
+        const bool LOG_STUDENT_NAME = false;    // 姓名（涉及个人信息，默认关闭）
+        const bool LOG_STUDENT_AGE = false;     // 年龄（涉及个人信息，默认关闭）
+        const bool LOG_STUDENT_GENDER = false;  // 性别（涉及个人信息，默认关闭）
+        const bool LOG_STUDENT_CLASS = false;   // 班级（涉及个人信息，默认关闭）
         const bool LOG_SESSION_DURATION = true; // 时长 (总体)
+        const bool INCLUDE_STUDENT_NAME_IN_FILENAME = false; // 文件名默认匿名
 
         // 测试2 (知识测验)
         const bool LOG_TEST2_SCORE = true;       // 总分
