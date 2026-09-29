@@ -161,7 +161,8 @@ void MainWindow::onStartTraining()
         test3Widget->setEmergencyMode(enableEmergencyEvents);
     }
 
-    onLogMessage(QString("开始培训: %1, %2").arg(student.name, student.className));
+    // 默认动作日志不得绕过个人信息字段开关。
+    onLogMessage("开始培训");
     updateMainMenu();
     mainStack->setCurrentIndex(1);
 }

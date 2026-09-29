@@ -1,5 +1,43 @@
 #include "logger.h"
 #include <cstdio>
+#include <QRegularExpression>
+#include <QStringList>
+
+namespace
+{
+QString csvCell(QString value)
+{
+    int firstContent = 0;
+    while (firstContent < value.size() && value.at(firstContent).isSpace())
+        ++firstContent;
+
+    if (firstContent < value.size())
+    {
+        const QChar first = value.at(firstContent);
+        if (first == '=' || first == '+' || first == '-' || first == '@' || first == '\t' || first == '\r' || first == '\n')
+            value.prepend('\'');
+    }
+
+    value.replace("\"", "\"\"");
+    return "\"" + value + "\"";
+}
+
+QString csvRow(const QStringList &cells)
+{
+    QStringList encoded;
+    encoded.reserve(cells.size());
+    for (const QString &cell : cells)
+        encoded << csvCell(cell);
+    return encoded.join(',');
+}
+
+QString safeFilenamePart(QString value)
+{
+    value = value.trimmed();
+    value.replace(QRegularExpression("[\\\\/:*?\"<>|\\x00-\\x1F\\x7F]"), "_");
+    return value.left(64);
+}
+}
 
 // Static handler for redirection
 void customMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
@@ -25,8 +63,7 @@ void Logger::logAction(const QString &module, const QString &action)
 
     if (Config::Csv::ENABLE_OUTPUT_CN && !m_detailedFnCn.isEmpty())
     {
-        // Format: Time,Module,Action
-        QString line = QString("%1,%2,%3").arg(timestamp, module, action);
+        QString line = csvRow({timestamp, module, action});
         QFile file(m_detailedFnCn);
         if (file.open(QIODevice::Append | QIODevice::Text))
         {
@@ -85,7 +122,7 @@ void Logger::startNewSession()
         QString prefix = timestamp;
         if (Config::Csv::INCLUDE_STUDENT_NAME_IN_FILENAME && !m_student.name.trimmed().isEmpty())
         {
-            prefix += "_" + m_student.name.trimmed();
+            prefix += "_" + safeFilenamePart(m_student.name);
         }
         return prefix + "_" + fn;
     };
@@ -122,16 +159,20 @@ void Logger::initDetailedLog(const QString &filename)
         dFile.write(bom, 3);
 
         QTextStream out(&dFile);
-        // Header
-        QString headerLine;
-        headerLine = QString("姓名,%1,年龄,%2,性别,%3,班级,%4,时长,%5\n")
-                             .arg(m_student.name)
-                             .arg(m_student.age)
-                             .arg(m_student.gender)
-                             .arg(m_student.className)
-                             .arg(m_student.duration);
-        out << headerLine;
-        out << "时间,模块,操作/日志内容\n";
+        QStringList infoCells;
+        if (Config::Csv::LOG_STUDENT_NAME)
+            infoCells << "姓名" << m_student.name;
+        if (Config::Csv::LOG_STUDENT_AGE)
+            infoCells << "年龄" << QString::number(m_student.age);
+        if (Config::Csv::LOG_STUDENT_GENDER)
+            infoCells << "性别" << m_student.gender;
+        if (Config::Csv::LOG_STUDENT_CLASS)
+            infoCells << "班级" << m_student.className;
+        if (Config::Csv::LOG_SESSION_DURATION)
+            infoCells << "时长" << m_student.duration;
+        if (!infoCells.isEmpty())
+            out << csvRow(infoCells) << "\n";
+        out << csvRow({"时间", "模块", "操作/日志内容"}) << "\n";
         dFile.close();
     }
 }
@@ -151,54 +192,54 @@ void Logger::writeBriefReport(const QString &filename)
         QStringList infoParts;
         if (Config::Csv::LOG_STUDENT_NAME)
         {
-            infoParts << QString("姓名,%1").arg(m_student.name);
+            infoParts << "姓名" << m_student.name;
         }
         if (Config::Csv::LOG_STUDENT_AGE)
         {
-            infoParts << QString("年龄,%1").arg(m_student.age);
+            infoParts << "年龄" << QString::number(m_student.age);
         }
         if (Config::Csv::LOG_STUDENT_GENDER)
         {
-            infoParts << QString("性别,%1").arg(m_student.gender);
+            infoParts << "性别" << m_student.gender;
         }
         if (Config::Csv::LOG_STUDENT_CLASS)
         {
-            infoParts << QString("班级,%1").arg(m_student.className);
+            infoParts << "班级" << m_student.className;
         }
         if (Config::Csv::LOG_SESSION_DURATION)
         {
-            infoParts << QString("时长,%1").arg(m_student.duration);
+            infoParts << "时长" << m_student.duration;
         }
 
         if (!infoParts.isEmpty())
         {
-            out << infoParts.join(",") << "\n";
+            out << csvRow(infoParts) << "\n";
         }
-        out << "----------------------------------------\n";
+        out << csvRow({"----------------------------------------"}) << "\n";
 
         // --- 2. Test 2 (Quiz) ---
         bool showTest2Header = Config::Csv::LOG_TEST2_SCORE || Config::Csv::LOG_TEST2_DETAILS || Config::Csv::LOG_TEST2_TIME_USED;
         if (showTest2Header) {
-            out << "【测试2: 知识测验】\n";
+            out << csvRow({"【测试2: 知识测验】"}) << "\n";
         }
 
         if (Config::Csv::LOG_TEST2_SCORE)
         {
-            out << QString("总分: %1 / %2\n").arg(test2Data.score).arg(test2Data.total);
+            out << csvRow({"总分", QString("%1 / %2").arg(test2Data.score).arg(test2Data.total)}) << "\n";
         }
         if (Config::Csv::LOG_TEST2_TIME_USED)
         {
-            out << QString("测试2用时: %1\n").arg(test2Data.timeUsed);
+            out << csvRow({"测试2用时", test2Data.timeUsed}) << "\n";
         }
 
         if (Config::Csv::LOG_TEST2_DETAILS)
         {
-            out << "题目,选择,结果\n";
+            out << csvRow({"题目", "选择", "结果"}) << "\n";
             for (const auto &q : test2Data.results)
             {
                 QString correctStr = q.correct ? "正确" : "错误";
                 QString qStr = QString("第%1题").arg(q.id);
-                out << QString("%1,%2,%3\n").arg(qStr).arg(q.selection).arg(correctStr);
+                out << csvRow({qStr, q.selection, correctStr}) << "\n";
             }
             out << "\n";
         }
@@ -208,50 +249,46 @@ void Logger::writeBriefReport(const QString &filename)
         bool showTest3Header = Config::Csv::LOG_TEST3_CLOCK || Config::Csv::LOG_TEST3_EMERGENCY || Config::Csv::LOG_TEST3_TASK_STATUS || Config::Csv::LOG_TEST3_TIME_USED;
         if (showTest3Header)
         {
-            out << "【测试3: 模拟实训】\n";
+            out << csvRow({"【测试3: 模拟实训】"}) << "\n";
         }
 
         if (Config::Csv::LOG_TEST3_TIME_USED)
         {
-            out << QString("测试3用时: %1\n").arg(test3Data.timeUsed);
+            out << csvRow({"测试3用时", test3Data.timeUsed}) << "\n";
         }
 
         if (Config::Csv::LOG_TEST3_CLOCK)
         {
             QString lateStr = test3Data.isLate ? "迟到" : "正常";
-            out << QString("上班打卡: %1 (%2)\n").arg(test3Data.clockInStatus).arg(lateStr);
-            out << QString("下班打卡: %1\n").arg(test3Data.clockOutStatus);
+            out << csvRow({"上班打卡", test3Data.clockInStatus, lateStr}) << "\n";
+            out << csvRow({"下班打卡", test3Data.clockOutStatus}) << "\n";
         }
 
         if (Config::Csv::LOG_TEST3_EMERGENCY)
         {
             QString priorityStr = test3Data.emergencyPriorityMet ? "是" : "否";
-            out << QString("紧急任务优先: %1\n").arg(priorityStr);
+            out << csvRow({"紧急任务优先", priorityStr}) << "\n";
         }
         if (Config::Csv::LOG_TEST3_MIXED_LINEN)
         {
             QString mixedStr = test3Data.mixedLinen ? "是" : "否";
-            out << QString("布草混装: %1\n").arg(mixedStr);
+            out << csvRow({"布草混装", mixedStr}) << "\n";
         }
 
         if (Config::Csv::LOG_TEST3_TASK_LIST)
         {
-            out << "任务清单详情:\n";
+            out << csvRow({"任务清单详情"}) << "\n";
             if (test3Data.detailedTasks.isEmpty()) {
-                out << "无任务\n";
+                out << csvRow({"无任务"}) << "\n";
             } else {
                 for(int i=0; i<test3Data.detailedTasks.size(); ++i) {
                     const auto& task = test3Data.detailedTasks[i];
                     QString title = QString("任务%1 (%2层)%3").arg(i+1).arg(task.floor).arg(task.isEmergency ? " [紧急]" : "");
-                    out << title << "\n";
-                    out << "物品,需求量,学生标记,完成结果\n";
+                    out << csvRow({title}) << "\n";
+                    out << csvRow({"物品", "需求量", "学生标记", "完成结果"}) << "\n";
                     for(const auto& item : task.items) {
                         QString markedStr = item.isMarked ? "是" : "否";
-                        out << QString("%1,%2,%3,%4\n")
-                               .arg(item.name)
-                               .arg(item.required)
-                               .arg(markedStr)
-                               .arg(item.resultStatus);
+                        out << csvRow({item.name, QString::number(item.required), markedStr, item.resultStatus}) << "\n";
                     }
                     out << "\n"; // Empty line between tasks
                 }
@@ -260,10 +297,10 @@ void Logger::writeBriefReport(const QString &filename)
 
         if (Config::Csv::LOG_TEST3_TASK_STATUS)
         {
-            out << "楼层任务状态 (汇总):\n";
+            out << csvRow({"楼层任务状态 (汇总)"}) << "\n";
             if (test3Data.floorStatuses.isEmpty())
             {
-                out << "无任务数据\n";
+                out << csvRow({"无任务数据"}) << "\n";
             }
             else
             {
@@ -271,7 +308,7 @@ void Logger::writeBriefReport(const QString &filename)
                 {
                     QString statusStr = f.isCorrect ? "完成" : "未完成";
                     QString floorStr = QString("%1楼").arg(f.floor);
-                    out << QString("%1: %2 (%3)\n").arg(floorStr).arg(statusStr).arg(f.details);
+                    out << csvRow({floorStr, statusStr, f.details}) << "\n";
                 }
             }
         }

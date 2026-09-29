@@ -50,7 +50,7 @@ cmake --build build --config Release
 - `test3.*`：酒店布草配送模拟
 - `logger.*`：本地 CSV 训练报告
 - `config_*.h`：界面、文本、资源路径与报告字段配置
-- `source/`：原创教学图片和视频素材
+- `source/`：教学图片和视频素材；逐文件来源与再分发权利须在公开二进制发布前完成核验
 
 ## 数据保护建议
 
@@ -65,4 +65,4 @@ cmake --build build --config Release
 
 ## 许可证
 
-代码及仓库内由作者原创、且未另行标注的配套素材采用 [MIT License](LICENSE)。
+代码采用 [MIT License](LICENSE)。Qt、Multimedia 后端和发布包的开源合规要求见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)；素材状态与发布前清单见 [ASSET_PROVENANCE.md](ASSET_PROVENANCE.md)。仓库许可证不会覆盖未取得授权的第三方素材。
