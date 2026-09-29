@@ -1,13 +1,13 @@
 # Asset provenance
 
-The repository README states that unmarked supporting assets are original and covered by the project MIT License. That statement has not been independently verified file by file.
+`ASSET_MANIFEST.csv` is the authoritative inventory for repository media. It currently records 114 files under `source/` (86 JPG, 25 PNG and 3 MP4; 223,688,876 bytes total), including exact paths, sizes and SHA-256 digests.
 
-Before a public binary release, record at least the following for every asset under `source/` and every generated resource:
+Every current row is deliberately marked `unverified`. This means the repository does **not** claim that those files are covered by the project MIT License, and they must not be included in a public binary release until the maintainer records:
 
-| Path or group | Creator/source | License or permission | Modifications | Required credit |
-| --- | --- | --- | --- | --- |
-| `source/` images | To be confirmed by maintainer | To be confirmed | To be confirmed | To be confirmed |
-| `source/` videos | To be confirmed by maintainer | To be confirmed | To be confirmed | To be confirmed |
-| Fonts, icons, audio, logos, and hotel marks | To be confirmed if present | To be confirmed | To be confirmed | To be confirmed |
+- creator or original source;
+- license, written permission or other redistribution basis;
+- relevant modifications;
+- required attribution;
+- confirmation that the material contains no identifiable students, private locations or unauthorized hotel marks.
 
-Do not publish material containing identifiable students, private locations, trademarks used without permission, or third-party media without a documented redistribution right.
+After evidence has been retained, set a row to `verified` and fill all provenance fields. Run `python tools/check_release_compliance.py` after any asset change. Release mode rejects every status other than `verified`; see [RELEASE_COMPLIANCE.md](RELEASE_COMPLIANCE.md).

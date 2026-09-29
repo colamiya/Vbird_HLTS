@@ -11,6 +11,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia MultimediaWidgets)
+find_package(Python3 QUIET COMPONENTS Interpreter)
 
 set(PROJECT_SOURCES
     logger.h
@@ -42,6 +43,14 @@ set(PROJECT_SOURCES
 add_executable(HotelTrainingApp ${PROJECT_SOURCES})
 
 target_link_libraries(HotelTrainingApp PRIVATE Qt6::Widgets Qt6::Multimedia Qt6::MultimediaWidgets)
+
+if(Python3_Interpreter_FOUND)
+    add_custom_target(check_release_inventory
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/check_release_compliance.py
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        COMMENT "Checking tracked asset inventory and release metadata"
+    )
+endif()
 
 # Handle Window application on Windows
 if(WIN32)

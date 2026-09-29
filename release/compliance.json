@@ -1,0 +1,18 @@
+{
+  "public_binary_release_approved": false,
+  "target_platform": "windows",
+  "reviewed_at": "",
+  "reviewed_by": "",
+  "qt": {
+    "version": "",
+    "linkage": "dynamic",
+    "source_offer_url": "",
+    "plugins": []
+  },
+  "multimedia": {
+    "backend": "",
+    "notices": []
+  },
+  "asset_manifest": "ASSET_MANIFEST.csv",
+  "runtime_manifest": "dist/qt-runtime-manifest.txt"
+}

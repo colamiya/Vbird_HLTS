@@ -43,6 +43,16 @@ cmake --build build --config Release
 
 如使用 Qt Creator，可直接打开根目录的 `CMakeLists.txt`。
 
+### 发布合规检查
+
+普通开发和 CI 使用以下命令校验 114 个媒体文件是否完整登记、大小与 SHA-256 是否一致：
+
+```powershell
+python tools/check_release_compliance.py
+```
+
+公开二进制发布还必须完成素材授权、Qt 动态链接、Qt 对应源码获取方式、实际部署插件和 Multimedia 后端清单。发布门禁及所需证据见 [RELEASE_COMPLIANCE.md](RELEASE_COMPLIANCE.md)。当前 `release/compliance.json` 明确保持未批准状态，因此版本标签不会被误当作合规发布。
+
 ## 模块结构
 
 - `test1.*`：业务学习幻灯片
@@ -50,7 +60,7 @@ cmake --build build --config Release
 - `test3.*`：酒店布草配送模拟
 - `logger.*`：本地 CSV 训练报告
 - `config_*.h`：界面、文本、资源路径与报告字段配置
-- `source/`：教学图片和视频素材；逐文件来源与再分发权利须在公开二进制发布前完成核验
+- `source/`：教学图片和视频素材；完整路径、大小、SHA-256 与授权状态记录在 [ASSET_MANIFEST.csv](ASSET_MANIFEST.csv)
 
 ## 数据保护建议
 

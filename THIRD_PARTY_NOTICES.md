@@ -14,6 +14,8 @@ The source uses Qt 6 Widgets, Multimedia, and MultimediaWidgets. An open-source 
 
 Static linking needs additional relinking measures or an appropriate commercial Qt license. See the official [Qt licensing overview](https://doc.qt.io/qt-6/licensing.html) and [Qt LGPL obligations](https://www.qt.io/development/open-source-lgpl-obligations).
 
+Repository copies of the applicable license texts are provided at [LICENSES/LGPL-3.0-only.txt](LICENSES/LGPL-3.0-only.txt) and [LICENSES/GPL-3.0-only.txt](LICENSES/GPL-3.0-only.txt). A distributor must still verify the exact license files and notices shipped with its chosen Qt build.
+
 ## Multimedia codecs
 
 Qt Multimedia can use FFmpeg and platform codecs. A release must preserve the notices for the actual backend and codec libraries it includes. Codec and patent obligations vary by format and distribution territory; the project MIT license does not grant patent rights.
@@ -21,3 +23,5 @@ Qt Multimedia can use FFmpeg and platform codecs. A release must preserve the no
 ## Assets
 
 See [ASSET_PROVENANCE.md](ASSET_PROVENANCE.md). A release maintainer must complete the inventory for the exact image, audio, video, font, and hotel-brand material included in a binary package.
+
+The machine-checkable release declaration is [release/compliance.json](release/compliance.json). It remains unapproved until the exact binary payload, Qt version/plugins, source-offer URL, Multimedia backend and all asset permissions are recorded.
